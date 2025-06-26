@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自動化媒體提案引擎 (台灣市場特化版 MVP)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+        }
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0,0,0,0.1);
+        }
+        .btn-primary:disabled {
+            background: #a5b4fc;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        #proposalOutput h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #60a5fa;
+            padding-bottom: 0.5rem;
+        }
+        #proposalOutput h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1d4ed8;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        #proposalOutput p, #proposalOutput li, #proposalOutput td, #proposalOutput th {
+            color: #374151;
+            line-height: 1.7;
+        }
+        #proposalOutput p, #proposalOutput ul {
+             margin-bottom: 1rem;
+        }
+        #proposalOutput ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+        #proposalOutput strong {
+            color: #1e40af;
+            font-weight: 600;
+        }
+        .status-update {
+            transition: all 0.5s ease;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+        }
+        .status-update.active {
+            max-height: 100px; /* or a suitable max-height */
+            opacity: 1;
+            margin-top: 1rem;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .input-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        #proposalOutput table {
+            width: 100%;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-collapse: collapse;
+        }
+        #proposalOutput th, #proposalOutput td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        #proposalOutput th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-6xl mx-auto">
+        <div class="card p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">自動化媒體提案引擎</h1>
+                <p class="mt-2 text-gray-600">v2.5 安全金鑰版 (MVP)</p>
+            </div>
+
+            <!-- Module 1: 使用者與配置介面 ('駕駛艙') -->
+            <div class="space-y-6">
+                 <!-- API 金鑰輸入 -->
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <label for="apiKeyInput" class="block text-sm font-medium text-yellow-800 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 8a6 6 0 11-12 0 6 6 0 0112 0zM7 8a1 1 0 11-2 0 1 1 0 012 0zm5 0a1 1 0 11-2 0 1 1 0 012 0zm5 0a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path></svg>
+                        Google Gemini API 金鑰 <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="password" id="apiKeyInput" class="mt-1 block w-full px-3 py-2 border border-yellow-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="請在此貼上您的 API 金鑰">
+                    <p class="mt-2 text-xs text-yellow-700">此金鑰僅存於您目前的瀏覽器分頁，關閉後即消失，不會被儲存。</p>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="input-grid">
+                        <div>
+                            <label for="targetBrand" class="block text-sm font-medium text-gray-700">目標品牌 / 產品 <span class="text-red-500">*</span></label>
+                            <input type="text" id="targetBrand" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：gogoro, 星宇航空">
+                        </div>
+                        <div>
+                            <label for="competitorBrand" class="block text-sm font-medium text-gray-700">主要競爭對手 <span class="text-red-500">*</span></label>
+                            <input type="text" id="competitorBrand" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：光陽, 長榮航空">
+                        </div>
+                         <div>
+                            <label for="industry" class="block text-sm font-medium text-gray-700">目標市場 / 產業 <span class="text-red-500">*</span></label>
+                            <select id="industry" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option>消費性電子產品</option>
+                                <option>時尚服飾與配件</option>
+                                <option>美妝保養</option>
+                                <option>旅遊與航空服務</option>
+                                <option>餐飲業</option>
+                                <option>B2B 軟體服務</option>
+                                <option>金融與保險服務</option>
+                                <option>其他</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="businessModel" class="block text-sm font-medium text-gray-700">商業模式 <span class="text-red-500">*</span></label>
+                             <select id="businessModel" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="B2C">B2C (企業對消費者)</option>
+                                <option value="B2B">B2B (企業對企業)</option>
+                            </select>
+                        </div>
+                         <div>
+                            <label for="salesChannels" class="block text-sm font-medium text-gray-700">主要銷售通路</label>
+                            <input type="text" id="salesChannels" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：線上官網、MOMO、實體門市">
+                        </div>
+                        <div>
+                            <label for="targetAudience" class="block text-sm font-medium text-gray-700">目標人群描述</label>
+                            <input type="text" id="targetAudience" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：25-35歲都會女性、科技業採購主管">
+                        </div>
+                         <div class="md:col-span-3">
+                            <label for="advertisingBudget" class="block text-sm font-medium text-gray-700">預計廣告預算 (台幣)</label>
+                            <input type="number" id="advertisingBudget" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：300000">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg flex items-center justify-center text-lg">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    生成 AI 分析報告
+                </button>
+            </div>
+
+            <!-- 動態狀態更新區域 -->
+            <div id="statusContainer" class="mt-4 space-y-2"></div>
+
+            <!-- Module 4: 輸出與交付模組 ('渲染層') -->
+            <div id="proposalOutput" class="mt-8 border-t-2 border-gray-200 pt-6">
+                <!-- AI 生成的內容將會顯示在這裡 -->
+            </div>
+        </div>
+        <footer class="text-center mt-4 text-sm text-gray-500">
+            <p>本原型由 Google Gemini 驅動，所有分析皆為即時生成。</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // --- UI 元素 ---
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const targetBrandInput = document.getElementById('targetBrand');
+        const competitorBrandInput = document.getElementById('competitorBrand');
+        const industryInput = document.getElementById('industry');
+        const businessModelInput = document.getElementById('businessModel');
+        const salesChannelsInput = document.getElementById('salesChannels');
+        const targetAudienceInput = document.getElementById('targetAudience');
+        const advertisingBudgetInput = document.getElementById('advertisingBudget');
+        const statusContainer = document.getElementById('statusContainer');
+        const proposalOutput = document.getElementById('proposalOutput');
+
+        // --- Module 2: AI 任務協調與執行核心 ('融合中樞') ---
+        async function callGeminiAPI(prompt, apiKey, isJsonMode = false) {
+            if (!apiKey) {
+                throw new Error("Google Gemini API 金鑰為空，請在介面上方輸入。");
+            }
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+            };
+            if (isJsonMode) {
+                payload.generationConfig = { responseMimeType: "application/json" };
+            }
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`AI API 請求失敗 (狀態 ${response.status}): ${errorBody}`);
+            }
+            const result = await response.json();
+            if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                const rawText = result.candidates[0].content.parts[0].text;
+                return isJsonMode ? JSON.parse(rawText) : rawText;
+            } else {
+                console.error("AI 回應格式不符:", result);
+                throw new Error("AI 未能生成有效的分析報告，請檢查主控台。");
+            }
+        }
+        
+        function updateStatus(text, state = 'running') {
+            const statusId = `status-${Date.now()}`;
+            const icon = {
+                running: `<svg class="animate-spin h-5 w-5 mr-3 text-indigo-500" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`,
+                done: `<svg class="h-5 w-5 mr-3 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>`,
+                error: `<svg class="h-5 w-5 mr-3 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>`,
+            };
+            const div = document.createElement('div');
+            div.id = statusId;
+            div.className = 'status-update flex items-center p-3 bg-gray-100 rounded-lg';
+            div.innerHTML = `${icon[state]}<p class="text-gray-700">${text}</p>`;
+            statusContainer.appendChild(div);
+            setTimeout(() => div.classList.add('active'), 10);
+            return statusId;
+        }
+
+        function markStatusDone(statusId) {
+             const statusElement = document.getElementById(statusId);
+             if (statusElement) {
+                 statusElement.innerHTML = statusElement.innerHTML.replace(/<svg.*?<\/svg>/, 
+                    `<svg class="h-5 w-5 mr-3 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>`
+                 );
+             }
+        }
+        
+        // --- 分析任務定義 ---
+        async function analyzeForumSentiment(context, apiKey) {
+            const prompt = `
+                你是一位專精台灣市場的資深市場分析師。請你根據以下品牌情境，在台灣主流論壇 Dcard 和 PTT 上進行輿情分析。
+
+                **品牌情境:**
+                - **目標品牌:** ${context.target}
+                - **競爭品牌:** ${context.competitor}
+                - **所屬產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **主要銷售通路:** ${context.salesChannels}
+                - **核心目標人群:** ${context.targetAudience}
+
+                你的任務是總結比較的結果，並以一個 JSON 物件的格式回傳。JSON 物件必須包含以下幾個 key: 
+                "target_profile", "target_pros", "target_cons", "competitor_pros", "competitor_cons", "market_opportunity"。
+
+                - **target_profile:** 在論壇中，最接近「${context.targetAudience}」這個輪廓的討論者是誰？他們有什麼特徵？
+                - **target_pros:** 這些目標人群讚賞目標品牌的優點是什麼？ (至少 2 點)。
+                - **target_cons:** 這些目標人群抱怨目標品牌的缺點是什麼？ (至少 2 點)。
+                - **competitor_pros:** 競爭品牌吸引這些目標人群的優點。
+                - **competitor_cons:** 競爭品牌讓這些目標人群卻步的缺點。
+                - **market_opportunity:** 根據以上分析，找出一個能精準打動「${context.targetAudience}」的市場溝通機會點。
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        async function analyzeSeoStrategy(context, apiKey) {
+            const prompt = `
+                你是一位頂尖的 SEO 策略顧問，特別熟悉台灣的 google.com.tw 搜尋引擎生態。
+                請模擬「${context.targetAudience}」這個目標人群，在搜尋與「${context.target}」相關的關鍵字時，他們會看到什麼樣的搜尋結果頁面 (SERP)。
+
+                **品牌情境:**
+                - **目標品牌:** ${context.target}
+                - **商業模式:** ${context.businessModel}
+                - **核心目標人群:** ${context.targetAudience}
+
+                你的任務是總結你的發現，並以一個 JSON 物件的格式回傳。JSON 物件必須包含以下幾個 key: 
+                "main_competitors_in_serp", "dominant_content_format", "user_intent", "content_gap_opportunity"。
+
+                - **main_competitors_in_serp:** 除了「${context.competitor}」之外，在自然搜尋結果中還常出現哪些競爭者？
+                - **dominant_content_format:** 排名靠前的內容主要是長篇文章、產品比較頁、新聞稿，還是 YouTube 影片？
+                - **user_intent:** 「${context.targetAudience}」在搜尋時，其主要的「搜尋意圖」是什麼？請根據 ${context.businessModel} 的特性來分析。
+                - **content_gap_opportunity:** 根據 Google 的「其他人也問了」或「相關搜尋」，找出一個能解決「${context.targetAudience}」痛點，但市場上還沒有優質內容回答的問題，作為內容策略切入點。
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        async function estimateKpiAndBudget(context, opportunity, apiKey) {
+            if (!context.budget || context.budget <= 0) {
+                 return { budget_allocation: [], kpi_estimations: [], rationale: "未提供預算，無法進行估算。" };
+            }
+            const prompt = `
+                你是一位經驗豐富的數位媒體規劃師 (Media Planner)，擅長台灣市場的媒體投資與成效預估。
+                根據以下客戶情境與你已知的市場機會點，規劃一份初步的預算分配與 KPI 預估。
+
+                **客戶情境:**
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **目標人群:** ${context.targetAudience}
+                - **總預算 (TWD):** ${context.budget.toLocaleString()}
+                - **核心策略機會點:** ${opportunity}
+
+                你的任務是產出一個 JSON 物件，包含 "budget_allocation", "kpi_estimations", "rationale" 三個 key。
+
+                1.  **budget_allocation:** 一個陣列。根據「核心策略機會點」，建議將預算分配到 2-3 個最相關的媒體渠道 (例如：付費搜尋, 社群廣告, 內容行銷, 影音廣告)，並給出每個渠道的**百分比**和**金額**。
+                2.  **kpi_estimations:** 一個陣列。為每個建議的渠道，提供**可量化的 KPI 預估**。請使用台灣市場的典型 benchmarks (基準)。
+                    -   **對於 B2C:** 需包含 "Impressions" (曝光), "CTR" (點擊率), "Clicks" (點擊), "CPC" (單次點擊成本), "Est_Conversions" (預估訂單數，請自訂一個合理的轉換率)。
+                    -   **對於 B2B:** 需包含 "Impressions", "CTR", "Clicks", "CPC", "Est_Leads" (預估潛在客戶數，請自訂一個合理的轉換率)。
+                3.  **rationale:** 一段簡短文字，說明你這樣規劃預算優先級的理由。
+
+                請確保回傳的內容是純粹的 JSON 格式。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+
+        // --- Module 3: 提案生成引擎 ('合成引擎') ---
+        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, apiKey) {
+             const prompt = `
+                你是一位首席媒體策略總監，你的任務是將下屬分析師提交的所有 JSON 資料，整合成一份給客戶看的、專業且有說服力的「市場機會與初步策略建議」報告。報告需以 HTML 格式呈現。
+
+                **客戶資料:**
+                - **目標品牌:** ${context.target}
+                - **核心目標人群:** ${context.targetAudience}
+                - **總預算 (TWD):** ${context.budget > 0 ? context.budget.toLocaleString() : '未提供'}
+
+                **分析師提交的資料:**
+                1.  **論壇輿情分析:** ${JSON.stringify(forumAnalysis, null, 2)}
+                2.  **SEO 與內容策略分析:** ${JSON.stringify(seoAnalysis, null, 2)}
+                3.  **預算與 KPI 預估:** ${JSON.stringify(kpiEstimation, null, 2)}
+
+                **你的任務:**
+                請根據以上所有資訊，撰寫一份包含以下章節的 HTML 報告，並在你的分析與建議中，**始終緊扣如何打動「${context.targetAudience}」這個核心目標人群**：
+
+                1.  **<h2>市場總體印象</h2>**
+                    - 一段簡短總結，點出 ${context.target} 目前在「${context.targetAudience}」心中的形象與挑戰。
+
+                2.  **<h2>核心洞察與機會點</h2>**
+                    -   <h3>洞察一：目標人群的真實心聲</h3>
+                    -   <h3>洞察二：搜尋戰場的內容缺口</h3>
+                    -   <h3>策略機會點：我們該從何處切入？</h3>
+
+                3.  **<h2>初步策略建議</h2>**
+                    -   <h3>建議一：內容策略方向</h3>
+                    -   <h3>建議二：溝通訊息切角</h3>
+                
+                4.  **<h2>預算規劃與預期效益</h2>**
+                    -   <p>基於台幣 **${context.budget > 0 ? context.budget.toLocaleString() : '未提供'}** 的預算，我們建議初步的資源分配與效益預估如下：</p>
+                    -   <h3>預算分配建議</h3>
+                    -   (此處使用 HTML table 呈現 kpiEstimation.budget_allocation 的內容)
+                    -   <h3>預期效益 (KPI) 估算</h3>
+                    -   (此處使用 HTML table 呈現 kpiEstimation.kpi_estimations 的內容)
+                    -   <h3>規劃說明</h3>
+                    -   (此處用 <p> 呈現 kpiEstimation.rationale 的內容)
+                
+                **格式要求:**
+                -   請嚴格使用 <h2> 和 <h3> 作為標題。
+                -   段落使用 <p>，列表使用 <ul> 和 <li>。表格使用 <table>, <th>, <tr>, <td>。
+                -   對於品牌名稱或關鍵字詞，使用 <strong> 標籤強調。
+                -   回應內容**僅包含 HTML**，不要包含 \`\`\`html, \`\`\`, <html>, <body> 等標籤。
+            `;
+             return await callGeminiAPI(prompt, apiKey, false);
+        }
+
+        // --- 主執行流程 ---
+        async function handleGenerateClick() {
+            const userApiKey = apiKeyInput.value.trim();
+            if (!userApiKey) {
+                alert('請在最上方輸入您的 Google Gemini API 金鑰。');
+                return;
+            }
+
+            const analysisContext = {
+                target: targetBrandInput.value.trim(),
+                competitor: competitorBrandInput.value.trim(),
+                industry: industryInput.value,
+                businessModel: businessModelInput.value,
+                salesChannels: salesChannelsInput.value.trim() || '未提供',
+                targetAudience: targetAudienceInput.value.trim() || '未指定',
+                budget: parseInt(advertisingBudgetInput.value, 10) || 0
+            };
+
+            if (!analysisContext.target || !analysisContext.competitor) {
+                alert('請務必輸入目標品牌和競爭對手。');
+                return;
+            }
+
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = `分析中...`;
+            statusContainer.innerHTML = '';
+            proposalOutput.innerHTML = '';
+
+            try {
+                const status1 = updateStatus(`分析 **${analysisContext.target}** 在目標人群中的論壇輿情...`);
+                const forumData = await analyzeForumSentiment(analysisContext, userApiKey);
+                markStatusDone(status1);
+
+                const status2 = updateStatus(`分析 **${analysisContext.target}** 的 SEO 與內容策略...`);
+                const seoData = await analyzeSeoStrategy(analysisContext, userApiKey);
+                markStatusDone(status2);
+                
+                const opportunity = forumData.market_opportunity || seoData.content_gap_opportunity;
+                
+                const status3 = updateStatus(`進行預算規劃與 KPI 估算...`);
+                const kpiData = await estimateKpiAndBudget(analysisContext, opportunity, userApiKey);
+                markStatusDone(status3);
+
+                const status4 = updateStatus(`綜合所有洞察，生成最終報告...`);
+                const finalReportHtml = await synthesizeFinalReport(analysisContext, forumData, seoData, kpiData, userApiKey);
+                markStatusDone(status4);
+
+                proposalOutput.innerHTML = finalReportHtml;
+
+            } catch (error) {
+                console.error('生成提案時發生錯誤:', error);
+                updateStatus(`生成報告時發生錯誤: ${error.message}`, 'error');
+                proposalOutput.innerHTML = `<p class="text-red-600 font-bold">抱歉，處理過程中發生錯誤。請檢查瀏覽器的主控台以獲取詳細技術資訊，然後再試一次。</p>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = `重新生成 AI 分析報告`;
+            }
+        }
+
+        generateBtn.addEventListener('click', handleGenerateClick);
+    </script>
+</body>
+</html>
+
