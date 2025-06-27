@@ -26,6 +26,18 @@
                 }
             }
         }
+
+        // 修正 Google API 載入問題
+        window.addEventListener('load', function() {
+            // 延遲載入 Google API 以避免跨域問題
+            setTimeout(() => {
+                if (typeof gapi !== 'undefined') {
+                    gapi.load('client', function() {
+                        console.log('Google API 載入成功');
+                    });
+                }
+            }, 1000);
+        });
     </script>
     <style>
         /* Base styling and animations */
@@ -173,6 +185,151 @@
                         </div>
                     </section>
                 </div>
+
+                <!-- 分析系統主要內容區域 -->
+                <div id="analysis-panel-content" class="panel active">
+                    <!-- Step 1: 分析設定 -->
+                    <div id="step-1-content" class="step-panel">
+                        <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
+                            <h2 class="text-2xl font-bold mb-6 text-techaccent">📊 分析設定</h2>
+                            
+                            <!-- Project ID 輸入 -->
+                            <div class="mb-6">
+                                <label for="project-id" class="block text-sm font-medium text-gray-300 mb-2">專案 ID</label>
+                                <input type="text" id="project-id" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="請輸入專案 ID">
+                                <p class="text-xs text-gray-400 mt-1">此 ID 將用於檔案命名和資料夾組織</p>
+                            </div>
+
+                            <!-- 分析主題設定 -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="topic" class="block text-sm font-medium text-gray-300 mb-2">分析主題 *</label>
+                                    <input type="text" id="topic" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="例如: 電動車市場分析">
+                                </div>
+                                <div>
+                                    <label for="industry" class="block text-sm font-medium text-gray-300 mb-2">產業類別</label>
+                                    <input type="text" id="industry" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="例如: 汽車製造業">
+                                </div>
+                                <div>
+                                    <label for="product" class="block text-sm font-medium text-gray-300 mb-2">產品/服務</label>
+                                    <input type="text" id="product" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="例如: 電動車">
+                                </div>
+                                <div>
+                                    <label for="company" class="block text-sm font-medium text-gray-300 mb-2">公司名稱</label>
+                                    <input type="text" id="company" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="例如: Tesla">
+                                </div>
+                            </div>
+
+                            <!-- 業務模式選擇 -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-300 mb-3">業務模式</label>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <label class="flex items-center p-3 rounded-lg bg-techbg border border-techprimary/20 cursor-pointer hover:border-techaccent">
+                                        <input type="radio" name="business-model" value="B2B" class="mr-2" checked>
+                                        <span class="text-sm">B2B</span>
+                                    </label>
+                                    <label class="flex items-center p-3 rounded-lg bg-techbg border border-techprimary/20 cursor-pointer hover:border-techaccent">
+                                        <input type="radio" name="business-model" value="B2C" class="mr-2">
+                                        <span class="text-sm">B2C</span>
+                                    </label>
+                                    <label class="flex items-center p-3 rounded-lg bg-techbg border border-techprimary/20 cursor-pointer hover:border-techaccent">
+                                        <input type="radio" name="business-model" value="B2B2C" class="mr-2">
+                                        <span class="text-sm">B2B2C</span>
+                                    </label>
+                                    <label class="flex items-center p-3 rounded-lg bg-techbg border border-techprimary/20 cursor-pointer hover:border-techaccent">
+                                        <input type="radio" name="business-model" value="SaaS" class="mr-2">
+                                        <span class="text-sm">SaaS</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- 地區和語言設定 -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div>
+                                    <label for="country" class="block text-sm font-medium text-gray-300 mb-2">目標市場</label>
+                                    <select id="country" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
+                                        <option value="TW">台灣</option>
+                                        <option value="US">美國</option>
+                                        <option value="CN">中國</option>
+                                        <option value="JP">日本</option>
+                                        <option value="KR">韓國</option>
+                                        <option value="SG">新加坡</option>
+                                        <option value="HK">香港</option>
+                                        <option value="MY">馬來西亞</option>
+                                        <option value="TH">泰國</option>
+                                        <option value="VN">越南</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="language" class="block text-sm font-medium text-gray-300 mb-2">分析語言</label>
+                                    <select id="language" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
+                                        <option value="zh-TW">繁體中文</option>
+                                        <option value="en">English</option>
+                                        <option value="zh-CN">簡體中文</option>
+                                        <option value="ja">日本語</option>
+                                        <option value="ko">한국어</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="sector" class="block text-sm font-medium text-gray-300 mb-2">細分產業</label>
+                                    <input type="text" id="sector" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="例如: 新能源汽車">
+                                </div>
+                            </div>
+
+                            <button id="start-analysis-btn" class="w-full bg-gradient-to-tr from-techprimary to-techaccent hover:from-techsecondary hover:to-techaccent font-bold text-white px-6 py-3 rounded-lg shadow-lg">開始分析</button>
+                        </section>
+                    </div>
+
+                    <!-- Step 2: 對手篩選與補充 -->
+                    <div id="step-2-content" class="step-panel hidden">
+                        <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
+                            <h2 class="text-2xl font-bold mb-6 text-techaccent">🎯 對手篩選與補充</h2>
+                            
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-200">初步競爭對手清單</h3>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="select-all-competitors" class="mr-2">
+                                        <span class="text-sm text-gray-300">全選</span>
+                                    </label>
+                                </div>
+                                <div id="initial-competitors-list" class="space-y-3">
+                                    <!-- 競爭對手項目將在這裡動態生成 -->
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <button id="analyze-selected-btn" class="bg-gradient-to-tr from-techprimary to-techaccent hover:from-techsecondary hover:to-techaccent font-bold text-white px-6 py-3 rounded-lg shadow-lg">分析選中的競爭對手</button>
+                                <button onclick="goToStep(1)" class="bg-gray-600 hover:bg-gray-700 font-bold text-white px-6 py-3 rounded-lg shadow-lg">返回上一步</button>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Step 3: 完整報告 -->
+                    <div id="step-3-content" class="step-panel hidden">
+                        <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
+                            <h2 class="text-2xl font-bold mb-6 text-techaccent">📈 完整分析報告</h2>
+                            
+                            <!-- 載入指示器 -->
+                            <div id="loading-indicator" class="hidden flex items-center justify-center py-8">
+                                <div class="spinner mr-4"></div>
+                                <div id="loading-status" class="text-gray-300">正在生成報告...</div>
+                            </div>
+
+                            <!-- 結果容器 -->
+                            <div id="results-container" class="space-y-6">
+                                <!-- 報告內容將在這裡動態生成 -->
+                            </div>
+
+                            <div class="flex gap-4 mt-8">
+                                <button id="save-analysis-btn" class="bg-gradient-to-tr from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 font-bold text-white px-6 py-3 rounded-lg shadow-lg">儲存到 Google Drive</button>
+                                <button id="export-excel-btn" class="bg-gradient-to-tr from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 font-bold text-white px-6 py-3 rounded-lg shadow-lg">匯出 Excel</button>
+                                <button onclick="goToStep(2)" class="bg-gray-600 hover:bg-gray-700 font-bold text-white px-6 py-3 rounded-lg shadow-lg">返回上一步</button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
                 <div id="history-panel" class="panel hidden">
                      <div class="text-center text-gray-500 py-16">歷史紀錄功能正在開發中...</div>
                 </div>
@@ -275,17 +432,37 @@ function setupGapi() {
 }
 
 function setupEventListeners() {
-    ui.authorizeButton.onclick = () => state.tokenClient.requestAccessToken();
-    ui.signOutButton.onclick = handleSignOut;
-    ui.saveSettingsBtn.onclick = handleSaveSettings;
-    ui.startAnalysisBtn.onclick = startInitialAnalysis;
-    ui.analyzeSelectedBtn.onclick = processAndAnalyzeCompetitors;
-    ui.selectAllCompetitors.onchange = (e) => {
-        document.querySelectorAll('.competitor-checkbox').forEach(cb => cb.checked = e.target.checked);
-    };
+    // 安全地設置事件監聽器，檢查元素是否存在
+    if (ui.authorizeButton) {
+        ui.authorizeButton.onclick = () => state.tokenClient?.requestAccessToken();
+    }
+    if (ui.signOutButton) {
+        ui.signOutButton.onclick = handleSignOut;
+    }
+    if (ui.saveSettingsBtn) {
+        ui.saveSettingsBtn.onclick = handleSaveSettings;
+    }
+    if (ui.startAnalysisBtn) {
+        ui.startAnalysisBtn.onclick = startInitialAnalysis;
+    }
+    if (ui.analyzeSelectedBtn) {
+        ui.analyzeSelectedBtn.onclick = processAndAnalyzeCompetitors;
+    }
+    if (ui.selectAllCompetitors) {
+        ui.selectAllCompetitors.onchange = (e) => {
+            document.querySelectorAll('.competitor-checkbox').forEach(cb => cb.checked = e.target.checked);
+        };
+    }
+    
+    // 設置標籤頁切換事件
     document.querySelectorAll('.tab-main').forEach(btn => btn.addEventListener('click', handleMainTabSwitch));
-    ui.saveAnalysisBtn.onclick = saveAnalysisToDrive;
-    ui.exportExcelBtn.onclick = exportToExcel;
+    
+    if (ui.saveAnalysisBtn) {
+        ui.saveAnalysisBtn.onclick = saveAnalysisToDrive;
+    }
+    if (ui.exportExcelBtn) {
+        ui.exportExcelBtn.onclick = exportToExcel;
+    }
     
     // 新增事件監聽器
     setupEnhancedEventListeners();
@@ -361,18 +538,30 @@ window.goToStep = function(step) {
     if (step === 3 && state.analysisData.finalCompetitors.length === 0) return;
     if (step === 2 && state.analysisData.initialCompetitors.length === 0) return;
 
-    document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
-    document.getElementById(`step-${step}-content`).classList.remove('hidden');
+    // 隱藏所有step-panel
+    document.querySelectorAll('.step-panel').forEach(p => {
+        if (p) p.classList.add('hidden');
+    });
+    
+    // 顯示目標step-panel
+    const targetPanel = document.getElementById(`step-${step}-content`);
+    if (targetPanel) {
+        targetPanel.classList.remove('hidden');
+    }
 
+    // 更新step指示器
     document.querySelectorAll('.step').forEach((s) => {
-        s.classList.remove('active', 'completed');
-        const currentStepNum = parseInt(s.id.split('-')[1]);
-        if (currentStepNum < step) {
-            s.classList.add('completed');
-        } else if (currentStepNum === step) {
-            s.classList.add('active');
+        if (s) {
+            s.classList.remove('active', 'completed');
+            const currentStepNum = parseInt(s.id.split('-')[1]);
+            if (currentStepNum < step) {
+                s.classList.add('completed');
+            } else if (currentStepNum === step) {
+                s.classList.add('active');
+            }
         }
     });
+    
     if(step < state.currentStep) state.currentStep = step;
 }
 
