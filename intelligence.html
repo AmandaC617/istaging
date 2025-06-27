@@ -404,6 +404,8 @@ window.onload = function() {
     setupGapi();
     setupEventListeners();
     loadProjectIdFromUrl();
+    // 預設顯示API設定分頁，確保使用者能人工輸入金鑰
+    handleMainTabSwitch({ target: document.querySelector('[data-tab="settings"]') });
 };
 
 function setupGapi() {
@@ -471,14 +473,18 @@ function setupEventListeners() {
 // --- UI & STATE MANAGEMENT ---
 function updateUIState() {
     const loggedIn = !!state.accessToken;
+    // API金鑰/ID必須人工輸入，與Google登入完全分離
+    const apiReady = !!state.apiKeys.google && !!state.apiKeys.searchEngineId;
+    state.isApiReady = apiReady;
     ui.authorizeButton.classList.toggle('hidden', loggedIn);
     ui.userProfileDiv.classList.toggle('hidden', !loggedIn);
-    ui.appContainer.classList.toggle('locked', !loggedIn);
-
-    if (!loggedIn) {
-        goToStep(1); // Reset to first step on logout
-        showAlert('請先登入', '登入 Google 帳號以開始使用。', 'info');
-    } else if (!state.isApiReady) {
+    // 只要API設定未完成，主功能區塊鎖定
+    ui.appContainer.classList.toggle('locked', !apiReady);
+    // API設定分頁永遠可見
+    document.querySelector('[data-tab="settings"]').classList.remove('hidden');
+    document.getElementById('settings-panel').classList.remove('hidden');
+    // 若API未設定，預設顯示API設定分頁
+    if (!apiReady) {
         handleMainTabSwitch({ target: document.querySelector('[data-tab="settings"]') });
         showAlert('請先設定 API', '請在 API 設定頁面填寫必要的金鑰。', 'warning');
     }
@@ -616,24 +622,24 @@ function handleSignOut() {
     showAlert('已登出', '您已成功登出。');
 }
 
-async function handleSaveSettings() {
+function handleSaveSettings() {
     state.apiKeys.google = document.getElementById('google-api-key').value.trim();
     state.apiKeys.searchEngineId = document.getElementById('search-engine-id').value.trim();
-    
     // 讀取集中化資料夾設定
     state.folderStructure.centralFolder = document.getElementById('central-folder-name').value.trim() || 'iStaging_專案管理';
     state.folderStructure.intelligenceSubfolder = document.getElementById('intelligence-subfolder').value.trim() || '01_市場情資分析';
     state.folderStructure.mediaplanSubfolder = document.getElementById('mediaplan-subfolder').value.trim() || '02_媒體提案';
     state.folderStructure.workflowSubfolder = document.getElementById('workflow-subfolder').value.trim() || '03_工作流程文件';
-
+    // API金鑰/ID必須人工輸入，與Google登入完全分離
     if (state.apiKeys.google && state.apiKeys.searchEngineId) {
         state.isApiReady = true;
         showAlert('設定已儲存', 'API 與資料夾設定已儲存完成。', 'success');
         handleMainTabSwitch({ target: document.querySelector('[data-tab="analysis"]') });
-        if (state.accessToken) await setupCentralizedFolderStructure();
+        if (state.accessToken) findOrCreateDriveFolder();
     } else {
         state.isApiReady = false;
         showAlert('設定不完整', '請填寫 Google API 金鑰和搜尋引擎 ID。', 'warning');
+        handleMainTabSwitch({ target: document.querySelector('[data-tab="settings"]') });
     }
 }
 
