@@ -3,23 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專案工作流程管理系統 (Firebase 版)</title>
+    <title>進階專案工作流程管理系統 (Firebase 版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f4f8; }
         .step-item, .project-card { transition: all 0.3s ease; }
-        .project-card:hover, .step-item:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
-        .step-complete { background-color: #d1fae5; border-color: #10b981; }
-        .step-active { background-color: #e0f2fe; border-color: #3b82f6; }
+        .project-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .step-complete { background-color: #dcfce7; border-color: #22c55e; }
         .step-pending { background-color: #ffffff; border-color: #d1d5db; }
         .progress-bar { transition: width 0.5s ease; }
-        .comment-item { border-left: 3px solid #3b82f6; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1.5s linear infinite; }
+        .comment-item { border-left: 3px solid #93c5fd; }
+        .log-item, .activity-item { border-left: 3px solid #a78bfa; }
+        .script-approved { background-color: #f8fafc; border-left: 4px solid #22c55e; }
+        .loader, .btn-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1.5s linear infinite; }
+        .btn-spinner { border-width: 2px; width: 16px; height: 16px; display: inline-block; margin-right: 8px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .skeleton-card { background-color: #ffffff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06); }
         .skeleton { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; background-color: #e5e7eb; border-radius: 0.25rem; }
         @keyframes pulse { 50% { opacity: .5; } }
+        .step-content { max-height: 0; overflow: hidden; transition: max-height 0.7s ease-in-out; }
+        .new-activity-dot {
+            height: 8px; width: 8px; background-color: #ef4444; border-radius: 50%;
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -48,8 +56,8 @@
     <div id="app" class="hidden">
         <nav class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg><h1 class="text-xl font-bold">專案工作流程管理系統</h1></div>
-                <div class="flex items-center"><div class="mr-4 text-right"><span id="user-name" class="font-medium"></span></div><div class="relative"><button id="user-menu-button" class="flex items-center focus:outline-none"><img id="user-avatar" class="h-8 w-8 rounded-full" src="" alt="使用者頭像"></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10"><a href="#" id="logout-button" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">登出</a></div></div></div>
+                <div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg><h1 class="text-xl font-bold">進階專案工作流程管理系統</h1></div>
+                <div class="flex items-center"><div id="admin-badge" class="hidden mr-4 text-right px-2 py-1 bg-yellow-400 text-yellow-800 text-xs font-bold rounded">超級管理員</div><div class="mr-4 text-right"><span id="user-name" class="font-medium"></span></div><div class="relative"><button id="user-menu-button" class="flex items-center focus:outline-none"><img id="user-avatar" class="h-8 w-8 rounded-full" src="" alt="使用者頭像"></button><div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10"><a href="#" id="logout-button" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">登出</a></div></div></div>
             </div>
         </nav>
         <main class="container mx-auto px-4 py-8">
@@ -62,29 +70,128 @@
     </div>
     
     <!-- 新增/編輯專案模態框 -->
-    <div id="project-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-40 hidden">
+    <div id="project-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-40 hidden overflow-y-auto py-10">
         <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
-            <div class="flex justify-between items-center mb-6"><h2 id="project-modal-title" class="text-2xl font-bold">新增專案</h2><button class="close-modal-btn text-gray-400 hover:text-gray-600">&times;</button></div>
-            <form id="project-form"><input type="hidden" id="project-id"><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"><div><label class="block text-gray-700 mb-2" for="project-name-input">專案名稱*</label><input type="text" id="project-name-input" class="w-full px-4 py-2 border rounded-md" required></div><div><label class="block text-gray-700 mb-2" for="client-name-input">客戶名稱*</label><input type="text" id="client-name-input" class="w-full px-4 py-2 border rounded-md" required></div></div><div class="flex justify-end"><button type="button" class="close-modal-btn bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-6 rounded-md mr-4">取消</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-md">儲存</button></div></form>
+            <div class="flex justify-between items-center mb-6"><h2 id="project-modal-title" class="text-2xl font-bold">新增專案</h2><button class="close-modal-btn text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button></div>
+            <form id="project-form"><input type="hidden" id="project-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div><label class="block text-gray-700 mb-2" for="project-name-input">專案名稱*</label><input type="text" id="project-name-input" class="w-full px-4 py-2 border rounded-md" required></div>
+                    <div><label class="block text-gray-700 mb-2" for="client-name-input">客戶名稱*</label><input type="text" id="client-name-input" class="w-full px-4 py-2 border rounded-md" required></div>
+                    <div><label class="block text-gray-700 mb-2" for="market-input">市場國家*</label>
+                        <select id="market-input" class="w-full px-4 py-2 border rounded-md bg-white" required>
+                            <option value="">請選擇國家</option>
+                            <option value="TW">台灣 (Taiwan)</option>
+                            <option value="US">美國 (United States)</option>
+                            <option value="JP">日本 (Japan)</option>
+                            <option value="UK">英國 (United Kingdom)</option>
+                            <option value="KR">韓國 (South Korea)</option>
+                            <option value="CN">中國 (China)</option>
+                            <option value="SG">新加坡 (Singapore)</option>
+                            <option value="HK">香港 (Hong Kong)</option>
+                            <option value="AU">澳洲 (Australia)</option>
+                            <option value="CA">加拿大 (Canada)</option>
+                            <option value="DE">德國 (Germany)</option>
+                            <option value="FR">法國 (France)</option>
+                            <option value="IT">義大利 (Italy)</option>
+                            <option value="ES">西班牙 (Spain)</option>
+                            <option value="NL">荷蘭 (Netherlands)</option>
+                            <option value="SE">瑞典 (Sweden)</option>
+                            <option value="NO">挪威 (Norway)</option>
+                            <option value="DK">丹麥 (Denmark)</option>
+                            <option value="FI">芬蘭 (Finland)</option>
+                            <option value="CH">瑞士 (Switzerland)</option>
+                            <option value="AT">奧地利 (Austria)</option>
+                            <option value="BE">比利時 (Belgium)</option>
+                            <option value="IE">愛爾蘭 (Ireland)</option>
+                            <option value="NZ">紐西蘭 (New Zealand)</option>
+                            <option value="BR">巴西 (Brazil)</option>
+                            <option value="MX">墨西哥 (Mexico)</option>
+                            <option value="AR">阿根廷 (Argentina)</option>
+                            <option value="CL">智利 (Chile)</option>
+                            <option value="CO">哥倫比亞 (Colombia)</option>
+                            <option value="PE">秘魯 (Peru)</option>
+                            <option value="VE">委內瑞拉 (Venezuela)</option>
+                            <option value="IN">印度 (India)</option>
+                            <option value="TH">泰國 (Thailand)</option>
+                            <option value="VN">越南 (Vietnam)</option>
+                            <option value="MY">馬來西亞 (Malaysia)</option>
+                            <option value="ID">印尼 (Indonesia)</option>
+                            <option value="PH">菲律賓 (Philippines)</option>
+                            <option value="AE">阿聯酋 (UAE)</option>
+                            <option value="SA">沙烏地阿拉伯 (Saudi Arabia)</option>
+                            <option value="IL">以色列 (Israel)</option>
+                            <option value="TR">土耳其 (Turkey)</option>
+                            <option value="RU">俄羅斯 (Russia)</option>
+                            <option value="PL">波蘭 (Poland)</option>
+                            <option value="CZ">捷克 (Czech Republic)</option>
+                            <option value="HU">匈牙利 (Hungary)</option>
+                            <option value="RO">羅馬尼亞 (Romania)</option>
+                            <option value="BG">保加利亞 (Bulgaria)</option>
+                            <option value="HR">克羅埃西亞 (Croatia)</option>
+                            <option value="SI">斯洛維尼亞 (Slovenia)</option>
+                            <option value="SK">斯洛伐克 (Slovakia)</option>
+                            <option value="LT">立陶宛 (Lithuania)</option>
+                            <option value="LV">拉脫維亞 (Latvia)</option>
+                            <option value="EE">愛沙尼亞 (Estonia)</option>
+                            <option value="GR">希臘 (Greece)</option>
+                            <option value="PT">葡萄牙 (Portugal)</option>
+                            <option value="OTHER">其他 (Other)</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-gray-700 mb-2" for="proposal-time-input">提案時間*</label><input type="date" id="proposal-time-input" class="w-full px-4 py-2 border rounded-md" required></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                     <div><label class="block text-gray-700 mb-2" for="status-input">專案狀態</label>
+                        <select id="status-input" class="w-full px-4 py-2 border rounded-md bg-white">
+                            <option value="active">進行中</option>
+                            <option value="closed">已結案</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-gray-700 mb-2" for="launch-date-input">實際上線日*</label><input type="date" id="launch-date-input" class="w-full px-4 py-2 border rounded-md" required></div>
+                    <div><label class="block text-gray-700 mb-2" for="close-date-input">結案日</label><input type="date" id="close-date-input" class="w-full px-4 py-2 border rounded-md"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div><label class="block text-gray-700 mb-2" for="budget-input">預算金額 (NT$)</label><input type="number" id="budget-input" class="w-full px-4 py-2 border rounded-md" placeholder="請輸入預算金額" min="0" step="1000"></div>
+                    <div><label class="block text-gray-700 mb-2" for="project-uid-input">專案編號</label><input type="text" id="project-uid-input" class="w-full px-4 py-2 border rounded-md bg-gray-100" readonly placeholder="系統自動產生"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div><label class="block text-gray-700 mb-2" for="dashboard-internal-link-input">內部用 Dashboard 連結</label><input type="url" id="dashboard-internal-link-input" class="w-full px-4 py-2 border rounded-md" placeholder="https://lookerstudio.google.com/internal..."></div>
+                    <div><label class="block text-gray-700 mb-2" for="dashboard-client-link-input">客戶版 Dashboard 連結</label><input type="url" id="dashboard-client-link-input" class="w-full px-4 py-2 border rounded-md" placeholder="https://lookerstudio.google.com/client..."></div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="close-modal-btn bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-6 rounded-md mr-4">取消</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-md flex items-center justify-center">儲存</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- 確認刪除模態框 -->
     <div id="delete-confirm-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden"><div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full"><h3 class="text-lg font-medium text-gray-900">確認刪除</h3><div class="mt-2"><p class="text-sm text-gray-500">您確定要刪除這個專案嗎？此操作無法復原。</p></div><div class="mt-4 flex justify-end space-x-2"><button id="cancel-delete-btn" class="bg-gray-200 py-2 px-4 rounded-md">取消</button><button id="confirm-delete-btn" class="bg-red-600 text-white py-2 px-4 rounded-md">確認刪除</button></div></div></div>
 
+    <!-- 調試面板 (僅超級管理員可見) -->
+    <div id="debug-panel" class="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg border hidden">
+        <h3 class="font-bold text-sm mb-2">調試資訊</h3>
+        <div id="debug-content" class="text-xs space-y-1"></div>
+    </div>
+
     <script type="module">
+        // --- Firebase v11.6.1 SDKs ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, getDoc, writeBatch, getDocs, deleteField, setDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // --- App Config & State ---
+        const SUPER_ADMIN_EMAIL = "amanda.chien@timelimited.com.tw"; 
         const firebaseConfig = {
-          apiKey: "AIzaSyALiBzYT1uRmRKBD7nlDLw0TyD3UVyn3S4",
-          authDomain: "istagingworkflow.firebaseapp.com",
-          projectId: "istagingworkflow",
-          storageBucket: "istagingworkflow.appspot.com",
-          messagingSenderId: "619527055783",
-          appId: "1:619527055783:web:2636704afb69595e752e82"
+            apiKey: "AIzaSyALiBzYT1uRmRKBD7nlDLw0TyD3UVyn3S4",
+            authDomain: "istagingworkflow.firebaseapp.com",
+            projectId: "istagingworkflow",
+            storageBucket: "istagingworkflow.appspot.com",
+            messagingSenderId: "619527055783",
+            appId: "1:619527055783:web:2636704afb69595e752e82"
         };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -92,11 +199,18 @@
         let currentUser = null;
         let unsubscribeProjects = null;
         let unsubscribeProjectDetail = null;
+        let unsubscribeComments = {};
+        let lastKnownProjectState = {};
+        const TOTAL_STEPS = 7;
+        let allUsersCache = new Map();
+
+        // --- UI Elements ---
         const UI = {
             loader: document.getElementById('initial-loader'),
             loginModal: document.getElementById('login-modal'),
             googleLoginBtn: document.getElementById('google-login-btn'),
             app: document.getElementById('app'),
+            adminBadge: document.getElementById('admin-badge'),
             userName: document.getElementById('user-name'),
             userAvatar: document.getElementById('user-avatar'),
             logoutBtn: document.getElementById('logout-button'),
@@ -112,233 +226,1713 @@
             projectIdInput: document.getElementById('project-id'),
             projectNameInput: document.getElementById('project-name-input'),
             clientNameInput: document.getElementById('client-name-input'),
+            marketInput: document.getElementById('market-input'),
+            proposalTimeInput: document.getElementById('proposal-time-input'),
+            statusInput: document.getElementById('status-input'),
+            launchDateInput: document.getElementById('launch-date-input'),
+            closeDateInput: document.getElementById('close-date-input'),
+            budgetInput: document.getElementById('budget-input'),
+            projectUidInput: document.getElementById('project-uid-input'),
+            dashboardInternalLinkInput: document.getElementById('dashboard-internal-link-input'),
+            dashboardClientLinkInput: document.getElementById('dashboard-client-link-input'),
             closeModalBtns: document.querySelectorAll('.close-modal-btn'),
             deleteConfirmModal: document.getElementById('delete-confirm-modal'),
             cancelDeleteBtn: document.getElementById('cancel-delete-btn'),
             confirmDeleteBtn: document.getElementById('confirm-delete-btn'),
+            debugPanel: document.getElementById('debug-panel'),
+            debugContent: document.getElementById('debug-content'),
         };
 
-        // --- AUTHENTICATION ---
-    let isLoggingIn = false;
-function handleGoogleLogin() {
-    if (isLoggingIn) return;
-    isLoggingIn = true;
-    UI.googleLoginBtn.disabled = true;
-    UI.googleLoginBtn.textContent = "登入中...";
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-        .catch((error) => {
-            isLoggingIn = false;
-            UI.googleLoginBtn.disabled = false;
-            UI.googleLoginBtn.textContent = "使用 Google 帳號登入";
-            // ...錯誤處理
-            if (error.code === 'auth/popup-blocked') {
-                alert('瀏覽器阻擋了彈出式視窗，請允許彈出式視窗後再試一次。');
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                console.log('使用者關閉了登入視窗。');
-            } else if (error.code === 'auth/unauthorized-domain') {
-                alert('這個網域尚未被 Firebase 授權，請依照教學文件完成設定。');
+        // --- Helper Functions ---
+        const isSuperAdmin = (user) => {
+            const result = user?.email === SUPER_ADMIN_EMAIL;
+            console.log('超級管理員檢查:', {
+                userEmail: user?.email,
+                superAdminEmail: SUPER_ADMIN_EMAIL,
+                isSuperAdmin: result
+            });
+            return result;
+        };
+        const toLocaleString = (dateStr) => dateStr ? new Date(dateStr).toLocaleString('zh-TW', { hour12: false }) : 'N/A';
+        const toLocaleDateString = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('zh-TW') : 'N/A';
+        const escapeHTML = (str) => str ? str.replace(/[&<>"']/g, (match) => ({'&': '&amp;','<': '&lt;','>': '&gt;','"': '&quot;',"'": '&#39;'}[match])) : '';
+        
+        // 生成專案 UID：年份日期＋客戶名稱＋國家＋啟動日
+        function generateProjectUID(clientName, country, launchDate) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}${month}${day}`;
+            
+            // 清理客戶名稱（移除特殊字符，只保留中英文和數字）
+            const cleanClientName = clientName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').substring(0, 10);
+            
+            // 國家代碼
+            const countryCode = country || 'TBD';
+            
+            // 啟動日格式
+            const launchStr = launchDate ? launchDate.replace(/-/g, '') : 'TBD';
+            
+            return `${dateStr}_${cleanClientName}_${countryCode}_${launchStr}`.toUpperCase();
+        }
+        
+        // 格式化金額顯示
+        function formatCurrency(amount) {
+            if (!amount) return '未設定';
+            return new Intl.NumberFormat('zh-TW', {
+                style: 'currency',
+                currency: 'TWD',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function toggleButtonLoading(button, isLoading, originalText = '儲存') {
+            if (!button) return;
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = `<span class="btn-spinner"></span>處理中...`;
+            } else {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+
+        // 遷移現有專案，確保它們有 projectId 和正確的擁有者資訊
+        async function migrateExistingProjects() {
+            if (!isSuperAdmin(currentUser)) return;
+            
+            try {
+                const projectsRef = collection(db, "projects");
+                const snapshot = await getDocs(projectsRef);
+                const batch = writeBatch(db);
+                let migratedCount = 0;
+                
+                snapshot.docs.forEach(doc => {
+                    const projectData = doc.data();
+                    const updates = {};
+                    
+                    // 如果沒有 projectId，添加一個
+                    if (!projectData.projectId) {
+                        updates.projectId = `PROJ_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    }
+                    
+                    // 如果沒有 ownerId 但有 ownerEmail，嘗試找到對應的 UID
+                    if (!projectData.ownerId && projectData.ownerEmail) {
+                        const userUid = Array.from(allUsersCache.keys()).find(uid => 
+                            allUsersCache.get(uid)?.email === projectData.ownerEmail
+                        );
+                        if (userUid) {
+                            updates.ownerId = userUid;
+                            updates.ownerName = allUsersCache.get(userUid)?.name;
+                        }
+                    }
+                    
+                    // 如果有更新，加入批次
+                    if (Object.keys(updates).length > 0) {
+                        batch.update(doc.ref, updates);
+                        migratedCount++;
+                    }
+                });
+                
+                if (migratedCount > 0) {
+                    await batch.commit();
+                    console.log(`已遷移 ${migratedCount} 個專案`);
+                }
+            } catch (error) {
+                console.error('遷移專案失敗:', error);
+            }
+        }
+
+        // --- AUTHENTICATION & App Initialization ---
+        onAuthStateChanged(auth, async (user) => {
+            console.log('身份驗證狀態變更:', user ? '已登入' : '未登入');
+            UI.loader.classList.add('hidden');
+            
+            if (user) {
+                currentUser = { uid: user.uid, name: user.displayName, email: user.email, avatar: user.photoURL };
+                console.log('使用者資訊:', currentUser);
+                
+                // 立即顯示應用程式介面
+                UI.loginModal.classList.add('hidden');
+                UI.app.classList.remove('hidden');
+                UI.userName.textContent = currentUser.name || '使用者';
+                UI.userAvatar.src = currentUser.avatar || '';
+                UI.adminBadge.classList.toggle('hidden', !isSuperAdmin(currentUser));
+                
+                // 非同步更新使用者資料和載入專案
+                Promise.all([
+                    setDoc(doc(db, "users", user.uid), { 
+                        email: user.email, 
+                        name: user.displayName, 
+                        avatar: user.photoURL 
+                    }, { merge: true }),
+                    fetchAllUsers()
+                ]).then(() => {
+                    console.log('使用者資料更新完成');
+                    // 測試 Firebase 連接並開始監聽專案
+                    testFirebaseConnection().then(success => {
+                        if (success) {
+                            console.log('Firebase 測試通過，開始監聽專案');
+                            listenForProjects();
+                        } else {
+                            console.error('Firebase 測試失敗，無法載入專案');
+                        }
+                    });
+                    
+                    // 如果是超級管理員，執行遷移並顯示調試面板
+                    if (isSuperAdmin(currentUser)) {
+                        migrateExistingProjects();
+                        UI.debugPanel.classList.remove('hidden');
+                        updateDebugInfo();
+                    }
+                }).catch(error => {
+                    console.error('初始化失敗:', error);
+                });
+            } else {
+                currentUser = null;
+                console.log('使用者已登出，清理資源');
+                
+                // 清理監聽器
+                Object.values(unsubscribeComments).forEach(unsub => unsub());
+                unsubscribeComments = {};
+                if (unsubscribeProjects) unsubscribeProjects();
+                if (unsubscribeProjectDetail) unsubscribeProjectDetail();
+                
+                // 顯示登入介面
+                UI.loginModal.classList.remove('hidden');
+                UI.app.classList.add('hidden');
+                UI.adminBadge.classList.add('hidden');
             }
         });
-}
 
-onAuthStateChanged(auth, user => {
-    isLoggingIn = false;
-    UI.googleLoginBtn.disabled = false;
-    UI.googleLoginBtn.textContent = "使用 Google 帳號登入";
-    UI.loader.classList.add('hidden');
-    if (user) {
-        currentUser = { uid: user.uid, name: user.displayName, email: user.email, avatar: user.photoURL };
-        initializeAppUI();
-    } else {
-        currentUser = null;
-        if (unsubscribeProjects) unsubscribeProjects();
-        if (unsubscribeProjectDetail) unsubscribeProjectDetail();
-        UI.loginModal.classList.remove('hidden');
-        UI.app.classList.add('hidden');
-    }
-});
+        async function fetchAllUsers() {
+            allUsersCache.clear();
+            const usersSnapshot = await getDocs(collection(db, "users"));
+            usersSnapshot.forEach(doc => {
+                allUsersCache.set(doc.id, doc.data());
+            });
+        }
 
-        // --- UI INITIALIZATION & RENDERING ---
         function initializeAppUI() {
             UI.loginModal.classList.add('hidden');
             UI.app.classList.remove('hidden');
             UI.userName.textContent = currentUser.name;
             UI.userAvatar.src = currentUser.avatar;
-            listenForProjects();
+            UI.adminBadge.classList.toggle('hidden', !isSuperAdmin(currentUser));
+            
+            // 測試 Firebase 連接
+            testFirebaseConnection().then(success => {
+                if (success) {
+                    console.log('Firebase 測試通過，開始監聽專案');
+                    listenForProjects();
+                } else {
+                    console.error('Firebase 測試失敗，無法載入專案');
+                }
+            });
+            
+            // 如果是超級管理員，執行遷移並顯示調試面板
+            if (isSuperAdmin(currentUser)) {
+                migrateExistingProjects();
+                UI.debugPanel.classList.remove('hidden');
+                updateDebugInfo();
+            }
         }
 
-        function renderSkeletonProjects() {
-            UI.projectsContainer.innerHTML = Array(3).fill('').map(() => `
-                <div class="skeleton-card"><div class="space-y-4"><div class="h-6 w-3/4 skeleton"></div><div class="space-y-2"><div class="h-4 w-1/2 skeleton"></div><div class="h-4 w-1/3 skeleton"></div></div><div class="h-3 w-full skeleton"></div></div></div>
-            `).join('');
+        function updateDebugInfo() {
+            if (!isSuperAdmin(currentUser)) return;
+            
+            const debugInfo = [
+                `使用者: ${currentUser.name} (${currentUser.email})`,
+                `UID: ${currentUser.uid}`,
+                `超級管理員: ${isSuperAdmin(currentUser)}`,
+                `專案數量: ${allUsersCache.size}`,
+                `時間: ${new Date().toLocaleString('zh-TW')}`
+            ];
+            
+            UI.debugContent.innerHTML = debugInfo.map(info => `<div>${info}</div>`).join('');
         }
 
-        function renderProjectsList(projects) {
-            UI.projectsContainer.innerHTML = '';
-            if (projects.length === 0) {
-                UI.projectsContainer.innerHTML = `<p class="text-gray-500 col-span-full text-center py-10">您尚未加入任何專案，請點擊右上角新增專案。</p>`;
+        // 測試 Firebase 連接和權限
+        async function testFirebaseConnection() {
+            console.log('開始測試 Firebase 連接...');
+            
+            try {
+                // 測試讀取專案
+                const projectsRef = collection(db, "projects");
+                const snapshot = await getDocs(projectsRef);
+                console.log('Firebase 連接成功，專案總數:', snapshot.size);
+                
+                // 測試讀取使用者資料
+                const usersRef = collection(db, "users");
+                const usersSnapshot = await getDocs(usersRef);
+                console.log('Firebase 使用者資料讀取成功，使用者數量:', usersSnapshot.size);
+                
+                console.log('Firebase 基本連接測試通過');
+                return true;
+            } catch (error) {
+                console.error('Firebase 測試失敗:', error);
+                console.error('錯誤代碼:', error.code);
+                console.error('錯誤訊息:', error.message);
+                
+                // 顯示錯誤給使用者
+                if (error.code === 'permission-denied') {
+                    alert('Firebase 權限錯誤: 請檢查 Firestore 規則設定');
+                } else {
+                    alert('Firebase 連接測試失敗: ' + error.message);
+                }
+                return false;
+            }
+        }
+
+        // --- CRUD & Core Logic ---
+        async function handleProjectFormSubmit(e) {
+            e.preventDefault();
+            const submitButton = UI.projectForm.querySelector('button[type="submit"]');
+            toggleButtonLoading(submitButton, true, '儲存');
+
+            if (!currentUser) {
+                console.error('錯誤：使用者未登入，無法儲存專案。');
+                toggleButtonLoading(submitButton, false, '儲存');
                 return;
             }
-            projects.forEach(project => {
-                const card = document.createElement('div');
-                card.className = 'project-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer';
-                const progress = project.completedSteps ? Math.round((project.completedSteps.length / 6) * 100) : 0;
-                card.innerHTML = `<div class="p-6"><h3 class="text-xl font-bold text-gray-800 truncate">${project.name}</h3><p class="text-gray-600 mb-4 mt-1">客戶: ${project.client}</p><div class="flex items-center mt-4"><div class="w-full bg-gray-200 rounded-full h-2 mr-4"><div class="bg-indigo-600 h-2 rounded-full" style="width: ${progress}%"></div></div><span class="text-sm font-medium text-gray-700">${progress}%</span></div></div>`;
-                card.addEventListener('click', () => showProjectDetail(project.id));
-                UI.projectsContainer.appendChild(card);
-            });
-        }
-        
-        function renderProjectDetail(project) {
-            UI.projectDetailView.innerHTML = ''; // Clear previous detail
-            if (!project) return;
-            const progress = project.completedSteps ? Math.round((project.completedSteps.length / 6) * 100) : 0;
-            const detailHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <button id="back-to-projects" class="text-indigo-600 hover:text-indigo-800">&larr; 返回專案列表</button>
-                    <div><button id="edit-project-btn" data-id="${project.id}" class="bg-gray-200 py-2 px-4 rounded-md mr-2">編輯</button><button id="delete-project-btn" data-id="${project.id}" class="bg-red-500 text-white py-2 px-4 rounded-md">刪除</button></div>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800">${project.name}</h2>
-                    <p class="text-lg text-gray-600 mt-1">客戶: ${project.client}</p>
-                    <div class="mt-6"><h3 class="text-sm font-medium text-gray-500">專案進度</h3><div class="mt-2 flex items-center"><div class="w-full bg-gray-200 rounded-full h-4 mr-4"><div class="progress-bar bg-indigo-600 h-4 rounded-full" style="width: ${progress}%"></div></div><span>${progress}%</span></div></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    ${[1,2,3,4,5,6].map(stepNum => renderStepCard(stepNum, project)).join('')}
-                </div>`;
-            UI.projectDetailView.innerHTML = detailHTML;
-        }
 
-        function renderStepCard(stepNum, project) {
-            const stepTitles = ["Briefing", "AI 智能判斷", "媒體提案", "品牌創意流程", "創意 Story Board", "創意資料夾"];
-            const isComplete = project.completedSteps && project.completedSteps.includes(stepNum);
-            const cardClass = isComplete ? 'step-complete' : 'step-pending';
-            return `
-                <div class="step-item ${cardClass} border-2 rounded-lg p-6">
-                    <h3 class="text-xl font-bold">${stepNum}. ${stepTitles[stepNum-1]}</h3>
-                    <div class="mt-4 flex justify-end">
-                        <button class="toggle-step-btn bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md" data-step="${stepNum}" data-id="${project.id}">
-                            ${isComplete ? '標記為未完成' : '標記為完成'}
-                        </button>
-                    </div>
-                </div>`;
-        }
-
-        // --- FIRESTORE LISTENERS ---
-        function listenForProjects() {
-            if (unsubscribeProjects) unsubscribeProjects();
-            renderSkeletonProjects();
-            const projectsRef = collection(db, "projects");
-            const q = query(projectsRef, where("members", "array-contains", currentUser.uid));
-            unsubscribeProjects = onSnapshot(q, snapshot => {
-                const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderProjectsList(projects);
-            }, console.error);
-        }
-        
-        function showProjectDetail(projectId) {
-            UI.projectsView.classList.add('hidden');
-            UI.projectDetailView.classList.remove('hidden');
-            if (unsubscribeProjectDetail) unsubscribeProjectDetail();
-            const projectRef = doc(db, "projects", projectId);
-            unsubscribeProjectDetail = onSnapshot(projectRef, (doc) => {
-                if (doc.exists()) {
-                    renderProjectDetail({ id: doc.id, ...doc.data() });
-                } else {
-                    console.log("Project not found!");
-                    backToProjectsList();
+            // 重新檢查 UI 元素是否存在
+            if (!UI.projectNameInput || !UI.clientNameInput || !UI.marketInput || !UI.proposalTimeInput || !UI.launchDateInput) {
+                console.error('UI 元素未正確載入，重新初始化...');
+                // 重新初始化 UI 物件
+                Object.assign(UI, {
+                    projectNameInput: document.getElementById('project-name-input'),
+                    clientNameInput: document.getElementById('client-name-input'),
+                    marketInput: document.getElementById('market-input'),
+                    proposalTimeInput: document.getElementById('proposal-time-input'),
+                    launchDateInput: document.getElementById('launch-date-input')
+                });
+                
+                // 再次檢查
+                if (!UI.projectNameInput || !UI.clientNameInput || !UI.marketInput || !UI.proposalTimeInput || !UI.launchDateInput) {
+                    alert('系統錯誤：表單元素未正確載入，請重新整理頁面');
+                    toggleButtonLoading(submitButton, false, '儲存');
+                    return;
                 }
-            }, console.error);
-        }
+            }
 
-        // --- EVENT HANDLERS ---
-        function backToProjectsList() {
-            if(unsubscribeProjectDetail) unsubscribeProjectDetail();
-            UI.projectDetailView.classList.add('hidden');
-            UI.projectsView.classList.remove('hidden');
-        }
-
-        function handleProjectFormSubmit(e) {
-            e.preventDefault();
-            const id = UI.projectIdInput.value;
-            const projectData = {
-                name: UI.projectNameInput.value,
-                client: UI.clientNameInput.value,
-                updatedAt: serverTimestamp()
+            // 驗證必填欄位
+            const requiredFields = {
+                'projectNameInput': '專案名稱',
+                'clientNameInput': '客戶名稱',
+                'marketInput': '市場國家',
+                'proposalTimeInput': '提案時間',
+                'launchDateInput': '實際上線日'
             };
+            
+            console.log('開始驗證必填欄位...');
+            console.log('UI 物件:', UI);
+            console.log('projectNameInput 元素:', UI.projectNameInput);
+            console.log('projectNameInput 值:', UI.projectNameInput?.value);
+            
+            for (const [fieldName, displayName] of Object.entries(requiredFields)) {
+                const field = UI[fieldName];
+                console.log(`檢查欄位 ${displayName}:`, fieldName, field, field?.value, field?.value?.trim());
+                
+                if (!field) {
+                    console.error(`欄位不存在: ${displayName}`, fieldName);
+                    alert(`系統錯誤：找不到 ${displayName} 欄位，請重新整理頁面`);
+                    toggleButtonLoading(submitButton, false, '儲存');
+                    return;
+                }
+                
+                if (!field.value || !field.value.trim()) {
+                    console.error(`欄位驗證失敗: ${displayName}`, field, field.value);
+                    alert(`${displayName}為必填欄位，請填寫完整`);
+                    field.focus();
+                    toggleButtonLoading(submitButton, false, '儲存');
+                    return;
+                }
+            }
+            console.log('所有必填欄位驗證通過');
 
-            if (id) { // Update existing
-                updateDoc(doc(db, "projects", id), projectData).then(() => UI.projectModal.classList.add('hidden'));
-            } else { // Create new
-                projectData.ownerId = currentUser.uid;
-                projectData.members = [currentUser.uid];
-                projectData.createdAt = serverTimestamp();
-                projectData.completedSteps = [];
-                addDoc(collection(db, "projects"), projectData).then(() => UI.projectModal.classList.add('hidden'));
+            try {
+                const id = UI.projectIdInput.value;
+                const projectData = {
+                    name: UI.projectNameInput.value.trim(),
+                    client: UI.clientNameInput.value.trim(),
+                    market: UI.marketInput.value.trim(),
+                    proposalTime: UI.proposalTimeInput.value,
+                    status: UI.statusInput.value,
+                    launchDate: UI.launchDateInput.value || null,
+                    closeDate: UI.closeDateInput.value || null,
+                    budget: UI.budgetInput.value ? parseInt(UI.budgetInput.value) : null,
+                    projectId: UI.projectUidInput.value,
+                    dashboardLinks: { 
+                        internal: UI.dashboardInternalLinkInput.value.trim(),
+                        client: UI.dashboardClientLinkInput.value.trim()
+                    },
+                    updatedAt: serverTimestamp()
+                };
+
+                if (id) {
+                    // 更新現有專案時，確保保留原有的 ownerId 和 members
+                    console.log('更新專案:', id, projectData);
+                    await updateDoc(doc(db, "projects", id), projectData);
+                    console.log('專案更新成功');
+                } else {
+                    // 建立新專案時，確保包含所有必要的欄位
+                    const projectUID = generateProjectUID(UI.clientNameInput.value.trim(), UI.marketInput.value.trim(), UI.launchDateInput.value);
+                    const newProjectData = {
+                        ...projectData,
+                        projectId: projectUID,
+                        budget: UI.budgetInput.value ? parseInt(UI.budgetInput.value) : null,
+                        ownerId: currentUser.uid,
+                        ownerEmail: currentUser.email,
+                        ownerName: currentUser.name,
+                        members: [currentUser.uid],
+                        memberEmails: [currentUser.email],
+                        memberNames: [currentUser.name],
+                        createdAt: serverTimestamp(),
+                        completedSteps: [],
+                        stepCompletionDates: {},
+                        briefingFiles: { documents: [], logos: [], videos: [] },
+                        aiFiles: { file1: [], file2: [] },
+                        mediaProposals: [],
+                        brandCreative: { 
+                            redirectLink: '', 
+                            scripts: [
+                                { id: 1, text: '', status: 'pending', approvedBy: null, approvalDate: null, submittedBy: null, submittedAt: null },
+                                { id: 2, text: '', status: 'pending', approvedBy: null, approvalDate: null, submittedBy: null, submittedAt: null },
+                                { id: 3, text: '', status: 'pending', approvedBy: null, approvalDate: null, submittedBy: null, submittedAt: null }
+                            ]
+                        },
+                        creativeFolder: [],
+                        // 新增結案報告相關欄位
+                        finalReport: {
+                            summary: '',
+                            results: '',
+                            attachments: [],
+                            submittedBy: null,
+                            submittedAt: null,
+                            approvedBy: null,
+                            approvedAt: null
+                        }
+                    };
+                    
+                    console.log('建立新專案:', newProjectData);
+                    const docRef = await addDoc(collection(db, "projects"), newProjectData);
+                    console.log('新專案已建立，Firestore ID:', docRef.id, '專案編號:', newProjectData.projectId);
+                    
+                    // 顯示成功訊息
+                    alert(`專案 "${newProjectData.name}" 建立成功！\n專案編號: ${newProjectData.projectId}`);
+                }
+                UI.projectModal.classList.add('hidden');
+            } catch (error) {
+                console.error("專案儲存失敗:", error);
+                alert('專案儲存失敗: ' + error.message);
+            } finally {
+                toggleButtonLoading(submitButton, false, '儲存');
+                UI.projectForm.reset();
+                UI.projectIdInput.value = '';
             }
         }
-
+        
         function openProjectModal(project = null) {
             UI.projectForm.reset();
+            UI.projectIdInput.value = '';
             if (project) {
                 UI.projectModalTitle.textContent = "編輯專案";
                 UI.projectIdInput.value = project.id;
                 UI.projectNameInput.value = project.name;
                 UI.clientNameInput.value = project.client;
+                UI.marketInput.value = project.market;
+                UI.proposalTimeInput.value = project.proposalTime;
+                UI.statusInput.value = project.status || 'active';
+                UI.launchDateInput.value = project.launchDate || '';
+                UI.closeDateInput.value = project.closeDate || '';
+                UI.budgetInput.value = project.budget || '';
+                UI.projectUidInput.value = project.projectId || '';
+                UI.dashboardInternalLinkInput.value = project.dashboardLinks?.internal || '';
+                UI.dashboardClientLinkInput.value = project.dashboardLinks?.client || '';
             } else {
                 UI.projectModalTitle.textContent = "新增專案";
-                UI.projectIdInput.value = '';
             }
             UI.projectModal.classList.remove('hidden');
         }
 
-        async function toggleStepComplete(projectId, stepNum) {
+        async function addFileLog(projectId, field, link, button) {
+            if (!link.trim()) {
+                alert('請輸入有效的連結');
+                return;
+            }
+            
+            console.log('開始新增檔案日誌:', { projectId, field, link });
+            toggleButtonLoading(button, true, '新增');
+            
+            const logEntry = { 
+                link: link.trim(), 
+                user: { 
+                    uid: currentUser.uid,
+                    email: currentUser.email, 
+                    name: currentUser.name, 
+                    avatar: currentUser.avatar 
+                }, 
+                date: new Date().toISOString(),
+                version: 1,
+                isLatest: true
+            };
+            
+            try {
+                // 先取得現有的檔案列表
+                const projectRef = doc(db, "projects", projectId);
+                const projectSnap = await getDoc(projectRef);
+                const projectData = projectSnap.data();
+                
+                // 取得現有檔案陣列
+                const existingFiles = field.split('.').reduce((obj, key) => obj?.[key], projectData) || [];
+                
+                // 將所有現有檔案標記為非最新版本
+                const updatedFiles = existingFiles.map(file => ({
+                    ...file,
+                    isLatest: false
+                }));
+                
+                // 新增新檔案到陣列開頭（置頂）
+                updatedFiles.unshift(logEntry);
+                
+                // 更新資料庫
+                await updateDoc(projectRef, { 
+                    [field]: updatedFiles 
+                });
+                console.log('檔案日誌新增成功:', logEntry);
+            } catch (error) {
+                console.error("新增日誌失敗:", error);
+                alert('新增失敗: ' + error.message);
+            } finally {
+                toggleButtonLoading(button, false, '新增');
+            }
+        }
+        
+        async function addScriptComment(projectId, scriptId, text, button) {
+             if (!text.trim()) return;
+             toggleButtonLoading(button, true, '送出');
+             const commentData = { text, scriptId, author: { uid:currentUser.uid, email: currentUser.email, name: currentUser.name, avatar: currentUser.avatar }, createdAt: serverTimestamp() };
+             try {
+                await addDoc(collection(db, "projects", projectId, "scriptComments"), commentData);
+             } catch(error) {
+                console.error("新增留言失敗:", error);
+             } finally {
+                toggleButtonLoading(button, false, '送出');
+             }
+        }
+
+        async function approveScript(projectId, scriptId, button) {
+            toggleButtonLoading(button, true, '審查通過此腳本');
             const projectRef = doc(db, "projects", projectId);
-            const projectSnap = await getDoc(projectRef);
-            if (!projectSnap.exists()) return;
-            const project = projectSnap.data();
-            const isComplete = project.completedSteps && project.completedSteps.includes(stepNum);
-            updateDoc(projectRef, {
-                completedSteps: isComplete ? arrayRemove(stepNum) : arrayUnion(stepNum)
+            try {
+                const projectSnap = await getDoc(projectRef);
+                if (!projectSnap.exists()) throw new Error("找不到專案");
+                
+                const scripts = projectSnap.data().brandCreative.scripts;
+                const scriptIndex = scripts.findIndex(s => s.id === scriptId);
+
+                if (scriptIndex !== -1) {
+                    scripts[scriptIndex].status = 'approved';
+                    scripts[scriptIndex].approvedBy = { 
+                        uid: currentUser.uid,
+                        email: currentUser.email, 
+                        name: currentUser.name, 
+                        avatar: currentUser.avatar 
+                    };
+                    scripts[scriptIndex].approvalDate = new Date().toISOString();
+                    await updateDoc(projectRef, { "brandCreative.scripts": scripts });
+                    console.log('腳本審核成功:', scriptId);
+                }
+            } catch(error) {
+                console.error("審核失敗:", error);
+                alert('審核失敗: ' + error.message);
+            } finally {
+                toggleButtonLoading(button, false, '審查通過此腳本');
+            }
+        }
+        
+        async function submitScript(projectId, scriptId, button) {
+            toggleButtonLoading(button, true, '送審中');
+            const projectRef = doc(db, "projects", projectId);
+            try {
+                const projectSnap = await getDoc(projectRef);
+                if (!projectSnap.exists()) throw new Error("找不到專案");
+                
+                const scripts = projectSnap.data().brandCreative.scripts;
+                const scriptIndex = scripts.findIndex(s => s.id === scriptId);
+
+                if (scriptIndex !== -1) {
+                    scripts[scriptIndex].status = 'submitted';
+                    scripts[scriptIndex].submittedBy = { 
+                        uid: currentUser.uid,
+                        email: currentUser.email, 
+                        name: currentUser.name, 
+                        avatar: currentUser.avatar 
+                    };
+                    scripts[scriptIndex].submittedAt = new Date().toISOString();
+                    await updateDoc(projectRef, { "brandCreative.scripts": scripts });
+                    console.log('腳本送審成功:', scriptId);
+                }
+            } catch(error) {
+                console.error("送審失敗:", error);
+                alert('送審失敗: ' + error.message);
+            } finally {
+                toggleButtonLoading(button, false, '送審');
+            }
+        }
+        
+        async function submitFinalReport(projectId, button) {
+            const summary = document.getElementById('final-report-summary')?.value.trim();
+            const results = document.getElementById('final-report-results')?.value.trim();
+            
+            if (!summary || !results) {
+                alert('請填寫結案摘要和專案成果');
+                return;
+            }
+            
+            toggleButtonLoading(button, true, '提交中');
+            const projectRef = doc(db, "projects", projectId);
+            try {
+                await updateDoc(projectRef, {
+                    "finalReport.summary": summary,
+                    "finalReport.results": results,
+                    "finalReport.submittedBy": {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        name: currentUser.name,
+                        avatar: currentUser.avatar
+                    },
+                    "finalReport.submittedAt": new Date().toISOString()
+                });
+                console.log('結案報告提交成功');
+                alert('結案報告已提交！');
+            } catch(error) {
+                console.error("結案報告提交失敗:", error);
+                alert('提交失敗: ' + error.message);
+            } finally {
+                toggleButtonLoading(button, false, '提交結案報告');
+            }
+        }
+        
+        async function approveFinalReport(projectId, button) {
+            if (!confirm('確定要核准此結案報告嗎？')) return;
+            
+            toggleButtonLoading(button, true, '核准中');
+            const projectRef = doc(db, "projects", projectId);
+            try {
+                await updateDoc(projectRef, {
+                    "finalReport.approvedBy": {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        name: currentUser.name,
+                        avatar: currentUser.avatar
+                    },
+                    "finalReport.approvedAt": new Date().toISOString()
+                });
+                console.log('結案報告核准成功');
+                alert('結案報告已核准！');
+            } catch(error) {
+                console.error("結案報告核准失敗:", error);
+                alert('核准失敗: ' + error.message);
+            } finally {
+                toggleButtonLoading(button, false, '核准結案報告');
+            }
+        }
+        
+        // --- RENDERING LOGIC ---
+        function renderProjectsList(projects) {
+            console.log('開始渲染專案列表，專案數量:', projects.length);
+            console.log('當前使用者:', currentUser);
+            console.log('是否為超級管理員:', isSuperAdmin(currentUser));
+            
+            UI.projectsContainer.innerHTML = '';
+            
+            if (projects.length === 0) {
+                UI.projectsContainer.innerHTML = '<div class="col-span-full text-center py-10"><p class="text-gray-500">尚無專案</p></div>';
+                return;
+            }
+
+            projects.forEach(project => {
+                console.log('渲染專案:', project.name, 'ID:', project.id);
+                const card = document.createElement('div');
+                card.className = 'project-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow';
+                const progress = Math.round(((project.completedSteps?.length || 0) / TOTAL_STEPS) * 100);
+                const status = project.status || 'active';
+                const statusClass = status === 'closed' ? 'bg-gray-500' : 'bg-green-500';
+                const statusText = status === 'closed' ? '已結案' : '進行中';
+                
+                // 計算未完成項目
+                const completedSteps = project.completedSteps || [];
+                const incompleteSteps = [];
+                for (let i = 1; i <= TOTAL_STEPS; i++) {
+                    if (!completedSteps.includes(i)) {
+                        incompleteSteps.push(STEP_TITLES[i-1]);
+                    }
+                }
+
+                card.innerHTML = `<div class="p-6">
+                        <div class="flex justify-between items-start">
+                           <h3 class="text-xl font-bold text-gray-800 truncate pr-4" title="${escapeHTML(project.name)}">${escapeHTML(project.name)}</h3>
+                           <span class="text-xs font-bold text-white ${statusClass} px-2 py-1 rounded-full flex-shrink-0">${statusText}</span>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-1">客戶: ${escapeHTML(project.client)}</p>
+                        <p class="text-xs text-gray-400 mt-1">編號: ${project.projectId || '未設定'}</p>
+                        <p class="text-xs text-gray-400">國家: ${project.market || '未設定'}</p>
+                        <p class="text-xs text-gray-400">預算: ${formatCurrency(project.budget)}</p>
+                        <p class="text-xs text-gray-400">擁有者: ${project.ownerName || project.ownerEmail || '未知'}</p>
+                        <p class="text-xs text-gray-400 mt-2">結案日: ${toLocaleDateString(project.closeDate)}</p>
+                        <div class="flex items-center mt-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2 mr-4">
+                                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">${progress}%</span>
+                        </div>
+                        ${incompleteSteps.length > 0 ? `<div class="mt-3 p-2 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                            <p class="text-xs text-yellow-800 font-medium">待完成: ${incompleteSteps.slice(0, 2).join(', ')}${incompleteSteps.length > 2 ? '...' : ''}</p>
+                        </div>` : ''}
+                    </div>`;
+                
+                // 綁定點擊事件
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('點擊專案卡片:', project.id, project.name);
+                    showProjectDetail(project.id);
+                });
+                
+                UI.projectsContainer.appendChild(card);
+            });
+            
+            console.log('專案列表渲染完成，總共渲染了', projects.length, '個專案');
+        }
+
+        // 全域步驟標題陣列
+        const STEP_TITLES = ["Briefing", "AI 智能判斷", "媒體提案", "品牌創意流程", "創意 Story Board", "創意資料夾", "結案報告"];
+
+        function renderProjectDetail(project, canEdit) {
+            const progress = Math.round(((project.completedSteps?.length || 0) / TOTAL_STEPS) * 100);
+            
+            const detailHTML = `
+                <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                    <button id="back-to-projects-btn" class="text-indigo-600 hover:text-indigo-800 font-semibold">&larr; 返回專案列表</button>
+                    <div class="flex items-center gap-2">
+                        ${canEdit ? `<button id="edit-project-btn" class="bg-gray-200 py-2 px-4 rounded-md">編輯</button><button id="delete-project-btn" class="bg-red-500 text-white py-2 px-4 rounded-md">刪除</button>` : ''}
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                    <div class="flex justify-between items-start">
+                        <div>
+                           <h2 class="text-3xl font-bold text-gray-800">${escapeHTML(project.name)}</h2>
+                           <p class="text-lg text-gray-600 mt-1">客戶: ${escapeHTML(project.client)}</p>
+                           <div class="mt-4 space-y-2 text-sm">
+                              <p><strong>專案編號:</strong> ${project.projectId || '未設定'}</p>
+                              <p><strong>市場國家:</strong> ${project.market || '未設定'}</p>
+                              <p><strong>預算金額:</strong> ${formatCurrency(project.budget)}</p>
+                              <p><strong>專案擁有者:</strong> ${project.ownerName || project.ownerEmail || '未知'}</p>
+                              <p><strong>內部報告:</strong> ${project.dashboardLinks?.internal ? `<a href="${project.dashboardLinks.internal}" target="_blank" class="text-indigo-500 hover:underline">連結</a>` : '無'}</p>
+                              <p><strong>客戶報告:</strong> ${project.dashboardLinks?.client ? `<a href="${project.dashboardLinks.client}" target="_blank" class="text-indigo-500 hover:underline">連結</a>` : '無'}</p>
+                           </div>
+                        </div>
+                        <div class="text-right text-sm text-gray-600 space-y-1">
+                           <p><strong>狀態:</strong> ${project.status === 'closed' ? '已結案' : '進行中'}</p>
+                           <p><strong>起始日:</strong> ${toLocaleDateString(project.createdAt?.toDate())}</p>
+                           <p><strong>上線日:</strong> ${toLocaleDateString(project.launchDate)}</p>
+                           <p><strong>結案日:</strong> ${toLocaleDateString(project.closeDate)}</p>
+                        </div>
+                    </div>
+                    <div class="mt-6"><h3 class="text-sm font-medium text-gray-500">專案總進度</h3><div class="mt-2 flex items-center"><div class="w-full bg-gray-200 rounded-full h-4 mr-4"><div class="progress-bar bg-indigo-600 h-4 rounded-full" style="width: ${progress}%"></div></div><span class="font-bold">${progress}%</span></div></div>
+                    <div id="activity-feed-container" class="mt-8"></div>
+                    <div id="member-management-container" class="mt-8"></div>
+                </div>
+                <div id="steps-container" class="space-y-6">
+                    ${[1,2,3,4,5,6,7].map(stepNum => {
+                        const isComplete = project.completedSteps?.includes(stepNum);
+                        return `
+                            <div id="step-card-${stepNum}" class="step-item ${isComplete ? 'step-complete' : 'step-pending'} border-2 rounded-lg p-6 bg-white">
+                                <div class="flex justify-between items-center cursor-pointer" data-step-toggler="${stepNum}">
+                                    <h3 class="text-xl font-bold flex items-center gap-2">${stepNum}. ${STEP_TITLES[stepNum-1]} <div id="new-activity-${stepNum}" class="hidden new-activity-dot"></div></h3>
+                                    <div class="flex items-center gap-4">
+                                       ${isComplete ? `<span class="text-sm text-green-700 font-medium">完成于: ${toLocaleDateString(project.stepCompletionDates?.[stepNum])}</span>` : `<span class="text-sm text-gray-500">待辦</span>`}
+                                       <svg class="w-6 h-6 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </div>
+                                </div>
+                                <div id="step-content-${stepNum}" class="step-content mt-4 pt-4 border-t border-gray-200" style="max-height: none; overflow: visible;">
+                                </div>
+                            </div>`;
+                    }).join('')}
+                </div>`;
+            
+            UI.projectDetailView.innerHTML = detailHTML;
+            
+            console.log('開始渲染步驟內容...');
+            for (let i = 1; i <= 7; i++) {
+                const contentDiv = UI.projectDetailView.querySelector(`#step-content-${i}`);
+                if(contentDiv) {
+                    console.log(`渲染步驟 ${i} 內容`);
+                    contentDiv.innerHTML = renderStepContent(i, project, canEdit);
+                } else {
+                    console.error(`找不到步驟 ${i} 的內容容器`);
+                }
+            }
+
+            renderMemberManagement(project, canEdit);
+            renderActivityFeed(project);
+            bindDetailViewEvents(project, canEdit);
+            checkForNewActivity(project);
+        }
+
+        // 全域 renderAdminInput 函式
+        function renderAdminInput(inputId, fieldPath, placeholder, required = false, stepNum = 1, canEdit = true) {
+            return canEdit ? `<div class="mt-4 pt-4 border-t border-dashed">
+                <div class="flex gap-2 items-center">
+                    <input type="url" placeholder="${placeholder}" class="flex-grow p-1 border rounded text-sm ${required ? 'border-red-300' : ''}" id="${inputId}-${stepNum}" ${required ? 'required' : ''}>
+                    <button class="add-log-btn bg-indigo-500 text-white text-xs px-3 py-1 rounded hover:bg-indigo-600" data-field="${fieldPath}" data-input-id="${inputId}-${stepNum}">新增</button>
+                </div>
+                ${required ? '<p class="text-xs text-red-500 mt-1">* 此欄位為必填</p>' : ''}
+            </div>` : '';
+        }
+
+        // 抽出文件區塊渲染
+        function renderFileSection(title, logs, fieldPath, canEdit, inputId, placeholder, stepNum) {
+            return `
+                <div><h5 class="font-bold text-gray-700">${title}</h5>${renderLogList(logs, fieldPath, canEdit)}</div>
+                ${canEdit ? renderAdminInput(inputId, fieldPath, placeholder, false, stepNum, canEdit) : ''}`;
+        }
+
+        function renderStepContent(stepNum, project, canEdit) {
+            const isComplete = project.completedSteps?.includes(stepNum);
+            // 提前定義結案報告相關變數，避免作用域問題
+            const finalReport = project.finalReport || {};
+            const isReportSubmitted = !!finalReport.submittedBy;
+            const isReportApproved = !!finalReport.approvedBy;
+
+            // 保留原本的 renderAdminInput
+            const renderAdminInput = (inputId, fieldPath, placeholder, required = false) => canEdit ? `<div class="mt-4 pt-4 border-t border-dashed">
+                <div class="flex gap-2 items-center">
+                    <input type="url" placeholder="${placeholder}" class="flex-grow p-1 border rounded text-sm ${required ? 'border-red-300' : ''}" id="${inputId}-${stepNum}" ${required ? 'required' : ''}>
+                    <button class="add-log-btn bg-indigo-500 text-white text-xs px-3 py-1 rounded hover:bg-indigo-600" data-field="${fieldPath}" data-input-id="${inputId}-${stepNum}">新增</button>
+                </div>
+                ${required ? '<p class="text-xs text-red-500 mt-1">* 此欄位為必填</p>' : ''}
+            </div>` : '';
+
+            let contentHTML = '';
+            switch(stepNum) {
+                case 1:
+                    contentHTML = `<div class="space-y-4">
+                        <div><h5 class="font-bold text-gray-700">a. 文件</h5>${renderLogList(project.briefingFiles?.documents, 'briefingFiles.documents', canEdit)}</div>
+                        <div><h5 class="font-bold text-gray-700">b. Logo (PNG)</h5>${renderLogList(project.briefingFiles?.logos, 'briefingFiles.logos', canEdit)}</div>
+                        <div><h5 class="font-bold text-gray-700">c. 影片素材</h5>${renderLogList(project.briefingFiles?.videos, 'briefingFiles.videos', canEdit)}</div>
+                      </div>
+                      ${renderAdminInput('input-briefing-doc', 'briefingFiles.documents', '新增文件連結...') +
+                        renderAdminInput('input-briefing-logo', 'briefingFiles.logos', '新增 Logo 連結...') +
+                        renderAdminInput('input-briefing-video', 'briefingFiles.videos', '新增影片連結...')}`;
+                    break;
+                case 2:
+                    contentHTML = `<div class="space-y-4">
+                        <div><h5 class="font-bold text-gray-700">Excel 文件 1</h5>${renderLogList(project.aiFiles?.file1, 'aiFiles.file1', canEdit)}</div>
+                        <div><h5 class="font-bold text-gray-700">Excel 文件 2</h5>${renderLogList(project.aiFiles?.file2, 'aiFiles.file2', canEdit)}</div>
+                      </div>
+                      ${renderAdminInput('input-ai-1', 'aiFiles.file1', '新增文件 1 連結...') +
+                        renderAdminInput('input-ai-2', 'aiFiles.file2', '新增文件 2 連結...')}`;
+                    break;
+                case 3:
+                    contentHTML = `<div><h5 class="font-bold text-gray-700">提案文件</h5>${renderLogList(project.mediaProposals, 'mediaProposals', canEdit)}</div>
+                       ${renderAdminInput('input-media-proposal', 'mediaProposals', '新增提案連結...')}`;
+                    break;
+                case 6:
+                    contentHTML = `<div><h5 class="font-bold text-gray-700">創意資料夾</h5>${renderLogList(project.creativeFolder, 'creativeFolder', canEdit)}</div>
+                       ${renderAdminInput('input-creative-folder', 'creativeFolder', '新增資料夾連結...')}`;
+                    break;
+                // 其餘步驟維持原本內容
+                case 4:
+                    const link = project.brandCreative?.redirectLink || '';
+                    contentHTML = `<div><h5 class="font-bold text-gray-700">跳轉頁面路徑</h5>
+                            <p class="text-sm text-blue-600 break-all p-2 bg-gray-50 rounded">${link ? `<a href="${link}" target="_blank">${escapeHTML(link)}</a>` : '未提供'}</p></div>
+                            ${canEdit ? `<div class="mt-4 pt-4 border-t border-dashed"><div class="flex gap-2 items-center"><input type="url" value="${escapeHTML(link)}" placeholder="設定跳轉連結..." class="flex-grow p-1 border rounded" id="input-brand-redirect"><button class="save-field-btn bg-indigo-500 text-white text-xs px-3 py-1 rounded hover:bg-indigo-600" data-field="brandCreative.redirectLink" data-input-id="input-brand-redirect">儲存</button></div></div>` : ''}`;
+                    break;
+                case 5:
+                    contentHTML = `
+                        <div class="space-y-6">
+                            ${(project.brandCreative?.scripts || []).map(script => {
+                                const isApproved = script.status === 'approved';
+                                const isSubmitted = script.status === 'submitted';
+                                return `<div class="p-4 rounded-lg border ${isApproved ? 'script-approved' : isSubmitted ? 'bg-blue-50' : 'bg-white'}">
+                                    <h5 class="font-bold text-gray-800">腳本 ${script.id} 
+                                        ${isApproved ? `<span class="text-green-600 font-bold">(已核准)</span>` : 
+                                          isSubmitted ? `<span class="text-blue-600 font-bold">(已送審)</span>` : 
+                                          `<span class="text-gray-500">(草稿)</span>`}
+                                    </h5>
+                                    ${isApproved ? `<div class="text-xs text-gray-600 bg-green-100 p-2 rounded mt-2">
+                                        <p class="whitespace-pre-wrap break-words">${escapeHTML(script.text) || '無內容'}</p>
+                                        <div class="mt-2 pt-2 border-t border-green-200 space-y-1">
+                                            ${script.submittedBy ? `<p><strong>送件人:</strong> ${escapeHTML(script.submittedBy.name)} (${toLocaleString(script.submittedAt)})</p>` : ''}
+                                            <p><strong>核准人:</strong> ${escapeHTML(script.approvedBy?.name)} (${toLocaleString(script.approvalDate)})</p>
+                                        </div>
+                                    </div>` : isSubmitted ? `<div class="text-xs text-gray-600 bg-blue-100 p-2 rounded mt-2">
+                                        <p class="whitespace-pre-wrap break-words">${escapeHTML(script.text) || '無內容'}</p>
+                                        <div class="mt-2 pt-2 border-t border-blue-200">
+                                            <p><strong>送件人:</strong> ${escapeHTML(script.submittedBy?.name)} (${toLocaleString(script.submittedAt)})</p>
+                                        </div>
+                                    </div>` : `<textarea class="w-full mt-2 p-2 border rounded" rows="4" data-script-id="${script.id}">${escapeHTML(script.text)}</textarea>
+                                    ${canEdit ? `<div class="flex gap-2 mt-2">
+                                        <button class="save-script-btn text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300" data-script-id="${script.id}">儲存草稿</button>
+                                        <button class="submit-script-btn text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" data-script-id="${script.id}">送審</button>
+                                    </div>` : ''}`}
+                                    <div class="mt-4">
+                                        <h6 class="text-sm font-semibold">意見區</h6>
+                                        <div id="comments-container-${script.id}" class="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1 text-sm"></div>
+                                        ${!isApproved ? `<div class="flex gap-2 mt-2"><input id="comment-input-${script.id}" type="text" placeholder="輸入意見..." class="flex-grow p-1 border rounded text-sm"><button class="add-script-comment-btn bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600" data-script-id="${script.id}">送出</button></div>` : ''}
+                                    </div>
+                                    ${canEdit && isSubmitted ? `<div class="text-right mt-4"><button class="approve-script-btn bg-green-600 text-white py-1 px-3 rounded text-sm hover:bg-green-700" data-script-id="${script.id}">審查通過此腳本</button></div>` : ''}
+                                </div>`
+                            }).join('')}
+                        </div>`;
+                    break;
+                case 7:
+                    contentHTML = `
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h5 class="font-bold text-gray-700 mb-3">結案摘要</h5>
+                                ${isReportSubmitted ? `
+                                    <div class="bg-white p-3 rounded border">
+                                        <p class="text-sm whitespace-pre-wrap">${escapeHTML(finalReport.summary) || '無內容'}</p>
+                                        <p class="text-xs text-gray-500 mt-2">送件人: ${escapeHTML(finalReport.submittedBy?.name)} (${toLocaleString(finalReport.submittedAt)})</p>
+                                    </div>
+                                ` : canEdit ? `
+                                    <textarea id="final-report-summary" class="w-full p-3 border rounded" rows="4" placeholder="請輸入結案摘要...">${escapeHTML(finalReport.summary || '')}</textarea>
+                                ` : '<p class="text-gray-500">尚未提交</p>'}
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h5 class="font-bold text-gray-700 mb-3">專案成果</h5>
+                                ${isReportSubmitted ? `
+                                    <div class="bg-white p-3 rounded border">
+                                        <p class="text-sm whitespace-pre-wrap">${escapeHTML(finalReport.results) || '無內容'}</p>
+                                    </div>
+                                ` : canEdit ? `
+                                    <textarea id="final-report-results" class="w-full p-3 border rounded" rows="4" placeholder="請輸入專案成果...">${escapeHTML(finalReport.results || '')}</textarea>
+                                ` : '<p class="text-gray-500">尚未提交</p>'}
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h5 class="font-bold text-gray-700 mb-3">結案報告連結</h5>
+                                ${renderLogList(finalReport.links, 'finalReport.links', canEdit)}
+                                ${canEdit ? renderAdminInput('input-final-report-links', 'finalReport.links', '新增結案報告連結...', false, 7, canEdit) : ''}
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h5 class="font-bold text-gray-700 mb-3">結案附件</h5>
+                                ${renderLogList(finalReport.attachments, 'finalReport.attachments', canEdit)}
+                                ${canEdit ? renderAdminInput('input-final-report', 'finalReport.attachments', '新增結案報告附件...', false, 7, canEdit) : ''}
+                            </div>
+                            ${isReportApproved ? `
+                                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                    <h5 class="font-bold text-green-700 mb-2">✓ 結案報告已核准</h5>
+                                    <p class="text-sm text-green-600">核准人: ${escapeHTML(finalReport.approvedBy?.name)} (${toLocaleString(finalReport.approvedAt)})</p>
+                                </div>
+                            ` : isReportSubmitted ? `
+                                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                    <h5 class="font-bold text-blue-700 mb-2">📋 結案報告已送審</h5>
+                                    <p class="text-sm text-blue-600">送件人: ${escapeHTML(finalReport.submittedBy?.name)} (${toLocaleString(finalReport.submittedAt)})</p>
+                                    ${canEdit ? `<button class="approve-final-report-btn bg-green-600 text-white py-2 px-4 rounded mt-3 hover:bg-green-700">核准結案報告</button>` : ''}
+                                </div>
+                            ` : canEdit ? `
+                                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                    <h5 class="font-bold text-yellow-700 mb-2">📝 準備結案報告</h5>
+                                    <button class="submit-final-report-btn bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">提交結案報告</button>
+                                </div>
+                            ` : ''}
+                        </div>`;
+                    break;
+            }
+            if (canEdit) {
+                contentHTML += `<div class="mt-6 text-right"><button class="toggle-step-btn ${isComplete ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'} text-white py-2 px-4 rounded-md" data-step="${stepNum}">${isComplete ? '標記為未完成' : '標記為完成'}</button></div>`;
+            }
+            return contentHTML;
+        }
+
+        function renderLogList(logs = [], fieldPath = '', canEdit = false) {
+            if (logs.length === 0) return '<p class="text-xs text-gray-500 px-2">尚無資料</p>';
+            
+            return `<div class="space-y-2 mt-2">${logs.map((log, index) => {
+                const isLatest = log.isLatest !== false; // 預設為最新版本
+                const versionText = isLatest ? '最新版本' : `版本 ${log.version || 1}`;
+                const statusClass = isLatest ? 'bg-green-100 border-green-200' : 'bg-gray-50 border-gray-200';
+                const statusText = isLatest ? 'text-green-700' : 'text-gray-500';
+                
+                return `<div class="log-item p-3 rounded-lg border ${statusClass}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-medium ${statusText}">${versionText}</span>
+                        <div class="flex items-center space-x-2">
+                            <img src="${escapeHTML(log.user?.avatar)}" alt="${escapeHTML(log.user?.name)}" class="w-4 h-4 rounded-full">
+                            <span class="text-xs text-gray-500">由 ${escapeHTML(log.user?.name)} 於 ${toLocaleString(log.date)} 提供</span>
+                            ${canEdit && isLatest ? `<button class="replace-file-btn ml-2 text-blue-500 hover:text-blue-700 text-xs font-bold" data-field="${fieldPath}" data-index="${index}" title="替換此檔案">替換</button>` : ''}
+                            ${canEdit ? `<button class="delete-log-btn ml-2 text-red-500 hover:text-red-700 text-xs font-bold" data-field="${fieldPath}" data-index="${index}" title="刪除此檔案">×</button>` : ''}
+                        </div>
+                    </div>
+                    <a href="${escapeHTML(log.link)}" target="_blank" class="text-sm text-blue-600 hover:underline break-all block">${escapeHTML(log.link)}</a>
+                </div>`;
+            }).join('')}</div>`;
+        };
+        
+        function renderMemberManagement(project, canEdit) {
+            const container = UI.projectDetailView.querySelector('#member-management-container');
+            if (!container || !canEdit) {
+                if(container) container.innerHTML = ''; // Clear if not admin
+                return;
+            }
+
+            const membersHTML = (project.memberEmails || []).map(email => {
+                 const memberUid = Array.from(allUsersCache.keys()).find(uid => allUsersCache.get(uid)?.email === email);
+                 const memberData = allUsersCache.get(memberUid) || { avatar: '', name: '未知使用者' };
+                return `
+                <li class="flex items-center justify-between py-1">
+                    <div class="flex items-center">
+                        <img src="${escapeHTML(memberData.avatar)}" alt="${escapeHTML(memberData.name)}" class="w-6 h-6 rounded-full mr-2">
+                        <span>${escapeHTML(memberData.name)} (${escapeHTML(email)})</span>
+                    </div>
+                    ${email !== SUPER_ADMIN_EMAIL ? `<button class="remove-member-btn text-red-500 hover:text-red-700 text-xs font-bold" data-email="${escapeHTML(email)}">移除</button>` : ''}
+                </li>`;
+            }).join('');
+
+            container.innerHTML = `
+                <h4 class="text-lg font-semibold text-gray-800">成員管理</h4>
+                <div class="mt-2 p-4 bg-gray-50 rounded-lg">
+                    <p class="font-bold">現有成員:</p>
+                    <ul class="text-sm text-gray-700 mt-2 mb-4 divide-y divide-gray-200">${membersHTML}</ul>
+                    <div class="flex gap-2 items-center">
+                        <input type="email" id="add-member-email" placeholder="輸入成員 Email..." class="flex-grow p-1 border rounded text-sm">
+                        <button id="add-member-btn" class="bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600 flex items-center justify-center">新增成員</button>
+                    </div>
+                </div>`;
+        }
+
+        function renderActivityFeed(project) {
+            const container = UI.projectDetailView.querySelector('#activity-feed-container');
+            if (!container) return;
+
+            let activities = [];
+            const logFields = {
+                'briefingFiles.documents': 'Briefing 文件', 'briefingFiles.logos': 'Briefing Logo', 'briefingFiles.videos': 'Briefing 影片',
+                'aiFiles.file1': 'AI 文件1', 'aiFiles.file2': 'AI 文件2', 'mediaProposals': '媒體提案', 'creativeFolder': '創意資料夾'
+            };
+            for (const [field, name] of Object.entries(logFields)) {
+                const logs = field.split('.').reduce((o, i) => o?.[i], project) || [];
+                logs.forEach(log => activities.push({
+                    date: new Date(log.date),
+                    html: `<div class="activity-item p-2"><img src="${escapeHTML(log.user?.avatar)}" class="w-5 h-5 rounded-full inline-block mr-2"><span class="font-bold">${escapeHTML(log.user?.name)}</span> 新增了一筆 <span class="font-semibold">${name}</span> 記錄。<span class="text-gray-500 text-xs ml-2">${toLocaleString(log.date)}</span></div>`
+                }));
+            }
+            activities.sort((a,b) => b.date - a.date);
+            const recentActivities = activities.slice(0, 10);
+            
+            container.innerHTML = `
+                 <h4 class="text-lg font-semibold text-gray-800">最新動態</h4>
+                 <div class="mt-2 p-4 bg-gray-50 rounded-lg space-y-2 text-sm">
+                    ${recentActivities.length > 0 ? recentActivities.map(a => a.html).join('') : '<p class="text-gray-500">尚無動態</p>'}
+                 </div>
+            `;
+        }
+
+        function checkForNewActivity(project) {
+            const previousState = lastKnownProjectState[project.id];
+            if (!previousState) return; 
+
+            const logStepMapping = { 1: ['briefingFiles.documents', 'briefingFiles.logos', 'briefingFiles.videos'], 2: ['aiFiles.file1', 'aiFiles.file2'], 3: ['mediaProposals'], 6: ['creativeFolder'] };
+            
+            Object.entries(logStepMapping).forEach(([step, fields]) => {
+                const currentCount = fields.reduce((sum, field) => sum + (field.split('.').reduce((o, i) => o?.[i], project) || []).length, 0);
+                const prevCount = fields.reduce((sum, field) => sum + (field.split('.').reduce((o, i) => o?.[i], previousState) || []).length, 0);
+                if (currentCount > prevCount) {
+                    document.getElementById(`new-activity-${step}`)?.classList.remove('hidden');
+                }
             });
         }
 
-        function handleDeleteProject(projectId) {
-            UI.deleteConfirmModal.classList.remove('hidden');
-            UI.confirmDeleteBtn.onclick = () => {
-                deleteDoc(doc(db, "projects", projectId)).then(() => {
-                    backToProjectsList();
-                    UI.deleteConfirmModal.classList.add('hidden');
+
+        // --- FIRESTORE LISTENERS ---
+        function listenForProjects() {
+            if (unsubscribeProjects) unsubscribeProjects();
+            const projectsRef = collection(db, "projects");
+            
+            console.log('開始監聽專案，當前使用者:', currentUser);
+            console.log('是否為超級管理員:', isSuperAdmin(currentUser));
+            
+            // 簡化查詢邏輯：超級管理員看所有專案，一般使用者看自己的專案
+            let q;
+            if (isSuperAdmin(currentUser)) {
+                q = query(projectsRef);
+                console.log('超級管理員查詢：所有專案');
+            } else {
+                // 使用 array-contains 查詢使用者的專案
+                q = query(projectsRef, where("members", "array-contains", currentUser.uid));
+                console.log('一般使用者查詢：成員包含', currentUser.uid);
+            }
+            
+            unsubscribeProjects = onSnapshot(q, snapshot => {
+                const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log('收到專案資料:', projects.length, '個專案');
+                projects.forEach(project => {
+                    console.log('專案:', project.name, 'ID:', project.id, '擁有者:', project.ownerId, '成員:', project.members);
                 });
-            };
+                renderProjectsList(projects);
+            }, error => {
+                console.error("監聽專案列表失敗:", error);
+                // 顯示錯誤給使用者
+                UI.projectsContainer.innerHTML = `<div class="col-span-full text-center py-10">
+                    <p class="text-red-500 mb-4">載入專案失敗: ${error.message}</p>
+                    <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded">重新載入</button>
+                </div>`;
+            });
+        }
+        
+        function showProjectDetail(projectId) {
+            console.log('顯示專案詳情:', projectId);
+            console.log('當前使用者:', currentUser);
+            console.log('是否為超級管理員:', isSuperAdmin(currentUser));
+            
+            UI.projectsView.classList.add('hidden');
+            UI.projectDetailView.classList.remove('hidden');
+            
+            if (unsubscribeProjectDetail) {
+                console.log('取消之前的專案詳情監聽');
+                unsubscribeProjectDetail();
+            }
+            
+            const projectRef = doc(db, "projects", projectId);
+            console.log('開始監聽專案詳情:', projectRef.path);
+            
+            unsubscribeProjectDetail = onSnapshot(projectRef, (doc) => {
+                if (doc.exists()) {
+                    const projectData = { id: doc.id, ...doc.data() };
+                    // 修復權限檢查：超級管理員或專案擁有者都可以編輯
+                    const canEdit = isSuperAdmin(currentUser) || projectData.ownerId === currentUser?.uid || projectData.members?.includes(currentUser?.uid);
+                    console.log('專案詳情載入成功:', projectData.name, '可編輯:', canEdit);
+                    console.log('專案擁有者:', projectData.ownerId, '當前使用者:', currentUser?.uid);
+                    console.log('是否為超級管理員:', isSuperAdmin(currentUser));
+                    console.log('專案成員:', projectData.members);
+                    console.log('當前使用者是否為成員:', projectData.members?.includes(currentUser?.uid));
+                    renderProjectDetail(projectData, canEdit);
+                    lastKnownProjectState[projectId] = projectData; 
+                    
+                    (projectData.brandCreative?.scripts || []).forEach(script => {
+                        listenForScriptComments(projectId, script.id);
+                    });
+                } else {
+                    console.log("專案不存在，返回列表");
+                    backToProjectsList();
+                }
+            }, (error) => {
+                console.error("監聽專案詳情失敗:", error);
+                alert('載入專案詳情失敗: ' + error.message);
+            });
         }
 
-        // --- EVENT LISTENERS BINDING ---
-        UI.googleLoginBtn.addEventListener('click', handleGoogleLogin);
+        function listenForScriptComments(projectId, scriptId) {
+            const commentListenerId = `comments-${scriptId}`;
+            if (unsubscribeComments[commentListenerId]) unsubscribeComments[commentListenerId]();
+            
+            const commentsRef = collection(db, "projects", projectId, "scriptComments");
+            const q = query(commentsRef, where("scriptId", "==", scriptId));
+            
+            unsubscribeComments[commentListenerId] = onSnapshot(q, (snapshot) => {
+                const comments = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                comments.sort((a,b) => (a.createdAt?.toDate() || 0) - (b.createdAt?.toDate() || 0));
+                
+                const container = document.getElementById(`comments-container-${scriptId}`);
+                if (!container) return;
+                container.innerHTML = '';
+                
+                comments.forEach(comment => {
+                    const commentEl = document.createElement('div');
+                    commentEl.className = 'comment-item bg-blue-50 p-2 rounded-r-lg';
+                    commentEl.innerHTML = `
+                        <p class="text-sm">${escapeHTML(comment.text)}</p>
+                        <div class="text-xs text-gray-500 text-right mt-2 flex items-center justify-end">
+                            <img src="${escapeHTML(comment.author?.avatar)}" alt="${escapeHTML(comment.author?.name)}" class="w-4 h-4 rounded-full mr-1">
+                            <span>by ${escapeHTML(comment.author?.name)} at ${toLocaleString(comment.createdAt?.toDate())}</span>
+                        </div>`;
+                    container.appendChild(commentEl);
+                });
+                container.scrollTop = container.scrollHeight;
+
+                const previousState = lastKnownProjectState[projectId];
+                if(previousState) {
+                    const prevCommentCount = previousState.comments?.[scriptId] || 0;
+                    if(comments.length > prevCommentCount) {
+                        document.getElementById('new-activity-5')?.classList.remove('hidden');
+                    }
+                    if(!previousState.comments) previousState.comments = {};
+                    previousState.comments[scriptId] = comments.length;
+                }
+            }, console.error);
+        }
+
+        // *** REFACTORED: Centralized event binding function ***
+        function bindDetailViewEvents(project, canEdit) {
+            const projectId = project.id;
+            const detailView = UI.projectDetailView;
+
+            console.log('綁定專案詳情事件，專案ID:', projectId, '可編輯:', canEdit);
+            console.log('當前使用者:', currentUser);
+            console.log('是否為超級管理員:', isSuperAdmin(currentUser));
+
+            // 返回按鈕
+            const backBtn = detailView.querySelector('#back-to-projects-btn');
+            if (backBtn) {
+                console.log('找到返回按鈕，綁定事件');
+                backBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('點擊返回按鈕');
+                    backToProjectsList();
+                });
+            } else {
+                console.error('找不到返回按鈕');
+            }
+
+            // 編輯按鈕
+            const editBtn = detailView.querySelector('#edit-project-btn');
+            if (editBtn && canEdit) {
+                console.log('找到編輯按鈕，綁定事件');
+                editBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('點擊編輯按鈕');
+                    openProjectModal(project);
+                });
+            } else {
+                console.log('編輯按鈕狀態:', editBtn ? '存在但無權限' : '不存在');
+            }
+
+            // 刪除按鈕
+            const deleteBtn = detailView.querySelector('#delete-project-btn');
+            if (deleteBtn && canEdit) {
+                console.log('找到刪除按鈕，綁定事件');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('點擊刪除按鈕');
+                    UI.confirmDeleteBtn.onclick = () => handleDeleteProject(projectId);
+                    UI.deleteConfirmModal.classList.remove('hidden');
+                });
+            } else {
+                console.log('刪除按鈕狀態:', deleteBtn ? '存在但無權限' : '不存在');
+            }
+
+            // 步驟展開事件
+            detailView.querySelectorAll('[data-step-toggler]').forEach(toggler => {
+                console.log('綁定步驟展開事件:', toggler.dataset.stepToggler);
+                toggler.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const stepNum = toggler.dataset.stepToggler;
+                    const content = document.getElementById(`step-content-${stepNum}`);
+                    const newActivityDot = document.getElementById(`new-activity-${stepNum}`);
+                    const icon = toggler.querySelector('svg');
+                    
+                    console.log('點擊步驟展開:', stepNum);
+                    
+                    if (content) {
+                        // 檢查當前狀態
+                        const isExpanded = content.style.maxHeight && content.style.maxHeight !== '0px' && content.style.maxHeight !== 'none';
+                        
+                        if (isExpanded) {
+                            // 收合
+                            content.style.maxHeight = '0px';
+                            content.style.overflow = 'hidden';
+                            icon.style.transform = 'rotate(0deg)';
+                            console.log('收合步驟:', stepNum);
+                        } else {
+                            // 展開
+                            content.style.maxHeight = content.scrollHeight + 40 + "px";
+                            content.style.overflow = 'visible';
+                            icon.style.transform = 'rotate(180deg)';
+                            console.log('展開步驟:', stepNum);
+                        }
+                        
+                        // 隱藏新活動提示
+                        if (newActivityDot) {
+                            newActivityDot.classList.add('hidden');
+                        }
+                    } else {
+                        console.error('找不到步驟內容:', stepNum);
+                    }
+                });
+            });
+
+            // 腳本評論事件
+            detailView.querySelectorAll('.add-script-comment-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const scriptId = parseInt(btn.dataset.scriptId);
+                    const input = detailView.querySelector(`#comment-input-${scriptId}`);
+                    await addScriptComment(projectId, scriptId, input.value, btn);
+                    input.value = '';
+                });
+            });
+            
+            // 所有編輯功能事件（需要權限）
+            console.log('開始綁定編輯功能事件，可編輯:', canEdit);
+            
+            // 新增檔案按鈕
+            detailView.querySelectorAll('.add-log-btn').forEach(btn => {
+                console.log('綁定新增檔案按鈕:', btn.dataset.field);
+                btn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const inputId = btn.dataset.inputId;
+                    const input = detailView.querySelector(`#${inputId}`);
+                    if (input && input.value) {
+                        console.log('新增檔案連結:', input.value, '欄位:', btn.dataset.field, '輸入ID:', inputId);
+                        await addFileLog(projectId, btn.dataset.field, input.value, btn);
+                        input.value = '';
+                    } else {
+                        console.error('找不到輸入欄位或輸入為空:', inputId);
+                        if (input && input.hasAttribute('required')) {
+                            alert('此欄位為必填，請輸入檔案連結');
+                            input.focus();
+                        } else {
+                            alert('請輸入檔案連結');
+                        }
+                    }
+                });
+            });
+
+            // 儲存欄位按鈕
+            detailView.querySelectorAll('.save-field-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const input = detailView.querySelector(`#${btn.dataset.inputId}`);
+                    toggleButtonLoading(btn, true, '儲存');
+                    try {
+                        await updateDoc(doc(db, "projects", projectId), { [btn.dataset.field]: input.value });
+                        console.log('欄位儲存成功:', btn.dataset.field);
+                    } catch (error) {
+                        console.error('儲存欄位失敗:', error);
+                        alert('儲存失敗: ' + error.message);
+                    } finally {
+                        toggleButtonLoading(btn, false, '儲存');
+                    }
+                });
+            });
+
+            // 儲存腳本按鈕
+            detailView.querySelectorAll('.save-script-btn').forEach(btn => {
+                console.log('綁定儲存腳本按鈕:', btn.dataset.scriptId);
+                btn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const scriptId = parseInt(btn.dataset.scriptId);
+                    const textarea = detailView.querySelector(`textarea[data-script-id="${scriptId}"]`);
+                    console.log('儲存腳本:', scriptId, textarea?.value);
+                    toggleButtonLoading(btn, true, '儲存腳本');
+                    try {
+                        const projectSnap = await getDoc(doc(db, "projects", projectId));
+                        const scripts = projectSnap.data().brandCreative.scripts;
+                        const scriptIndex = scripts.findIndex(s => s.id === scriptId);
+                        if (scriptIndex > -1) {
+                            scripts[scriptIndex].text = textarea.value;
+                            await updateDoc(doc(db, "projects", projectId), { "brandCreative.scripts": scripts });
+                            console.log('腳本儲存成功');
+                        }
+                    } catch (error) {
+                        console.error('儲存腳本失敗:', error);
+                        alert('儲存腳本失敗: ' + error.message);
+                    } finally {
+                         toggleButtonLoading(btn, false, '儲存腳本');
+                    }
+                });
+            });
+            
+            // 送審腳本按鈕
+            detailView.querySelectorAll('.submit-script-btn').forEach(btn => {
+                console.log('綁定送審腳本按鈕:', btn.dataset.scriptId);
+                btn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const scriptId = parseInt(btn.dataset.scriptId);
+                    const textarea = detailView.querySelector(`textarea[data-script-id="${scriptId}"]`);
+                    if (!textarea.value.trim()) {
+                        alert('請先輸入腳本內容');
+                        return;
+                    }
+                    console.log('送審腳本:', scriptId);
+                    await submitScript(projectId, scriptId, btn);
+                });
+            });
+            
+            // 核准腳本按鈕
+            detailView.querySelectorAll('.approve-script-btn').forEach(btn => {
+                console.log('綁定核准腳本按鈕:', btn.dataset.scriptId);
+                btn.addEventListener('click', () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    approveScript(projectId, parseInt(btn.dataset.scriptId), btn);
+                });
+            });
+
+            // 提交結案報告按鈕
+            detailView.querySelectorAll('.submit-final-report-btn').forEach(btn => {
+                console.log('綁定提交結案報告按鈕');
+                btn.addEventListener('click', () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    submitFinalReport(projectId, btn);
+                });
+            });
+            
+            // 核准結案報告按鈕
+            detailView.querySelectorAll('.approve-final-report-btn').forEach(btn => {
+                console.log('綁定核准結案報告按鈕');
+                btn.addEventListener('click', () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    approveFinalReport(projectId, btn);
+                });
+            });
+
+            // 切換步驟狀態按鈕
+            detailView.querySelectorAll('.toggle-step-btn').forEach(btn => {
+                console.log('綁定切換步驟狀態按鈕:', btn.dataset.step);
+                btn.addEventListener('click', async () => {
+                    console.log('點擊完成按鈕，權限檢查:', canEdit);
+                    console.log('當前使用者:', currentUser);
+                    console.log('是否為超級管理員:', isSuperAdmin(currentUser));
+                    
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const stepNum = parseInt(btn.dataset.step);
+                    console.log('開始切換步驟狀態:', stepNum);
+                    toggleButtonLoading(btn, true, btn.textContent);
+                    try {
+                        const projectRef = doc(db, "projects", projectId);
+                        const projectSnap = await getDoc(projectRef);
+                        const isComplete = projectSnap.data().completedSteps?.includes(stepNum);
+                        console.log('當前步驟狀態:', isComplete ? '已完成' : '未完成');
+                        
+                        const updateData = {
+                            completedSteps: isComplete ? arrayRemove(stepNum) : arrayUnion(stepNum),
+                            [`stepCompletionDates.${stepNum}`]: isComplete ? deleteField() : new Date().toISOString()
+                        };
+                        console.log('更新資料:', updateData);
+                        
+                        await updateDoc(projectRef, updateData);
+                        console.log('步驟狀態切換成功:', stepNum, isComplete ? '標記為未完成' : '標記為完成');
+                    } catch (error) {
+                        console.error('切換步驟狀態失敗:', error);
+                        console.error('錯誤詳情:', error.code, error.message);
+                        alert('切換步驟狀態失敗: ' + error.message);
+                    } finally {
+                        toggleButtonLoading(btn, false, btn.textContent);
+                    }
+                });
+            });
+
+            // 成員管理功能
+            const addMemberBtn = detailView.querySelector('#add-member-btn');
+            if (addMemberBtn) {
+                addMemberBtn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const emailInput = detailView.querySelector('#add-member-email');
+                    const email = emailInput.value.trim();
+                    if (!email) return alert('請輸入 Email');
+                    toggleButtonLoading(addMemberBtn, true, '新增成員');
+                    try {
+                        const usersRef = collection(db, "users");
+                        const q = query(usersRef, where("email", "==", email));
+                        const querySnapshot = await getDocs(q);
+                        
+                        if (querySnapshot.empty) throw new Error(`找不到 Email 為 ${email} 的使用者。請確認該使用者已用 Google 登入過一次系統。`);
+
+                        const userDoc = querySnapshot.docs[0];
+                        const newMemberUid = userDoc.id;
+
+                        const projectRef = doc(db, "projects", projectId);
+                        await updateDoc(projectRef, {
+                            members: arrayUnion(newMemberUid),
+                            memberEmails: arrayUnion(email)
+                        });
+                        emailInput.value = '';
+                        alert(`已成功新增成員 ${email}`);
+                    } catch (error) {
+                        alert(error.message);
+                    } finally {
+                        toggleButtonLoading(addMemberBtn, false, '新增成員');
+                    }
+                });
+            }
+
+            // 移除成員按鈕
+            detailView.querySelectorAll('.remove-member-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const emailToRemove = btn.dataset.email;
+                    if (!confirm(`確定要移除成員 ${emailToRemove} 嗎？`)) return;
+                    
+                    toggleButtonLoading(btn, true, '移除');
+                    try {
+                       const projectRef = doc(db, "projects", projectId);
+                       const usersRef = collection(db, "users");
+                       const q = query(usersRef, where("email", "==", emailToRemove));
+                       const userSnapshot = await getDocs(q);
+
+                       if (userSnapshot.empty) throw new Error("找不到要移除的使用者");
+                       
+                       const uidToRemove = userSnapshot.docs[0].id;
+                       await updateDoc(projectRef, {
+                            members: arrayRemove(uidToRemove),
+                            memberEmails: arrayRemove(emailToRemove)
+                       });
+                       alert('成員已移除');
+                    } catch (error) {
+                        alert('移除成員失敗: ' + error.message);
+                        toggleButtonLoading(btn, false, '移除');
+                    }
+                });
+            });
+
+            // 刪除檔案按鈕
+            detailView.querySelectorAll('.delete-log-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const fieldPath = btn.dataset.field;
+                    const index = parseInt(btn.dataset.index);
+                    
+                    if (!confirm('確定要刪除此檔案嗎？')) return;
+                    
+                    console.log('刪除檔案:', fieldPath, '索引:', index);
+                    toggleButtonLoading(btn, true, '刪除中');
+                    
+                    try {
+                        const projectRef = doc(db, "projects", projectId);
+                        const projectSnap = await getDoc(projectRef);
+                        const projectData = projectSnap.data();
+                        
+                        // 根據欄位路徑取得陣列
+                        const fieldArray = fieldPath.split('.').reduce((obj, key) => obj?.[key], projectData) || [];
+                        const updatedArray = fieldArray.filter((_, i) => i !== index);
+                        
+                        // 更新資料庫
+                        await updateDoc(projectRef, { [fieldPath]: updatedArray });
+                        console.log('檔案刪除成功');
+                    } catch (error) {
+                        console.error('刪除檔案失敗:', error);
+                        alert('刪除檔案失敗: ' + error.message);
+                    } finally {
+                        toggleButtonLoading(btn, false, '×');
+                    }
+                });
+            });
+
+            // 替換檔案按鈕
+            detailView.querySelectorAll('.replace-file-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!canEdit) {
+                        alert('您沒有權限執行此操作');
+                        return;
+                    }
+                    const fieldPath = btn.dataset.field;
+                    const index = parseInt(btn.dataset.index);
+                    
+                    // 建立替換對話框
+                    const newLink = prompt('請輸入新的檔案連結:');
+                    if (!newLink || !newLink.trim()) return;
+                    
+                    console.log('替換檔案:', fieldPath, '索引:', index, '新連結:', newLink);
+                    await replaceFileLog(projectId, fieldPath, newLink, index, btn);
+                });
+            });
+        }
+        
+        // --- GLOBAL EVENT LISTENERS ---
+        UI.googleLoginBtn.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, new GoogleAuthProvider());
+            } catch (error) {
+                console.error('Google 登入失敗:', error);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    console.log('使用者關閉了登入彈窗');
+                } else {
+                    alert('登入失敗: ' + error.message);
+                }
+            }
+        });
         UI.logoutBtn.addEventListener('click', () => signOut(auth));
-        UI.userMenuBtn.addEventListener('click', () => UI.userMenu.classList.toggle('hidden'));
         UI.newProjectBtn.addEventListener('click', () => openProjectModal());
+        UI.projectForm.addEventListener('submit', handleProjectFormSubmit);
+        UI.userMenuBtn.addEventListener('click', () => UI.userMenu.classList.toggle('hidden'));
         UI.closeModalBtns.forEach(btn => btn.addEventListener('click', () => {
             UI.projectModal.classList.add('hidden');
             UI.deleteConfirmModal.classList.add('hidden');
         }));
-        UI.projectForm.addEventListener('submit', handleProjectFormSubmit);
         UI.cancelDeleteBtn.addEventListener('click', () => UI.deleteConfirmModal.classList.add('hidden'));
+
+        // 專案編號自動生成事件
+        UI.clientNameInput.addEventListener('input', updateProjectUID);
+        UI.marketInput.addEventListener('change', updateProjectUID);
+        UI.launchDateInput.addEventListener('change', updateProjectUID);
         
-        document.addEventListener('click', e => {
-            if (e.target.id === 'back-to-projects') backToProjectsList();
-            if (e.target.id === 'edit-project-btn') {
-                const projectId = e.target.dataset.id;
+        function updateProjectUID() {
+            const clientName = UI.clientNameInput.value.trim();
+            const country = UI.marketInput.value;
+            const launchDate = UI.launchDateInput.value;
+            
+            if (clientName && country) {
+                const projectUID = generateProjectUID(clientName, country, launchDate);
+                UI.projectUidInput.value = projectUID;
+            } else {
+                UI.projectUidInput.value = '';
+            }
+        }
+
+        function backToProjectsList() {
+            console.log('返回專案列表');
+            
+            // 清理監聽器
+            Object.values(unsubscribeComments).forEach(unsub => {
+                console.log('取消評論監聽器');
+                unsub();
+            });
+            unsubscribeComments = {};
+            
+            if(unsubscribeProjectDetail) {
+                console.log('取消專案詳情監聽器');
+                unsubscribeProjectDetail();
+            }
+            
+            // 切換視圖
+            UI.projectDetailView.classList.add('hidden');
+            UI.projectDetailView.innerHTML = '';
+            UI.projectsView.classList.remove('hidden');
+            
+            console.log('已返回專案列表');
+        }
+
+        async function handleDeleteProject(projectId) {
+            const commentsRef = collection(db, "projects", projectId, "scriptComments");
+            const commentsSnap = await getDocs(commentsRef);
+            const batch = writeBatch(db);
+            commentsSnap.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            await deleteDoc(doc(db, "projects", projectId));
+            backToProjectsList();
+            UI.deleteConfirmModal.classList.add('hidden');
+        }
+
+        async function replaceFileLog(projectId, field, newLink, oldIndex, button) {
+            if (!newLink.trim()) {
+                alert('請輸入有效的連結');
+                return;
+            }
+            
+            console.log('開始替換檔案:', { projectId, field, newLink, oldIndex });
+            toggleButtonLoading(button, true, '替換中');
+            
+            try {
                 const projectRef = doc(db, "projects", projectId);
-                getDoc(projectRef).then(doc => openProjectModal({id: doc.id, ...doc.data()}));
+                const projectSnap = await getDoc(projectRef);
+                const projectData = projectSnap.data();
+                
+                // 取得現有檔案陣列
+                const existingFiles = field.split('.').reduce((obj, key) => obj?.[key], projectData) || [];
+                
+                if (oldIndex >= existingFiles.length) {
+                    throw new Error('找不到要替換的檔案');
+                }
+                
+                const oldFile = existingFiles[oldIndex];
+                
+                // 建立新的檔案記錄
+                const newFileEntry = {
+                    link: newLink.trim(),
+                    user: {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        name: currentUser.name,
+                        avatar: currentUser.avatar
+                    },
+                    date: new Date().toISOString(),
+                    version: (oldFile.version || 1) + 1,
+                    isLatest: true,
+                    replacedFrom: oldFile.link // 記錄被替換的原始連結
+                };
+                
+                // 將所有現有檔案標記為非最新版本
+                const updatedFiles = existingFiles.map(file => ({
+                    ...file,
+                    isLatest: false
+                }));
+                
+                // 替換指定索引的檔案
+                updatedFiles[oldIndex] = newFileEntry;
+                
+                // 更新資料庫
+                await updateDoc(projectRef, {
+                    [field]: updatedFiles
+                });
+                
+                console.log('檔案替換成功:', newFileEntry);
+                alert('檔案已成功替換！');
+            } catch (error) {
+                console.error("替換檔案失敗:", error);
+                alert('替換失敗: ' + error.message);
+            } finally {
+                toggleButtonLoading(button, false, '替換');
             }
-            if (e.target.id === 'delete-project-btn') handleDeleteProject(e.target.dataset.id);
-            if (e.target.classList.contains('toggle-step-btn')) {
-                const { id, step } = e.target.dataset;
-                toggleStepComplete(id, parseInt(step));
-            }
+        }
+
+        // --- GLOBAL ERROR HANDLERS ---
+        // 捕獲未處理的 Promise 錯誤
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('未處理的 Promise 錯誤:', event.reason);
+            console.error('錯誤詳情:', {
+                message: event.reason?.message,
+                stack: event.reason?.stack,
+                code: event.reason?.code
+            });
+            
+            // 防止錯誤顯示在控制台
+            event.preventDefault();
         });
+
+        // 捕獲全域 JavaScript 錯誤
+        window.addEventListener('error', function(event) {
+            console.error('全域 JavaScript 錯誤:', {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error
+            });
+        });
+
+        // --- GLOBAL EVENT LISTENERS ---
     </script>
 </body>
 </html>
+
