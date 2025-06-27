@@ -934,6 +934,23 @@
                               <p><strong>內部報告:</strong> ${project.dashboardLinks?.internal ? `<a href="${project.dashboardLinks.internal}" target="_blank" class="text-indigo-500 hover:underline">連結</a>` : '無'}</p>
                               <p><strong>客戶報告:</strong> ${project.dashboardLinks?.client ? `<a href="${project.dashboardLinks.client}" target="_blank" class="text-indigo-500 hover:underline">連結</a>` : '無'}</p>
                            </div>
+                           
+                           <!-- 專案工具連結 -->
+                           <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                               <h4 class="font-semibold text-blue-800 mb-3">📋 專案工具</h4>
+                               <div class="flex flex-wrap gap-3">
+                                   <button class="open-intelligence-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-project-id="${project.projectId}">
+                                       🔍 市場情資分析
+                                   </button>
+                                   <button class="open-mediaplan-btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-project-id="${project.projectId}">
+                                       📊 媒體提案引擎
+                                   </button>
+                                   <button class="export-to-drive-btn bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-project-id="${project.projectId}">
+                                       ☁️ 匯出到 Google Drive
+                                   </button>
+                               </div>
+                               <p class="text-xs text-blue-600 mt-2">點擊按鈕將在新分頁開啟對應工具，並自動填入專案 ID</p>
+                           </div>
                         </div>
                         <div class="text-right text-sm text-gray-600 space-y-1">
                            <p><strong>狀態:</strong> ${project.status === 'closed' ? '已結案' : '進行中'}</p>
@@ -1417,6 +1434,44 @@
                 });
             } else {
                 console.log('刪除按鈕狀態:', deleteBtn ? '存在但無權限' : '不存在');
+            }
+
+            // 專案工具按鈕事件
+            const intelligenceBtn = detailView.querySelector('.open-intelligence-btn');
+            if (intelligenceBtn) {
+                console.log('找到市場情資分析按鈕，綁定事件');
+                intelligenceBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const projectId = intelligenceBtn.dataset.projectId;
+                    console.log('開啟市場情資分析，專案 ID:', projectId);
+                    window.open(`intelligence.html?projectId=${encodeURIComponent(projectId)}`, '_blank');
+                });
+            }
+
+            const mediaplanBtn = detailView.querySelector('.open-mediaplan-btn');
+            if (mediaplanBtn) {
+                console.log('找到媒體提案引擎按鈕，綁定事件');
+                mediaplanBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const projectId = mediaplanBtn.dataset.projectId;
+                    console.log('開啟媒體提案引擎，專案 ID:', projectId);
+                    window.open(`mediaplan.html?projectId=${encodeURIComponent(projectId)}`, '_blank');
+                });
+            }
+
+            // 匯出到 Google Drive 按鈕
+            const exportToDriveBtn = detailView.querySelector('.export-to-drive-btn');
+            if (exportToDriveBtn) {
+                console.log('找到匯出到 Google Drive 按鈕，綁定事件');
+                exportToDriveBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const projectId = exportToDriveBtn.dataset.projectId;
+                    console.log('匯出專案到 Google Drive，專案 ID:', projectId);
+                    exportProjectToGoogleDrive(projectId);
+                });
             }
 
             // 步驟展開事件
@@ -1932,6 +1987,84 @@
         });
 
         // --- GLOBAL EVENT LISTENERS ---
+
+        // 新增：從 URL 參數讀取 project ID
+        function loadProjectIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('projectId');
+            if (projectId) {
+                ui.projectIdInput.value = projectId;
+                state.projectId = projectId;
+                console.log('從 URL 讀取到專案 ID:', projectId);
+            }
+        }
+
+        // 新增：匯出專案到 Google Drive
+        async function exportProjectToGoogleDrive(projectId) {
+            try {
+                // 取得專案資料
+                const projectRef = doc(db, "projects", projectId);
+                const projectSnap = await getDoc(projectRef);
+                
+                if (!projectSnap.exists()) {
+                    alert('找不到專案資料');
+                    return;
+                }
+                
+                const projectData = projectSnap.data();
+                
+                // 建立專案摘要
+                const projectSummary = {
+                    projectId: projectData.projectId,
+                    name: projectData.name,
+                    client: projectData.client,
+                    market: projectData.market,
+                    budget: projectData.budget,
+                    status: projectData.status,
+                    createdAt: projectData.createdAt?.toDate?.() || projectData.createdAt,
+                    launchDate: projectData.launchDate,
+                    closeDate: projectData.closeDate,
+                    ownerName: projectData.ownerName,
+                    ownerEmail: projectData.ownerEmail,
+                    dashboardLinks: projectData.dashboardLinks,
+                    completedSteps: projectData.completedSteps,
+                    stepCompletionDates: projectData.stepCompletionDates,
+                    briefingFiles: projectData.briefingFiles,
+                    aiFiles: projectData.aiFiles,
+                    mediaProposals: projectData.mediaProposals,
+                    brandCreative: projectData.brandCreative,
+                    creativeFolder: projectData.creativeFolder,
+                    finalReport: projectData.finalReport,
+                    exportedAt: new Date().toISOString(),
+                    exportedBy: {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        name: currentUser.name
+                    }
+                };
+                
+                // 建立檔案內容
+                const fileContent = JSON.stringify(projectSummary, null, 2);
+                const fileName = `[${projectData.projectId}]_專案完整資料_${new Date().toISOString().slice(0, 10)}.json`;
+                
+                // 建立 Blob 並下載
+                const blob = new Blob([fileContent], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert(`專案資料已匯出為 ${fileName}\n\n請手動上傳到 Google Drive 的專案資料夾中。`);
+                
+            } catch (error) {
+                console.error('匯出專案失敗:', error);
+                alert('匯出失敗: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>
