@@ -187,7 +187,7 @@
                 </div>
 
                 <!-- 分析系統主要內容區域 -->
-                <div id="analysis-panel-content" class="panel active">
+                <div id="analysis-panel" class="panel active">
                     <!-- Step 1: 分析設定 -->
                     <div id="step-1-content" class="step-panel">
                         <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
@@ -512,12 +512,26 @@ function handleMainTabSwitch(event) {
     const btn = event.target.closest('.tab-main');
     if (!btn || btn.classList.contains('active')) return;
 
-    document.querySelectorAll('.tab-main').forEach(tab => tab.classList.remove('active'));
+    // 移除所有標籤頁的active狀態
+    document.querySelectorAll('.tab-main').forEach(tab => {
+        if (tab) tab.classList.remove('active');
+    });
     btn.classList.add('active');
 
     const tabName = btn.dataset.tab;
-    document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-    document.getElementById(`${tabName}-panel`).classList.add('active');
+    
+    // 隱藏所有panel
+    document.querySelectorAll('.panel').forEach(panel => {
+        if (panel) panel.classList.remove('active');
+    });
+    
+    // 顯示目標panel
+    const targetPanel = document.getElementById(`${tabName}-panel`);
+    if (targetPanel) {
+        targetPanel.classList.add('active');
+    } else {
+        console.error(`找不到panel: ${tabName}-panel`);
+    }
 }
 
 function setLoadingState(isLoading, message = '') {
