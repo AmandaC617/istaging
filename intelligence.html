@@ -1504,22 +1504,35 @@ async function getEnhancedCompetitorDetails(name, context) {
 
 // --- EVENT LISTENERS FOR NEW FEATURES ---
 function setupEnhancedEventListeners() {
-    // 新增事件監聽器
-    document.getElementById('generate-ads-sites-btn').onclick = generateAdsSitesList;
-    document.getElementById('download-content-btn').onclick = downloadContent;
+    // 新增事件監聽器，添加null檢查
+    const generateAdsSitesBtn = document.getElementById('generate-ads-sites-btn');
+    const downloadContentBtn = document.getElementById('download-content-btn');
+    
+    if (generateAdsSitesBtn) {
+        generateAdsSitesBtn.onclick = generateAdsSitesList;
+    }
+    
+    if (downloadContentBtn) {
+        downloadContentBtn.onclick = downloadContent;
+    }
     
     // 標籤切換時更新相關內容
     document.querySelectorAll('.tab-main').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tab = e.target.dataset.tab;
-            if (tab === 'dashboard') {
-                setTimeout(updateDashboard, 100);
-            } else if (tab === 'comparison') {
-                setTimeout(renderComparisonTable, 100);
-            } else if (tab === 'ads-tools') {
-                setTimeout(generateKeywordStrategy, 100);
-            }
-        });
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                const target = e.target.closest('.tab-main');
+                if (target) {
+                    const tab = target.dataset.tab;
+                    if (tab === 'dashboard') {
+                        setTimeout(updateDashboard, 100);
+                    } else if (tab === 'comparison') {
+                        setTimeout(renderComparisonTable, 100);
+                    } else if (tab === 'ads-tools') {
+                        setTimeout(generateKeywordStrategy, 100);
+                    }
+                }
+            });
+        }
     });
 }
 
