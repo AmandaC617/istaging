@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>市場情資與競品分析平台 (V5 - 完整維度版)</title>
+    <title>市場情資與競品分析平台 (V6 - 進階分析版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Tailwind CSS configuration for a modern, tech-themed UI
         tailwind.config = {
@@ -68,6 +69,20 @@
         .badge-mid { background-color: #f97316; color: white; }
         .badge-low { background-color: #22c55e; color: white; }
         .badge-unknown { background-color: #6b7280; color: white; }
+
+        /* Dashboard Cards */
+        .dashboard-card { background: linear-gradient(135deg, #22283A 0%, #1a1f2e 100%); border: 1px solid #3762F0; border-radius: 12px; padding: 1.5rem; }
+        .metric-value { font-size: 2rem; font-weight: bold; color: #2EE9E4; }
+        .metric-label { color: #9ca3af; font-size: 0.875rem; margin-top: 0.5rem; }
+
+        /* Comparison Table */
+        .comparison-table { border-collapse: separate; border-spacing: 0; }
+        .comparison-table th { background: #1a1f2e; border: 1px solid #3762F0; padding: 12px; }
+        .comparison-table td { border: 1px solid #3762F0; padding: 12px; }
+        .comparison-table tr:nth-child(even) { background: rgba(55, 98, 240, 0.05); }
+
+        /* Chart Container */
+        .chart-container { position: relative; height: 300px; margin: 1rem 0; }
     </style>
 </head>
 <body class="bg-techbg font-tech text-gray-100 min-h-screen">
@@ -96,12 +111,6 @@
 
     <main class="container mx-auto px-6 py-8">
         <div id="app-container" class="locked">
-            <div class="flex border-b border-techprimary/20 mb-6">
-                <button data-tab="analysis" class="tab-main tab-btn active flex-1 p-4 font-semibold">分析流程</button>
-                <button data-tab="settings" class="tab-main tab-btn flex-1 p-4 font-semibold">API 設定</button>
-                <button data-tab="history" class="tab-main tab-btn flex-1 p-4 font-semibold">歷史紀錄</button>
-            </div>
-
             <!-- Main Panels -->
             <div id="analysis-panel" class="panel active">
                 <!-- Stepper -->
@@ -122,140 +131,51 @@
                     </div>
                 </div>
 
-                <!-- Step Content -->
-                <div id="step-content">
-                    <!-- Step 1: Analysis Inputs -->
-                    <div id="step-1-content" class="step-panel active">
-                        <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8 max-w-3xl mx-auto">
-                            <h2 class="text-2xl font-bold mb-6 text-techaccent text-center">設定分析目標</h2>
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="project-id" class="block text-sm font-medium text-gray-300">專案 ID <span class="text-yellow-400">*</span></label>
-                                    <input type="text" id="project-id" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20 focus:outline-none focus:ring-2 focus:ring-techprimary text-gray-100" placeholder="請輸入從 Workflow 系統取得的專案 ID">
-                                    <p class="text-xs text-gray-400 mt-1">請從 Workflow 系統複製專案編號並貼上此處</p>
-                                </div>
-                                <div>
-                                    <label for="topic" class="block text-sm font-medium text-gray-300">分析主題</label>
-                                    <input type="text" id="topic" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20 focus:outline-none focus:ring-2 focus:ring-techprimary text-gray-100" placeholder="如: 行動電源">
-                                </div>
-                                 <div>
-                                    <label class="block text-sm font-medium text-gray-300">商業模式</label>
-                                    <div class="mt-2 grid grid-cols-3 gap-4 text-gray-300">
-                                        <label class="p-3 bg-techbg rounded-lg text-center border-2 border-transparent has-[:checked]:border-techaccent cursor-pointer"><input type="radio" name="business-model" value="B2C" checked class="sr-only">B2C</label>
-                                        <label class="p-3 bg-techbg rounded-lg text-center border-2 border-transparent has-[:checked]:border-techaccent cursor-pointer"><input type="radio" name="business-model" value="B2B" class="sr-only">B2B</label>
-                                        <label class="p-3 bg-techbg rounded-lg text-center border-2 border-transparent has-[:checked]:border-techaccent cursor-pointer"><input type="radio" name="business-model" value="B2B2C" class="sr-only">B2B2C</label>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="country" class="block text-sm font-medium text-gray-300">國家/地區</label>
-                                        <select id="country" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20 focus:outline-none focus:ring-2 focus:ring-techprimary text-gray-100"><option value="TW">台灣</option><option value="CN">中國</option><option value="HK">香港</option><option value="JP">日本</option><option value="KR">韓國</option><option value="US">美國</option><option value="SG">新加坡</option><option value="DE">德國</option><option value="GB">英國</option><option value="FR">法國</option></select>
-                                    </div>
-                                    <div>
-                                        <label for="language" class="block text-sm font-medium text-gray-300">語言</label>
-                                        <select id="language" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20 focus:outline-none focus:ring-2 focus:ring-techprimary text-gray-100"><option value="zh-TW">繁體中文</option><option value="zh-CN">簡體中文</option><option value="en">英文</option><option value="ja">日文</option><option value="ko">韓文</option><option value="de">德文</option><option value="fr">法文</option></select>
-                                    </div>
-                                </div>
-                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><label for="industry" class="block text-sm font-medium text-gray-300">產業名稱</label><input type="text" id="industry" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="如: 消費性電子"></div>
-                                    <div><label for="sector" class="block text-sm font-medium text-gray-300">行業名稱</label><input type="text" id="sector" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="如: 通訊設備"></div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><label for="product" class="block text-sm font-medium text-gray-300">產品名稱</label><input type="text" id="product" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="如: 行動電源"></div>
-                                    <div><label for="company" class="block text-sm font-medium text-gray-300">公司名稱 (可選)</label><input type="text" id="company" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="如: 小米"></div>
-                                </div>
-                                <button id="start-analysis-btn" class="w-full bg-gradient-to-tr from-techprimary to-techaccent hover:from-techsecondary hover:to-techaccent font-bold text-white px-5 py-3 rounded-lg shadow-lg mt-6">產生建議列表</button>
-                            </div>
-                        </section>
-                    </div>
-
-                    <!-- Step 2: Competitor Selection & Supplement -->
-                    <div id="step-2-content" class="step-panel hidden">
-                        <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8 max-w-4xl mx-auto">
-                            <h2 class="text-2xl font-bold mb-2 text-techaccent text-center">篩選與補充競爭對手</h2>
-                            <p class="text-center text-gray-400 mb-6">請勾選 AI 建議的對手，並可手動補充額外名單。</p>
-                            
-                            <h3 class="font-semibold text-lg text-techaccent mb-3">AI 建議列表</h3>
-                            <div id="competitor-checkbox-list" class="mb-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-                            
-                            <div class="mt-6 border-t border-techprimary/30 pt-6">
-                                <label for="supplemental-competitors" class="font-semibold text-lg text-techaccent mb-3 block">補充自定義對手 (非必要)</label>
-                                <textarea id="supplemental-competitors" rows="3" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="請輸入額外的公司或品牌名稱，每行一個或用逗號分隔"></textarea>
-                            </div>
-
-                            <div class="flex justify-between items-center mt-8">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" id="select-all-competitors" class="mr-2 accent-techaccent scale-125">
-                                    <span class="font-semibold">全選/全不選 (AI 列表)</span>
-                                </label>
-                                <button id="analyze-selected-btn" class="bg-gradient-to-tr from-techprimary to-techaccent hover:from-techsecondary hover:to-techaccent font-bold text-white px-8 py-3 rounded-lg shadow-lg">整合並分析最終列表</button>
-                            </div>
-                        </section>
-                    </div>
-
-                    <!-- Step 3: Full Report -->
-                    <div id="step-3-content" class="step-panel hidden">
-                         <div id="loading-indicator" class="flex-col items-center justify-center h-full hidden">
-                            <div class="spinner"></div>
-                            <p id="loading-status" class="mt-4 text-techaccent font-medium"></p>
-                        </div>
-                        <div id="results-container">
-                            <div class="flex justify-end gap-4 mb-4">
-                                <button id="save-analysis-btn" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 font-bold text-white px-4 py-2 rounded-lg shadow-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 0 0 10-10c0-2.3-1.1-4.6-2.6-6.1-1.5-1.5-3.8-2.6-6.1-2.6-2.5 0-4.8.9-6.6 2.5-1.8 1.6-2.9 3.8-2.9 6.2 0 5.5 4.5 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                                    儲存至 Drive
-                                </button>
-                                <button id="export-excel-btn" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 font-bold text-white px-4 py-2 rounded-lg shadow-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                                    匯出 Excel
-                                </button>
-                            </div>
-                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                                <div id="competitors-result-card" class="bg-techpanel rounded-xl shadow-2xl p-6"></div>
-                                <div id="keywords-result-card" class="bg-techpanel rounded-xl shadow-2xl p-6"></div>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Main Tabs -->
+                <div class="flex border-b border-techprimary/20 mb-6">
+                    <button data-tab="analysis" class="tab-main tab-btn active flex-1 p-4 font-semibold">分析系統</button>
+                    <button data-tab="settings" class="tab-main tab-btn flex-1 p-4 font-semibold">API 設定</button>
+                    <button data-tab="history" class="tab-main tab-btn flex-1 p-4 font-semibold">歷史紀錄</button>
                 </div>
-            </div>
 
-            <div id="settings-panel" class="panel hidden">
-                <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8 max-w-lg mx-auto">
-                    <h2 class="text-2xl font-bold mb-6 text-techaccent text-center">API 與應用程式設定</h2>
-                    <div class="space-y-4">
-                        <div><label for="google-api-key" class="block text-sm font-medium text-gray-300">Google API 金鑰</label><input type="password" id="google-api-key" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Gemini/Custom Search API Key"></div>
-                        <div><label for="search-engine-id" class="block text-sm font-medium text-gray-300">可程式化搜尋引擎 ID (CX)</label><input type="text" id="search-engine-id" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Custom Search Engine ID"></div>
-                        
-                        <!-- 集中化資料夾管理設定 -->
-                        <div class="border-t border-techprimary/30 pt-4 mt-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">📁 集中化資料夾管理</h3>
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="central-folder-name" class="block text-sm font-medium text-gray-300">主要專案資料夾名稱</label>
-                                    <input type="text" id="central-folder-name" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="iStaging_專案管理" placeholder="例如: iStaging_專案管理">
-                                    <p class="text-xs text-gray-400 mt-1">此資料夾將包含所有專案的子資料夾</p>
-                                </div>
-                                <div>
-                                    <label for="intelligence-subfolder" class="block text-sm font-medium text-gray-300">市場情資子資料夾名稱</label>
-                                    <input type="text" id="intelligence-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="01_市場情資分析" placeholder="例如: 01_市場情資分析">
-                                </div>
-                                <div>
-                                    <label for="mediaplan-subfolder" class="block text-sm font-medium text-gray-300">媒體提案子資料夾名稱</label>
-                                    <input type="text" id="mediaplan-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="02_媒體提案" placeholder="例如: 02_媒體提案">
-                                </div>
-                                <div>
-                                    <label for="workflow-subfolder" class="block text-sm font-medium text-gray-300">工作流程子資料夾名稱</label>
-                                    <input type="text" id="workflow-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="03_工作流程文件" placeholder="例如: 03_工作流程文件">
+                <div id="settings-panel" class="panel hidden">
+                    <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8 max-w-lg mx-auto">
+                        <h2 class="text-2xl font-bold mb-6 text-techaccent text-center">API 與應用程式設定</h2>
+                        <div class="space-y-4">
+                            <div><label for="google-api-key" class="block text-sm font-medium text-gray-300">Google API 金鑰</label><input type="password" id="google-api-key" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Gemini/Custom Search API Key"></div>
+                            <div><label for="search-engine-id" class="block text-sm font-medium text-gray-300">可程式化搜尋引擎 ID (CX)</label><input type="text" id="search-engine-id" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Custom Search Engine ID"></div>
+                            
+                            <!-- 集中化資料夾管理設定 -->
+                            <div class="border-t border-techprimary/30 pt-4 mt-6">
+                                <h3 class="text-lg font-semibold text-techaccent mb-4">📁 集中化資料夾管理</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="central-folder-name" class="block text-sm font-medium text-gray-300">主要專案資料夾名稱</label>
+                                        <input type="text" id="central-folder-name" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="iStaging_專案管理" placeholder="例如: iStaging_專案管理">
+                                        <p class="text-xs text-gray-400 mt-1">此資料夾將包含所有專案的子資料夾</p>
+                                    </div>
+                                    <div>
+                                        <label for="intelligence-subfolder" class="block text-sm font-medium text-gray-300">市場情資子資料夾名稱</label>
+                                        <input type="text" id="intelligence-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="01_市場情資分析" placeholder="例如: 01_市場情資分析">
+                                    </div>
+                                    <div>
+                                        <label for="mediaplan-subfolder" class="block text-sm font-medium text-gray-300">媒體提案子資料夾名稱</label>
+                                        <input type="text" id="mediaplan-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="02_媒體提案" placeholder="例如: 02_媒體提案">
+                                    </div>
+                                    <div>
+                                        <label for="workflow-subfolder" class="block text-sm font-medium text-gray-300">工作流程子資料夾名稱</label>
+                                        <input type="text" id="workflow-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="03_工作流程文件" placeholder="例如: 03_工作流程文件">
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <button id="save-settings-btn" class="w-full bg-gradient-to-tr from-techprimary to-techaccent font-bold text-white px-5 py-3 rounded-lg shadow-lg mt-6">儲存設定</button>
                         </div>
-                        
-                        <button id="save-settings-btn" class="w-full bg-gradient-to-tr from-techprimary to-techaccent font-bold text-white px-5 py-3 rounded-lg shadow-lg mt-6">儲存設定</button>
-                    </div>
-                </section>
-            </div>
-            <div id="history-panel" class="panel hidden">
-                 <div class="text-center text-gray-500 py-16">歷史紀錄功能正在開發中...</div>
+                    </section>
+                </div>
+                <div id="history-panel" class="panel hidden">
+                     <div class="text-center text-gray-500 py-16">歷史紀錄功能正在開發中...</div>
+                </div>
             </div>
         </div>
     </main>
@@ -366,6 +286,9 @@ function setupEventListeners() {
     document.querySelectorAll('.tab-main').forEach(btn => btn.addEventListener('click', handleMainTabSwitch));
     ui.saveAnalysisBtn.onclick = saveAnalysisToDrive;
     ui.exportExcelBtn.onclick = exportToExcel;
+    
+    // 新增事件監聽器
+    setupEnhancedEventListeners();
 }
 
 // --- UI & STATE MANAGEMENT ---
@@ -968,6 +891,476 @@ function loadProjectIdFromUrl() {
         state.projectId = projectId;
         console.log('從 URL 讀取到專案 ID:', projectId);
     }
+}
+
+// --- DASHBOARD & VISUALIZATION FUNCTIONS ---
+function updateDashboard() {
+    const competitors = state.analysisData.finalCompetitors || [];
+    const keywords = state.analysisData.keywords || [];
+    
+    // 更新指標卡片
+    document.getElementById('total-competitors').textContent = competitors.length;
+    document.getElementById('total-keywords').textContent = keywords.length;
+    document.getElementById('high-volume-keywords').textContent = keywords.filter(k => k.volume === '高').length;
+    document.getElementById('high-competition-keywords').textContent = keywords.filter(k => k.biddingCompetition === '高').length;
+    
+    // 更新圖表
+    updateKeywordVolumeChart(keywords);
+    updateCompetitorLocationChart(competitors);
+}
+
+function updateKeywordVolumeChart(keywords) {
+    const ctx = document.getElementById('keywordVolumeChart');
+    if (!ctx) return;
+    
+    const volumeData = {
+        '高': keywords.filter(k => k.volume === '高').length,
+        '中': keywords.filter(k => k.volume === '中').length,
+        '低': keywords.filter(k => k.volume === '低').length
+    };
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(volumeData),
+            datasets: [{
+                data: Object.values(volumeData),
+                backgroundColor: ['#ef4444', '#f97316', '#22c55e'],
+                borderColor: '#22283A',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#9ca3af',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateCompetitorLocationChart(competitors) {
+    const ctx = document.getElementById('competitorLocationChart');
+    if (!ctx) return;
+    
+    const locationCount = {};
+    competitors.forEach(c => {
+        const country = c.country || '未知';
+        locationCount[country] = (locationCount[country] || 0) + 1;
+    });
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(locationCount),
+            datasets: [{
+                label: '競爭對手數量',
+                data: Object.values(locationCount),
+                backgroundColor: '#3762F0',
+                borderColor: '#2EE9E4',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#9ca3af'
+                    },
+                    grid: {
+                        color: '#374151'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#9ca3af'
+                    },
+                    grid: {
+                        color: '#374151'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// --- COMPARISON ANALYSIS FUNCTIONS ---
+function renderComparisonTable() {
+    const competitors = state.analysisData.finalCompetitors || [];
+    if (competitors.length === 0) {
+        document.getElementById('comparison-table-container').innerHTML = '<p class="text-gray-500 text-center">沒有競爭對手資料可供比較</p>';
+        return;
+    }
+    
+    const comparisonFields = [
+        { key: 'brandName', label: '品牌名稱' },
+        { key: 'country', label: '國家' },
+        { key: 'companyType', label: '公司類型' },
+        { key: 'stockTicker', label: '股票代號' },
+        { key: 'state', label: '州別/省份' },
+        { key: 'postalCode', label: '郵遞區號' },
+        { key: 'websiteUrl', label: '官方網站' },
+        { key: 'linkedinUrl', label: 'LinkedIn' }
+    ];
+    
+    let tableHTML = '<table class="comparison-table w-full">';
+    
+    // 表頭
+    tableHTML += '<thead><tr>';
+    tableHTML += '<th>比較項目</th>';
+    competitors.forEach(comp => {
+        tableHTML += `<th>${comp.brandName || '未知'}</th>`;
+    });
+    tableHTML += '</tr></thead>';
+    
+    // 表格內容
+    tableHTML += '<tbody>';
+    comparisonFields.forEach(field => {
+        tableHTML += '<tr>';
+        tableHTML += `<td class="font-semibold bg-gray-800">${field.label}</td>`;
+        competitors.forEach(comp => {
+            let value = comp[field.key] || '-';
+            if (field.key === 'websiteUrl' && value !== '-') {
+                value = `<a href="${value}" target="_blank" class="text-techaccent hover:underline">查看網站</a>`;
+            } else if (field.key === 'linkedinUrl' && value !== '-') {
+                value = `<a href="${value}" target="_blank" class="text-techaccent hover:underline">查看 LinkedIn</a>`;
+            }
+            tableHTML += `<td>${value}</td>`;
+        });
+        tableHTML += '</tr>';
+    });
+    tableHTML += '</tbody></table>';
+    
+    document.getElementById('comparison-table-container').innerHTML = tableHTML;
+}
+
+// --- GOOGLE ADS TOOLS FUNCTIONS ---
+async function generateAdsSitesList() {
+    const industry = document.getElementById('industry-for-ads').value;
+    if (!industry) {
+        showAlert('請選擇行業', '請先選擇要分析的行業。', 'warning');
+        return;
+    }
+    
+    setLoadingState(true, '正在生成 Google Ads 自定義人群網站清單...');
+    
+    try {
+        const prompt = `作為 Google Ads 專家，請為 ${industry} 行業提供一份適合用於 Google Ads 自定義人群的網站清單。這些網站應該：
+        1. 與該行業高度相關
+        2. 有足夠的流量
+        3. 適合用於再行銷
+        4. 包含新聞、論壇、部落格等不同類型
+        
+        請提供 20-30 個網站，格式為 JSON 陣列，每個網站包含：
+        - name: 網站名稱
+        - url: 網站網址
+        - type: 網站類型 (新聞/論壇/部落格/電商/其他)
+        - relevance: 相關性 (高/中/低)
+        - traffic: 流量等級 (高/中/低)
+        
+        行業: ${industry}`;
+        
+        const sitesList = await callGemini(prompt);
+        renderAdsSitesResult(sitesList);
+        
+    } catch (error) {
+        showAlert('生成失敗', error.message, 'error');
+    } finally {
+        setLoadingState(false);
+    }
+}
+
+function renderAdsSitesResult(sitesList) {
+    const container = document.getElementById('ads-sites-result');
+    
+    if (!sitesList || sitesList.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">無法生成網站清單</p>';
+        return;
+    }
+    
+    let html = `
+        <div class="space-y-4">
+            <div class="flex justify-between items-center">
+                <h4 class="font-semibold text-techaccent">建議網站清單 (${sitesList.length} 個)</h4>
+                <button onclick="exportAdsSitesToCSV()" class="text-sm bg-green-600 hover:bg-green-700 px-3 py-1 rounded">匯出 CSV</button>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-800 sticky top-0">
+                        <tr>
+                            <th class="p-2 text-left">網站名稱</th>
+                            <th class="p-2 text-left">網址</th>
+                            <th class="p-2 text-left">類型</th>
+                            <th class="p-2 text-left">相關性</th>
+                            <th class="p-2 text-left">流量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    sitesList.forEach(site => {
+        const relevanceBadge = getBadgeClass(site.relevance);
+        const trafficBadge = getBadgeClass(site.traffic);
+        
+        html += `
+            <tr class="border-b border-gray-700">
+                <td class="p-2">${site.name}</td>
+                <td class="p-2">
+                    <a href="${site.url}" target="_blank" class="text-techaccent hover:underline">${site.url}</a>
+                </td>
+                <td class="p-2">${site.type}</td>
+                <td class="p-2"><span class="badge ${relevanceBadge}">${site.relevance}</span></td>
+                <td class="p-2"><span class="badge ${trafficBadge}">${site.traffic}</span></td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    // 儲存到全域變數供匯出使用
+    window.adsSitesList = sitesList;
+}
+
+function exportAdsSitesToCSV() {
+    if (!window.adsSitesList) {
+        showAlert('無資料', '沒有可匯出的網站清單', 'warning');
+        return;
+    }
+    
+    const csvContent = [
+        ['網站名稱', '網址', '類型', '相關性', '流量'],
+        ...window.adsSitesList.map(site => [site.name, site.url, site.type, site.relevance, site.traffic])
+    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Google_Ads_自定義人群網站清單_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    
+    showAlert('匯出成功', '網站清單已匯出為 CSV 檔案', 'success');
+}
+
+function generateKeywordStrategy() {
+    const keywords = state.analysisData.keywords || [];
+    if (keywords.length === 0) {
+        document.getElementById('keyword-strategy-result').innerHTML = '<p class="text-gray-400">請先完成分析以查看關鍵字策略建議</p>';
+        return;
+    }
+    
+    const highVolumeKeywords = keywords.filter(k => k.volume === '高');
+    const highCompetitionKeywords = keywords.filter(k => k.biddingCompetition === '高');
+    const lowCompetitionKeywords = keywords.filter(k => k.biddingCompetition === '低');
+    
+    let strategyHTML = `
+        <div class="space-y-6">
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h4 class="font-semibold text-techaccent mb-2">高搜尋量關鍵字 (${highVolumeKeywords.length} 個)</h4>
+                <p class="text-sm text-gray-300 mb-3">建議：高預算投入，爭取排名前 3</p>
+                <div class="flex flex-wrap gap-2">
+                    ${highVolumeKeywords.slice(0, 10).map(k => `<span class="badge badge-high">${k.keyword}</span>`).join('')}
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h4 class="font-semibold text-techaccent mb-2">高競爭關鍵字 (${highCompetitionKeywords.length} 個)</h4>
+                <p class="text-sm text-gray-300 mb-3">建議：謹慎出價，考慮長尾關鍵字</p>
+                <div class="flex flex-wrap gap-2">
+                    ${highCompetitionKeywords.slice(0, 10).map(k => `<span class="badge badge-high">${k.keyword}</span>`).join('')}
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h4 class="font-semibold text-techaccent mb-2">低競爭機會關鍵字 (${lowCompetitionKeywords.length} 個)</h4>
+                <p class="text-sm text-gray-300 mb-3">建議：積極出價，爭取低成本轉換</p>
+                <div class="flex flex-wrap gap-2">
+                    ${lowCompetitionKeywords.slice(0, 10).map(k => `<span class="badge badge-low">${k.keyword}</span>`).join('')}
+                </div>
+            </div>
+            
+            <div class="bg-blue-900/20 p-4 rounded-lg border border-blue-500/30">
+                <h4 class="font-semibold text-blue-400 mb-2">出價策略建議</h4>
+                <ul class="text-sm text-gray-300 space-y-1">
+                    <li>• 高搜尋量 + 低競爭：出價範圍 1.5-3.0</li>
+                    <li>• 高搜尋量 + 高競爭：出價範圍 2.0-5.0</li>
+                    <li>• 低搜尋量 + 低競爭：出價範圍 0.5-1.5</li>
+                    <li>• 長尾關鍵字：出價範圍 0.3-1.0</li>
+                </ul>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('keyword-strategy-result').innerHTML = strategyHTML;
+}
+
+// --- AUTOMATED CONTENT DOWNLOAD ---
+async function downloadContent() {
+    if (!state.analysisData.finalCompetitors || state.analysisData.finalCompetitors.length === 0) {
+        showAlert('無資料', '請先完成分析', 'warning');
+        return;
+    }
+    
+    setLoadingState(true, '正在下載競爭對手相關內容...');
+    
+    try {
+        const downloadPromises = state.analysisData.finalCompetitors.map(async (competitor, index) => {
+            const content = {
+                brandName: competitor.brandName,
+                websiteUrl: competitor.websiteUrl,
+                linkedinUrl: competitor.linkedinUrl,
+                summary: competitor.summary,
+                downloadTime: new Date().toISOString()
+            };
+            
+            // 建立檔案名稱
+            const fileName = `${competitor.brandName}_競爭對手資料_${new Date().toISOString().slice(0, 10)}.json`;
+            
+            // 建立 Blob 並下載
+            const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            // 延遲下載以避免瀏覽器阻擋
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        });
+        
+        await Promise.all(downloadPromises);
+        showAlert('下載完成', `已下載 ${state.analysisData.finalCompetitors.length} 個競爭對手資料檔案`, 'success');
+        
+    } catch (error) {
+        showAlert('下載失敗', error.message, 'error');
+    } finally {
+        setLoadingState(false);
+    }
+}
+
+// --- ENHANCED COMPETITOR ANALYSIS ---
+async function getEnhancedCompetitorDetails(name, context) {
+    const prompt = `請對公司 "${name}" 進行深入分析，該公司是 "${context.topic}" 市場的競爭對手。請提供以下詳細資訊：
+
+    1. 公司基本資訊：成立時間、員工人數、年營收範圍
+    2. 產品/服務：主要產品線、特色功能、價格定位
+    3. 市場地位：市占率、品牌知名度、競爭優勢
+    4. 行銷策略：主要行銷管道、廣告投放、內容策略
+    5. 技術實力：專利數量、研發投入、技術優勢
+    6. 財務狀況：股票表現、財務健康度、投資動向
+    7. 未來發展：擴張計劃、新產品開發、市場策略
+
+    請以 JSON 格式回傳，包含以下欄位：
+    {
+        "brandName": "${name}",
+        "basicInfo": { "founded": "年份", "employees": "人數範圍", "revenue": "營收範圍" },
+        "products": { "mainProducts": ["產品1", "產品2"], "features": ["特色1", "特色2"], "pricing": "價格定位" },
+        "marketPosition": { "marketShare": "市占率", "brandAwareness": "知名度", "competitiveAdvantage": "競爭優勢" },
+        "marketingStrategy": { "channels": ["管道1", "管道2"], "advertising": "廣告策略", "contentStrategy": "內容策略" },
+        "technology": { "patents": "專利數量", "rdInvestment": "研發投入", "techAdvantage": "技術優勢" },
+        "financials": { "stockPerformance": "股票表現", "financialHealth": "財務健康度", "investments": "投資動向" },
+        "futurePlans": { "expansion": "擴張計劃", "newProducts": "新產品開發", "marketStrategy": "市場策略" }
+    }`;
+
+    try {
+        const enhancedDetails = await callGemini(prompt);
+        return enhancedDetails;
+    } catch (error) {
+        console.error(`Enhanced analysis failed for ${name}:`, error);
+        return { brandName: name, error: error.message };
+    }
+}
+
+// --- EVENT LISTENERS FOR NEW FEATURES ---
+function setupEnhancedEventListeners() {
+    // 新增事件監聽器
+    document.getElementById('generate-ads-sites-btn').onclick = generateAdsSitesList;
+    document.getElementById('download-content-btn').onclick = downloadContent;
+    
+    // 標籤切換時更新相關內容
+    document.querySelectorAll('.tab-main').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tab = e.target.dataset.tab;
+            if (tab === 'dashboard') {
+                setTimeout(updateDashboard, 100);
+            } else if (tab === 'comparison') {
+                setTimeout(renderComparisonTable, 100);
+            } else if (tab === 'ads-tools') {
+                setTimeout(generateKeywordStrategy, 100);
+            }
+        });
+    });
+}
+
+// --- ENHANCED RENDERING FUNCTIONS ---
+function renderEnhancedCompetitorResults() {
+    const card = document.getElementById('competitors-result-card');
+    const data = state.analysisData.finalCompetitors || [];
+    let content = `<h3 class="text-xl font-bold mb-4 text-techaccent">A. 競爭對手深度分析</h3>`;
+
+    if (data.length === 0) {
+        card.innerHTML = content + '<p class="text-gray-500">沒有要顯示的競爭對手資料。</p>';
+        return;
+    }
+
+    content += `<div class="space-y-4">`;
+    
+    data.forEach(competitor => {
+        content += `
+            <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                <div class="flex justify-between items-start mb-3">
+                    <h4 class="text-lg font-semibold text-techaccent">${competitor.brandName}</h4>
+                    <div class="flex gap-2">
+                        ${competitor.websiteUrl ? `<a href="${competitor.websiteUrl}" target="_blank" class="text-gray-400 hover:text-techaccent" title="官方網站"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>` : ''}
+                        ${competitor.linkedinUrl ? `<a href="${competitor.linkedinUrl}" target="_blank" class="text-gray-400 hover:text-techaccent" title="LinkedIn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>` : ''}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-gray-400">國家: <span class="text-gray-200">${competitor.country || '未知'}</span></p>
+                        <p class="text-gray-400">股票代號: <span class="text-gray-200">${competitor.stockTicker || '未上市'}</span></p>
+                        <p class="text-gray-400">公司類型: <span class="text-gray-200">${competitor.companyType || '未知'}</span></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">州別: <span class="text-gray-200">${competitor.state || '未知'}</span></p>
+                        <p class="text-gray-400">郵遞區號: <span class="text-gray-200">${competitor.postalCode || '未知'}</span></p>
+                    </div>
+                </div>
+                
+                ${competitor.summary ? `<p class="text-gray-300 mt-3 text-sm">${competitor.summary}</p>` : ''}
+            </div>
+        `;
+    });
+    
+    content += `</div>`;
+    card.innerHTML = content;
 }
 </script>
 </body>
