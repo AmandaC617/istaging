@@ -1504,36 +1504,48 @@ async function getEnhancedCompetitorDetails(name, context) {
 
 // --- EVENT LISTENERS FOR NEW FEATURES ---
 function setupEnhancedEventListeners() {
-    // 新增事件監聽器，添加null檢查
-    const generateAdsSitesBtn = document.getElementById('generate-ads-sites-btn');
-    const downloadContentBtn = document.getElementById('download-content-btn');
-    
-    if (generateAdsSitesBtn) {
-        generateAdsSitesBtn.onclick = generateAdsSitesList;
-    }
-    
-    if (downloadContentBtn) {
-        downloadContentBtn.onclick = downloadContent;
-    }
-    
-    // 標籤切換時更新相關內容
-    document.querySelectorAll('.tab-main').forEach(btn => {
-        if (btn) {
-            btn.addEventListener('click', (e) => {
-                const target = e.target.closest('.tab-main');
-                if (target) {
-                    const tab = target.dataset.tab;
-                    if (tab === 'dashboard') {
-                        setTimeout(updateDashboard, 100);
-                    } else if (tab === 'comparison') {
-                        setTimeout(renderComparisonTable, 100);
-                    } else if (tab === 'ads-tools') {
-                        setTimeout(generateKeywordStrategy, 100);
-                    }
-                }
-            });
+    try {
+        // 安全地設置按鈕事件監聽器
+        const generateAdsSitesBtn = document.getElementById('generate-ads-sites-btn');
+        if (generateAdsSitesBtn && typeof generateAdsSitesList === 'function') {
+            generateAdsSitesBtn.onclick = generateAdsSitesList;
         }
-    });
+        
+        const downloadContentBtn = document.getElementById('download-content-btn');
+        if (downloadContentBtn && typeof downloadContent === 'function') {
+            downloadContentBtn.onclick = downloadContent;
+        }
+        
+        // 安全地設置標籤頁事件監聽器
+        const tabButtons = document.querySelectorAll('.tab-main');
+        tabButtons.forEach(btn => {
+            if (btn && btn.dataset && btn.dataset.tab) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.dataset.tab;
+                    
+                    // 延遲執行以避免DOM未準備好的問題
+                    setTimeout(() => {
+                        try {
+                            if (tab === 'dashboard' && typeof updateDashboard === 'function') {
+                                updateDashboard();
+                            } else if (tab === 'comparison' && typeof renderComparisonTable === 'function') {
+                                renderComparisonTable();
+                            } else if (tab === 'ads-tools' && typeof generateKeywordStrategy === 'function') {
+                                generateKeywordStrategy();
+                            }
+                        } catch (error) {
+                            console.warn('Tab function execution failed:', error);
+                        }
+                    }, 100);
+                });
+            }
+        });
+        
+        console.log('Enhanced event listeners setup completed');
+    } catch (error) {
+        console.warn('Setup enhanced event listeners failed:', error);
+    }
 }
 
 // --- ENHANCED RENDERING FUNCTIONS ---
