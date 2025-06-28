@@ -490,11 +490,7 @@
 
                 // 檢查 Google Client ID 是否已設定
                 const clientId = '733619441496-5gigdpkv42k84no3q5vvh93ths1e8u29.apps.googleusercontent.com'; // 已設定 Google Client ID
-                if (clientId === 'YOUR_GOOGLE_CLIENT_ID') {
-                    showAlert('需要設定 Google Client ID', '請在程式碼中設定您的 Google Client ID 才能使用登入功能', 'warning');
-                    return;
-                }
-
+                
                 // 初始化 Google API
                 gapi.load('auth2', function() {
                     gapi.auth2.init({
@@ -599,14 +595,13 @@
                 // 載入 Google Drive API
                 gapi.load('client', function() {
                     gapi.client.init({
-                        apiKey: state.settings.googleApiKey,
                         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
                     }).then(function() {
                         console.log('Google Drive API 初始化成功');
                         showAlert('Google Drive 已準備就緒', '可以開始使用檔案儲存功能', 'success');
                     }).catch(function(error) {
                         console.error('Google Drive API 初始化失敗:', error);
-                        showAlert('Google Drive 初始化失敗', '請檢查 API 金鑰設定', 'error');
+                        showAlert('Google Drive 初始化失敗', '請檢查網路連線', 'error');
                     });
                 });
             } catch (error) {
@@ -2212,7 +2207,7 @@ ${generateExecutionRecommendations(keywords)}
                                 </ol>
                                 <div class="mt-3 p-3 bg-gray-800 rounded text-xs">
                                     <p class="text-gray-400 mb-2">目前程式碼中的 Client ID 設定位置：</p>
-                                    <code class="text-green-400">handleGoogleAuth() 函數中的 'YOUR_GOOGLE_CLIENT_ID'</code>
+                                    <code class="text-green-400">handleGoogleAuth() 函數中已設定 Client ID</code>
                                 </div>
                             </div>
                             <div class="text-center">
