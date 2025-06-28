@@ -157,16 +157,25 @@
                     signoutBtn.addEventListener('click', handleSignOut);
                 }
 
-                // 步驟切換
+                // 步驟切換 - 修正事件監聽器
                 const stepCircles = document.querySelectorAll('.step-circle');
-                stepCircles.forEach(circle => {
+                stepCircles.forEach((circle, index) => {
                     if (circle) {
-                        circle.addEventListener('click', function() {
-                            const step = parseInt(this.textContent);
+                        circle.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const step = index + 1;
+                            console.log(`點擊步驟 ${step}`);
                             goToStep(step);
                         });
                     }
                 });
+
+                // 開始分析按鈕
+                const startAnalysisBtn = document.getElementById('start-analysis-btn');
+                if (startAnalysisBtn) {
+                    startAnalysisBtn.addEventListener('click', startAnalysis);
+                }
 
                 console.log('事件監聽器設定完成');
             } catch (error) {
@@ -295,14 +304,103 @@
             }
         }
 
-        // Google 認證處理
+        // 開始分析
+        function startAnalysis() {
+            try {
+                const topic = document.getElementById('analysis-topic')?.value;
+                const projectId = document.getElementById('project-id')?.value;
+                const competitorCount = document.getElementById('competitor-count')?.value;
+                const analysisDepth = document.querySelector('input[name="analysis-depth"]:checked')?.value;
+
+                if (!topic) {
+                    showAlert('請填寫分析主題', '分析主題為必填項目', 'warning');
+                    return;
+                }
+
+                // 儲存分析設定
+                state.analysisData = {
+                    topic: topic,
+                    projectId: projectId || `TEMP_${Date.now()}`,
+                    competitorCount: parseInt(competitorCount),
+                    analysisDepth: analysisDepth,
+                    timestamp: new Date().toISOString()
+                };
+
+                showAlert('分析設定已儲存', '正在準備競爭對手分析...', 'success');
+                
+                // 切換到步驟 2
+                setTimeout(() => {
+                    goToStep(2);
+                }, 1000);
+
+            } catch (error) {
+                console.error('開始分析失敗:', error);
+                showAlert('分析失敗', error.message, 'error');
+            }
+        }
+
+        // Google 認證處理 - 實作基本功能
         function handleGoogleAuth() {
             try {
-                console.log('Google 登入功能待實作');
-                showAlert('功能開發中', 'Google 登入功能正在開發中', 'info');
+                // 檢查是否已載入 Google API
+                if (typeof gapi === 'undefined') {
+                    showAlert('Google API 未載入', '請檢查網路連線並重新整理頁面', 'error');
+                    return;
+                }
+
+                // 初始化 Google API
+                gapi.load('auth2', function() {
+                    gapi.auth2.init({
+                        client_id: 'YOUR_GOOGLE_CLIENT_ID' // 需要設定你的 Google Client ID
+                    }).then(function(auth2) {
+                        // 登入
+                        auth2.signIn().then(function(googleUser) {
+                            const profile = googleUser.getBasicProfile();
+                            state.isAuthenticated = true;
+                            state.userProfile = {
+                                id: profile.getId(),
+                                name: profile.getName(),
+                                email: profile.getEmail(),
+                                imageUrl: profile.getImageUrl()
+                            };
+                            
+                            updateAuthUI();
+                            showAlert('登入成功', `歡迎 ${profile.getName()}`, 'success');
+                            
+                            // 初始化 Google Drive API
+                            initializeGoogleDrive();
+                        }).catch(function(error) {
+                            console.error('Google 登入失敗:', error);
+                            showAlert('登入失敗', 'Google 登入失敗，請重試', 'error');
+                        });
+                    }).catch(function(error) {
+                        console.error('Google API 初始化失敗:', error);
+                        showAlert('初始化失敗', 'Google API 初始化失敗', 'error');
+                    });
+                });
             } catch (error) {
                 console.error('Google 認證失敗:', error);
                 showAlert('認證失敗', error.message, 'error');
+            }
+        }
+
+        // 初始化 Google Drive API
+        function initializeGoogleDrive() {
+            try {
+                gapi.load('client', function() {
+                    gapi.client.init({
+                        apiKey: state.settings.googleApiKey,
+                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+                    }).then(function() {
+                        console.log('Google Drive API 初始化成功');
+                        showAlert('Google Drive 已準備就緒', '可以開始儲存檔案到 Google Drive', 'success');
+                    }).catch(function(error) {
+                        console.error('Google Drive API 初始化失敗:', error);
+                        showAlert('Drive API 初始化失敗', '請檢查 API 金鑰設定', 'error');
+                    });
+                });
+            } catch (error) {
+                console.error('初始化 Google Drive 失敗:', error);
             }
         }
 
@@ -359,6 +457,11 @@
                 stepPanels.forEach((panel, index) => {
                     if (index + 1 === step) {
                         panel.style.display = 'block';
+                        
+                        // 如果是步驟 2，初始化競爭對手搜尋
+                        if (step === 2) {
+                            initializeCompetitorSearch();
+                        }
                     } else {
                         panel.style.display = 'none';
                     }
@@ -367,6 +470,263 @@
                 console.log(`切換到步驟: ${step}`);
             } catch (error) {
                 console.error('切換步驟失敗:', error);
+            }
+        }
+
+        // 初始化競爭對手搜尋
+        function initializeCompetitorSearch() {
+            try {
+                // 顯示當前分析主題
+                const currentTopic = document.getElementById('current-topic');
+                if (currentTopic && state.analysisData.topic) {
+                    currentTopic.textContent = state.analysisData.topic;
+                }
+
+                // 設定步驟 2 的事件監聽器
+                setupStep2EventListeners();
+
+                // 開始自動搜尋競爭對手
+                searchCompetitors();
+
+            } catch (error) {
+                console.error('初始化競爭對手搜尋失敗:', error);
+            }
+        }
+
+        // 設定步驟 2 的事件監聽器
+        function setupStep2EventListeners() {
+            try {
+                // 添加競爭對手按鈕
+                const addCompetitorBtn = document.getElementById('add-competitor-btn');
+                if (addCompetitorBtn) {
+                    addCompetitorBtn.addEventListener('click', addManualCompetitor);
+                }
+
+                // 手動輸入競爭對手名稱
+                const manualCompetitorInput = document.getElementById('manual-competitor');
+                if (manualCompetitorInput) {
+                    manualCompetitorInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            addManualCompetitor();
+                        }
+                    });
+                }
+
+                // 生成報告按鈕
+                const generateReportBtn = document.getElementById('generate-report-btn');
+                if (generateReportBtn) {
+                    generateReportBtn.addEventListener('click', generateFinalReport);
+                }
+
+                // 返回步驟 1 按鈕
+                const backToStep1Btn = document.getElementById('back-to-step1-btn');
+                if (backToStep1Btn) {
+                    backToStep1Btn.addEventListener('click', () => goToStep(1));
+                }
+
+            } catch (error) {
+                console.error('設定步驟 2 事件監聽器失敗:', error);
+            }
+        }
+
+        // 搜尋競爭對手
+        function searchCompetitors() {
+            try {
+                if (!state.analysisData.topic) {
+                    console.warn('沒有分析主題，無法搜尋競爭對手');
+                    return;
+                }
+
+                // 模擬搜尋結果（實際應該調用 API）
+                setTimeout(() => {
+                    const mockCompetitors = [
+                        { name: '競爭對手 A', description: '主要競爭對手，市占率約 30%' },
+                        { name: '競爭對手 B', description: '新興競爭對手，成長快速' },
+                        { name: '競爭對手 C', description: '傳統競爭對手，品牌知名度高' },
+                        { name: '競爭對手 D', description: '技術領先的競爭對手' },
+                        { name: '競爭對手 E', description: '價格競爭對手，主打性價比' }
+                    ];
+
+                    displaySearchResults(mockCompetitors);
+                }, 2000);
+
+            } catch (error) {
+                console.error('搜尋競爭對手失敗:', error);
+            }
+        }
+
+        // 顯示搜尋結果
+        function displaySearchResults(competitors) {
+            try {
+                const resultsContainer = document.getElementById('auto-search-results');
+                if (!resultsContainer) return;
+
+                let html = '';
+                competitors.forEach((competitor, index) => {
+                    html += `
+                        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 flex justify-between items-center">
+                            <div>
+                                <h5 class="font-semibold text-gray-200">${competitor.name}</h5>
+                                <p class="text-sm text-gray-400">${competitor.description}</p>
+                            </div>
+                            <button class="add-competitor-btn bg-techprimary hover:bg-techaccent text-white px-3 py-1 rounded text-sm" 
+                                    data-competitor="${competitor.name}" data-description="${competitor.description}">
+                                添加
+                            </button>
+                        </div>
+                    `;
+                });
+
+                resultsContainer.innerHTML = html;
+
+                // 為添加按鈕添加事件監聽器
+                const addButtons = resultsContainer.querySelectorAll('.add-competitor-btn');
+                addButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const name = this.dataset.competitor;
+                        const description = this.dataset.description;
+                        addCompetitorToList(name, description);
+                        this.disabled = true;
+                        this.textContent = '已添加';
+                        this.classList.remove('bg-techprimary', 'hover:bg-techaccent');
+                        this.classList.add('bg-gray-600');
+                    });
+                });
+
+            } catch (error) {
+                console.error('顯示搜尋結果失敗:', error);
+            }
+        }
+
+        // 手動添加競爭對手
+        function addManualCompetitor() {
+            try {
+                const input = document.getElementById('manual-competitor');
+                const name = input?.value?.trim();
+                
+                if (!name) {
+                    showAlert('請輸入競爭對手名稱', '競爭對手名稱不能為空', 'warning');
+                    return;
+                }
+
+                addCompetitorToList(name, '手動添加的競爭對手');
+                input.value = '';
+
+            } catch (error) {
+                console.error('手動添加競爭對手失敗:', error);
+            }
+        }
+
+        // 添加競爭對手到列表
+        function addCompetitorToList(name, description) {
+            try {
+                if (!state.selectedCompetitors) {
+                    state.selectedCompetitors = [];
+                }
+
+                // 檢查是否已存在
+                if (state.selectedCompetitors.some(c => c.name === name)) {
+                    showAlert('競爭對手已存在', `${name} 已在列表中`, 'warning');
+                    return;
+                }
+
+                // 添加到狀態
+                state.selectedCompetitors.push({ name, description });
+
+                // 更新 UI
+                updateSelectedCompetitorsList();
+
+                showAlert('添加成功', `已添加 ${name} 到競爭對手列表`, 'success');
+
+            } catch (error) {
+                console.error('添加競爭對手到列表失敗:', error);
+            }
+        }
+
+        // 更新已選擇的競爭對手列表
+        function updateSelectedCompetitorsList() {
+            try {
+                const container = document.getElementById('selected-competitors');
+                const countSpan = document.getElementById('selected-count');
+                const generateBtn = document.getElementById('generate-report-btn');
+
+                if (!container) return;
+
+                if (!state.selectedCompetitors || state.selectedCompetitors.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">尚未選擇任何競爭對手</p>';
+                    if (countSpan) countSpan.textContent = '0';
+                    if (generateBtn) generateBtn.disabled = true;
+                    return;
+                }
+
+                let html = '';
+                state.selectedCompetitors.forEach((competitor, index) => {
+                    html += `
+                        <div class="bg-gray-800 rounded-lg p-3 border border-gray-700 flex justify-between items-center">
+                            <div>
+                                <h6 class="font-semibold text-gray-200">${competitor.name}</h6>
+                                <p class="text-xs text-gray-400">${competitor.description}</p>
+                            </div>
+                            <button class="remove-competitor-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs" 
+                                    data-index="${index}">
+                                移除
+                            </button>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+                // 更新計數
+                if (countSpan) countSpan.textContent = state.selectedCompetitors.length;
+
+                // 啟用生成報告按鈕
+                if (generateBtn) generateBtn.disabled = false;
+
+                // 為移除按鈕添加事件監聽器
+                const removeButtons = container.querySelectorAll('.remove-competitor-btn');
+                removeButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.dataset.index);
+                        removeCompetitor(index);
+                    });
+                });
+
+            } catch (error) {
+                console.error('更新競爭對手列表失敗:', error);
+            }
+        }
+
+        // 移除競爭對手
+        function removeCompetitor(index) {
+            try {
+                if (state.selectedCompetitors && state.selectedCompetitors[index]) {
+                    const removed = state.selectedCompetitors.splice(index, 1)[0];
+                    updateSelectedCompetitorsList();
+                    showAlert('移除成功', `已移除 ${removed.name}`, 'info');
+                }
+            } catch (error) {
+                console.error('移除競爭對手失敗:', error);
+            }
+        }
+
+        // 生成最終報告
+        function generateFinalReport() {
+            try {
+                if (!state.selectedCompetitors || state.selectedCompetitors.length === 0) {
+                    showAlert('請選擇競爭對手', '至少需要選擇一個競爭對手', 'warning');
+                    return;
+                }
+
+                showAlert('正在生成報告', '請稍候...', 'info');
+                
+                // 切換到步驟 3
+                setTimeout(() => {
+                    goToStep(3);
+                }, 1000);
+
+            } catch (error) {
+                console.error('生成最終報告失敗:', error);
             }
         }
 
@@ -617,7 +977,43 @@
                     <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
                         <h2 class="text-2xl font-bold mb-6 text-techaccent">🎯 對手篩選與補充</h2>
                         <div id="competitor-selection-content">
-                            <p class="text-gray-400">請先完成步驟 1 的分析設定</p>
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-200 mb-4">分析主題：<span id="current-topic" class="text-techaccent"></span></h3>
+                                <p class="text-gray-400 mb-4">系統將自動搜尋並分析相關競爭對手，您也可以手動添加或移除競爭對手。</p>
+                            </div>
+
+                            <!-- 自動搜尋結果 -->
+                            <div class="mb-6">
+                                <h4 class="text-md font-semibold text-gray-200 mb-3">🔍 自動搜尋結果</h4>
+                                <div id="auto-search-results" class="space-y-3">
+                                    <div class="flex items-center justify-center py-8">
+                                        <div class="spinner"></div>
+                                        <span class="ml-3 text-gray-400">正在搜尋競爭對手...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 手動添加競爭對手 -->
+                            <div class="mb-6">
+                                <h4 class="text-md font-semibold text-gray-200 mb-3">➕ 手動添加競爭對手</h4>
+                                <div class="flex gap-2 mb-3">
+                                    <input type="text" id="manual-competitor" class="flex-1 px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="輸入競爭對手名稱">
+                                    <button id="add-competitor-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded-lg">添加</button>
+                                </div>
+                            </div>
+
+                            <!-- 已選擇的競爭對手 -->
+                            <div class="mb-6">
+                                <h4 class="text-md font-semibold text-gray-200 mb-3">📋 已選擇的競爭對手 (<span id="selected-count">0</span>)</h4>
+                                <div id="selected-competitors" class="space-y-2">
+                                    <p class="text-gray-500 text-sm">尚未選擇任何競爭對手</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <button id="generate-report-btn" class="bg-gradient-to-tr from-techprimary to-techaccent font-bold text-white px-6 py-3 rounded-lg shadow-lg" disabled>生成完整報告</button>
+                                <button id="back-to-step1-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg">返回步驟 1</button>
+                            </div>
                         </div>
                     </section>
                 </div>
