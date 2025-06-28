@@ -68,6 +68,47 @@
             event.preventDefault(); // 防止預設的錯誤處理
         });
 
+        // 顯示警告訊息
+        function showAlert(title, message, type = 'info') {
+            try {
+                const alertContainer = document.getElementById('alert-container');
+                if (!alertContainer) return;
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `p-4 mb-4 rounded-lg shadow-lg ${
+                    type === 'error' ? 'bg-red-600 text-white' :
+                    type === 'success' ? 'bg-green-600 text-white' :
+                    type === 'warning' ? 'bg-yellow-600 text-white' :
+                    'bg-blue-600 text-white'
+                }`;
+                
+                alertDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold">${title}</h4>
+                            <p class="text-sm mt-1">${message}</p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                alertContainer.appendChild(alertDiv);
+
+                // 自動移除警告
+                setTimeout(() => {
+                    if (alertDiv.parentElement) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            } catch (error) {
+                console.error('顯示警告失敗:', error);
+            }
+        }
+
         // 初始化應用程式
         function initializeApp() {
             return new Promise((resolve, reject) => {
@@ -422,13 +463,22 @@
                     return;
                 }
 
+                // 檢查 Google Client ID 是否已設定
+                const clientId = 'YOUR_GOOGLE_CLIENT_ID'; // 需要設定你的 Google Client ID
+                if (clientId === 'YOUR_GOOGLE_CLIENT_ID') {
+                    showAlert('需要設定 Google Client ID', '請在程式碼中設定您的 Google Client ID 才能使用登入功能', 'warning');
+                    return;
+                }
+
                 // 初始化 Google API
                 gapi.load('auth2', function() {
                     gapi.auth2.init({
-                        client_id: 'YOUR_GOOGLE_CLIENT_ID' // 需要設定你的 Google Client ID
+                        client_id: clientId
                     }).then(function(auth2) {
                         // 登入
-                        auth2.signIn().then(function(googleUser) {
+                        auth2.signIn({
+                            scope: 'https://www.googleapis.com/auth/drive.file'
+                        }).then(function(googleUser) {
                             const profile = googleUser.getBasicProfile();
                             state.isAuthenticated = true;
                             state.userProfile = {
@@ -449,7 +499,7 @@
                         });
                     }).catch(function(error) {
                         console.error('Google API 初始化失敗:', error);
-                        showAlert('初始化失敗', 'Google API 初始化失敗', 'error');
+                        showAlert('初始化失敗', 'Google API 初始化失敗，請檢查 Client ID 設定', 'error');
                     });
                 });
             } catch (error) {
@@ -458,34 +508,26 @@
             }
         }
 
-        // 初始化 Google Drive API
-        function initializeGoogleDrive() {
-            try {
-                gapi.load('client', function() {
-                    gapi.client.init({
-                        apiKey: state.settings.googleApiKey,
-                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-                    }).then(function() {
-                        console.log('Google Drive API 初始化成功');
-                        showAlert('Google Drive 已準備就緒', '可以開始儲存檔案到 Google Drive', 'success');
-                    }).catch(function(error) {
-                        console.error('Google Drive API 初始化失敗:', error);
-                        showAlert('Drive API 初始化失敗', '請檢查 API 金鑰設定', 'error');
-                    });
-                });
-            } catch (error) {
-                console.error('初始化 Google Drive 失敗:', error);
-            }
-        }
-
         // 登出處理
         function handleSignOut() {
             try {
-                state.isAuthenticated = false;
-                updateAuthUI();
-                showAlert('已登出', '您已成功登出', 'info');
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const auth2 = gapi.auth2.getAuthInstance();
+                    auth2.signOut().then(function() {
+                        state.isAuthenticated = false;
+                        state.userProfile = null;
+                        updateAuthUI();
+                        showAlert('已登出', '您已成功登出 Google 帳戶', 'info');
+                    });
+                } else {
+                    state.isAuthenticated = false;
+                    state.userProfile = null;
+                    updateAuthUI();
+                    showAlert('已登出', '您已成功登出', 'info');
+                }
             } catch (error) {
                 console.error('登出失敗:', error);
+                showAlert('登出失敗', '登出過程中發生錯誤', 'error');
             }
         }
 
@@ -494,611 +536,107 @@
             try {
                 const userProfile = document.getElementById('user-profile');
                 const authorizeBtn = document.getElementById('authorize_button');
-                
-                if (state.isAuthenticated) {
+                const signoutBtn = document.getElementById('signout_button');
+                const userAvatar = document.getElementById('user-avatar');
+                const userName = document.getElementById('user-name');
+
+                if (state.isAuthenticated && state.userProfile) {
+                    // 顯示用戶資訊
                     if (userProfile) userProfile.classList.remove('hidden');
                     if (authorizeBtn) authorizeBtn.classList.add('hidden');
+                    if (signoutBtn) signoutBtn.classList.remove('hidden');
+                    
+                    if (userAvatar && state.userProfile.imageUrl) {
+                        userAvatar.src = state.userProfile.imageUrl;
+                    }
+                    if (userName) {
+                        userName.textContent = state.userProfile.name;
+                    }
                 } else {
+                    // 顯示登入按鈕
                     if (userProfile) userProfile.classList.add('hidden');
                     if (authorizeBtn) authorizeBtn.classList.remove('hidden');
+                    if (signoutBtn) signoutBtn.classList.add('hidden');
                 }
             } catch (error) {
                 console.error('更新認證 UI 失敗:', error);
             }
         }
 
-        // 切換步驟
-        function goToStep(step) {
+        // 初始化 Google Drive API
+        function initializeGoogleDrive() {
             try {
-                state.currentStep = step;
-                
-                // 更新步驟指示器
-                const steps = document.querySelectorAll('.step');
-                steps.forEach((s, index) => {
-                    if (index + 1 < step) {
-                        s.classList.add('completed');
-                        s.classList.remove('active');
-                    } else if (index + 1 === step) {
-                        s.classList.add('active');
-                        s.classList.remove('completed');
-                    } else {
-                        s.classList.remove('active', 'completed');
+                if (!state.isAuthenticated) {
+                    console.warn('用戶未登入，無法初始化 Google Drive API');
+                    return;
+                }
+
+                // 載入 Google Drive API
+                gapi.load('client', function() {
+                    gapi.client.init({
+                        apiKey: state.settings.googleApiKey,
+                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+                    }).then(function() {
+                        console.log('Google Drive API 初始化成功');
+                        showAlert('Google Drive 已準備就緒', '可以開始使用檔案儲存功能', 'success');
+                    }).catch(function(error) {
+                        console.error('Google Drive API 初始化失敗:', error);
+                        showAlert('Google Drive 初始化失敗', '請檢查 API 金鑰設定', 'error');
+                    });
+                });
+            } catch (error) {
+                console.error('初始化 Google Drive 失敗:', error);
+                showAlert('Google Drive 初始化失敗', error.message, 'error');
+            }
+        }
+
+        // 儲存檔案到 Google Drive
+        function saveFileToGoogleDrive(fileName, content, mimeType = 'text/plain') {
+            return new Promise((resolve, reject) => {
+                try {
+                    if (!state.isAuthenticated) {
+                        reject(new Error('用戶未登入'));
+                        return;
                     }
-                });
 
-                // 顯示對應的內容
-                const stepPanels = document.querySelectorAll('.step-panel');
-                stepPanels.forEach((panel, index) => {
-                    if (index + 1 === step) {
-                        panel.style.display = 'block';
-                        
-                        // 如果是步驟 2，初始化競爭對手搜尋
-                        if (step === 2) {
-                            initializeCompetitorSearch();
-                        }
-                    } else {
-                        panel.style.display = 'none';
+                    // 檢查是否已初始化 Google Drive API
+                    if (!gapi.client.drive) {
+                        reject(new Error('Google Drive API 未初始化'));
+                        return;
                     }
-                });
 
-                console.log(`切換到步驟: ${step}`);
-            } catch (error) {
-                console.error('切換步驟失敗:', error);
-            }
-        }
+                    // 建立檔案中繼資料
+                    const fileMetadata = {
+                        name: fileName,
+                        mimeType: mimeType,
+                        parents: [] // 可以指定資料夾 ID
+                    };
 
-        // 初始化競爭對手搜尋
-        function initializeCompetitorSearch() {
-            try {
-                // 顯示當前分析主題
-                const currentTopic = document.getElementById('current-topic');
-                if (currentTopic && state.analysisData.topic) {
-                    currentTopic.textContent = state.analysisData.topic;
-                }
+                    // 建立檔案內容
+                    const fileContent = content;
 
-                // 設定步驟 2 的事件監聽器
-                setupStep2EventListeners();
-
-                // 開始自動搜尋競爭對手
-                searchCompetitors();
-
-            } catch (error) {
-                console.error('初始化競爭對手搜尋失敗:', error);
-            }
-        }
-
-        // 設定步驟 2 的事件監聽器
-        function setupStep2EventListeners() {
-            try {
-                // 添加競爭對手按鈕
-                const addCompetitorBtn = document.getElementById('add-competitor-btn');
-                if (addCompetitorBtn) {
-                    addCompetitorBtn.addEventListener('click', addManualCompetitor);
-                }
-
-                // 手動輸入競爭對手名稱
-                const manualCompetitorInput = document.getElementById('manual-competitor');
-                if (manualCompetitorInput) {
-                    manualCompetitorInput.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') {
-                            addManualCompetitor();
+                    // 上傳檔案
+                    gapi.client.drive.files.create({
+                        resource: fileMetadata,
+                        media: {
+                            mimeType: mimeType,
+                            body: fileContent
                         }
+                    }).then(function(response) {
+                        console.log('檔案上傳成功:', response.result);
+                        resolve(response.result);
+                    }).catch(function(error) {
+                        console.error('檔案上傳失敗:', error);
+                        reject(error);
                     });
+                } catch (error) {
+                    console.error('儲存檔案到 Google Drive 失敗:', error);
+                    reject(error);
                 }
-
-                // 生成報告按鈕
-                const generateReportBtn = document.getElementById('generate-report-btn');
-                if (generateReportBtn) {
-                    generateReportBtn.addEventListener('click', generateFinalReport);
-                }
-
-                // 返回步驟 1 按鈕
-                const backToStep1Btn = document.getElementById('back-to-step1-btn');
-                if (backToStep1Btn) {
-                    backToStep1Btn.addEventListener('click', () => goToStep(1));
-                }
-
-            } catch (error) {
-                console.error('設定步驟 2 事件監聽器失敗:', error);
-            }
+            });
         }
 
-        // 設定步驟 1 的事件監聽器
-        function setupStep1EventListeners() {
-            try {
-                // 添加產品按鈕
-                const addProductBtn = document.getElementById('add-product-btn');
-                if (addProductBtn) {
-                    addProductBtn.addEventListener('click', addProductItem);
-                }
-
-                // 開始分析按鈕
-                const startAnalysisBtn = document.getElementById('start-analysis-btn');
-                if (startAnalysisBtn) {
-                    startAnalysisBtn.addEventListener('click', startAnalysis);
-                }
-
-            } catch (error) {
-                console.error('設定步驟 1 事件監聽器失敗:', error);
-            }
-        }
-
-        // 添加產品項目
-        function addProductItem() {
-            try {
-                const container = document.getElementById('products-container');
-                if (!container) return;
-
-                const productItem = document.createElement('div');
-                productItem.className = 'product-item bg-gray-800 rounded-lg p-4 mb-3 relative';
-                productItem.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">產品/服務名稱</label>
-                            <input type="text" class="product-name w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="產品名稱">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">價格定位</label>
-                            <select class="product-pricing w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
-                                <option value="">選擇價格定位</option>
-                                <option value="premium">高價位 (Premium)</option>
-                                <option value="mid-high">中高價位</option>
-                                <option value="mid">中價位</option>
-                                <option value="mid-low">中低價位</option>
-                                <option value="budget">平價 (Budget)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">目標客群</label>
-                            <input type="text" class="product-target w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="目標客群描述">
-                        </div>
-                    </div>
-                    <button class="remove-product-btn absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">×</button>
-                `;
-
-                container.appendChild(productItem);
-
-                // 為移除按鈕添加事件監聽器
-                const removeBtn = productItem.querySelector('.remove-product-btn');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', function() {
-                        container.removeChild(productItem);
-                    });
-                }
-
-            } catch (error) {
-                console.error('添加產品項目失敗:', error);
-            }
-        }
-
-        // 手動添加競爭對手
-        function addManualCompetitor() {
-            try {
-                const input = document.getElementById('manual-competitor');
-                const name = input.value.trim();
-                
-                if (!name) {
-                    showAlert('請輸入競爭對手名稱', '競爭對手名稱不能為空', 'warning');
-                    return;
-                }
-                
-                addCompetitorToList(name, '手動添加的競爭對手', '', '');
-                input.value = '';
-                
-            } catch (error) {
-                console.error('手動添加競爭對手失敗:', error);
-            }
-        }
-
-        // 添加競爭對手到列表
-        function addCompetitorToList(name, description, website = '', linkedin = '', founded = '', employees = '', revenue = '', marketShare = '', strengths = '', weaknesses = '') {
-            try {
-                if (!state.selectedCompetitors) {
-                    state.selectedCompetitors = [];
-                }
-                
-                // 檢查是否已存在
-                if (state.selectedCompetitors.some(c => c.name === name)) {
-                    showAlert('競爭對手已存在', `${name} 已在列表中`, 'warning');
-                    return;
-                }
-                
-                // 添加競爭對手
-                state.selectedCompetitors.push({
-                    name: name,
-                    description: description,
-                    website: website,
-                    linkedin: linkedin,
-                    founded: founded,
-                    employees: employees,
-                    revenue: revenue,
-                    marketShare: marketShare,
-                    strengths: strengths,
-                    weaknesses: weaknesses
-                });
-                
-                updateSelectedCompetitorsList();
-                showAlert('添加成功', `已添加 ${name} 到競爭對手列表`, 'success');
-                
-            } catch (error) {
-                console.error('添加競爭對手到列表失敗:', error);
-            }
-        }
-
-        // 更新已選擇的競爭對手列表
-        function updateSelectedCompetitorsList() {
-            try {
-                const container = document.getElementById('selected-competitors');
-                const generateReportBtn = document.getElementById('generate-report-btn');
-                const countSpan = document.getElementById('selected-count');
-                
-                if (!container) return;
-                
-                if (!state.selectedCompetitors || state.selectedCompetitors.length === 0) {
-                    container.innerHTML = '<p class="text-gray-500 text-sm">尚未選擇任何競爭對手</p>';
-                    if (generateReportBtn) generateReportBtn.disabled = true;
-                    if (countSpan) countSpan.textContent = '0';
-                    return;
-                }
-                
-                let html = '';
-                state.selectedCompetitors.forEach((competitor, index) => {
-                    html += `
-                        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex-1">
-                                    <h6 class="font-semibold text-gray-200">${competitor.name}</h6>
-                                    <button class="remove-competitor-btn bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs"
-                                            data-index="${index}">移除</button>
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-400 mb-2">${competitor.description}</p>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-500 mb-2">
-                                ${competitor.founded ? `<div>成立：${competitor.founded}</div>` : ''}
-                                ${competitor.employees ? `<div>員工：${competitor.employees}</div>` : ''}
-                                ${competitor.revenue ? `<div>營收：${competitor.revenue}</div>` : ''}
-                                ${competitor.marketShare ? `<div>市占：${competitor.marketShare}</div>` : ''}
-                            </div>
-                            ${competitor.strengths ? `<div class="text-xs text-green-400 mb-1">優勢：${competitor.strengths}</div>` : ''}
-                            ${competitor.weaknesses ? `<div class="text-xs text-red-400 mb-2">弱勢：${competitor.weaknesses}</div>` : ''}
-                            <div class="flex gap-2">
-                                ${competitor.website ? `<a href="${competitor.website}" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs">🌐 官網</a>` : ''}
-                                ${competitor.linkedin ? `<a href="${competitor.linkedin}" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs">💼 LinkedIn</a>` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                container.innerHTML = html;
-                
-                // 更新計數
-                if (countSpan) countSpan.textContent = state.selectedCompetitors.length;
-                
-                // 啟用生成報告按鈕
-                if (generateReportBtn) generateReportBtn.disabled = false;
-                
-                // 為移除按鈕添加事件監聽器
-                const removeButtons = container.querySelectorAll('.remove-competitor-btn');
-                removeButtons.forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const index = parseInt(this.dataset.index);
-                        removeCompetitor(index);
-                    });
-                });
-                
-            } catch (error) {
-                console.error('更新競爭對手列表失敗:', error);
-            }
-        }
-
-        // 移除競爭對手
-        function removeCompetitor(index) {
-            try {
-                if (state.selectedCompetitors && state.selectedCompetitors[index]) {
-                    const removed = state.selectedCompetitors.splice(index, 1)[0];
-                    updateSelectedCompetitorsList();
-                    showAlert('移除成功', `已移除 ${removed.name}`, 'success');
-                }
-            } catch (error) {
-                console.error('移除競爭對手失敗:', error);
-            }
-        }
-
-        // 生成最終報告
-        function generateFinalReport() {
-            try {
-                if (!state.selectedCompetitors || state.selectedCompetitors.length === 0) {
-                    showAlert('請選擇競爭對手', '至少需要選擇一個競爭對手', 'warning');
-                    return;
-                }
-
-                showAlert('正在生成報告', '請稍候...', 'info');
-                
-                // 切換到步驟 3
-                setTimeout(() => {
-                    goToStep(3);
-                    generateCompleteReport();
-                }, 1000);
-
-            } catch (error) {
-                console.error('生成最終報告失敗:', error);
-            }
-        }
-
-        // 生成完整報告內容
-        function generateCompleteReport() {
-            try {
-                const reportContainer = document.getElementById('final-report-content');
-                if (!reportContainer) return;
-
-                // 顯示載入狀態
-                reportContainer.innerHTML = `
-                    <div class="flex items-center justify-center py-8">
-                        <div class="spinner"></div>
-                        <span class="ml-3 text-gray-400">正在生成完整報告...</span>
-                    </div>
-                `;
-
-                // 模擬報告生成延遲
-                setTimeout(() => {
-                    const report = createCompleteReport();
-                    reportContainer.innerHTML = report;
-                }, 3000);
-
-            } catch (error) {
-                console.error('生成完整報告失敗:', error);
-            }
-        }
-
-        // 創建完整報告
-        function createCompleteReport() {
-            try {
-                const analysisData = state.analysisData;
-                const competitors = state.selectedCompetitors;
-                const projectId = document.getElementById('project-id')?.value || 'TEMP_' + Date.now();
-
-                let report = `
-                    <div class="space-y-8">
-                        <!-- 報告標題 -->
-                        <div class="text-center border-b border-gray-700 pb-6">
-                            <h1 class="text-3xl font-bold text-techaccent mb-2">市場情資與競品分析報告</h1>
-                            <p class="text-gray-400">專案 ID: ${projectId} | 生成時間: ${new Date().toLocaleString('zh-TW')}</p>
-                        </div>
-
-                        <!-- 執行摘要 -->
-                        <div class="bg-gray-800 rounded-lg p-6">
-                            <h2 class="text-xl font-bold text-techaccent mb-4">📋 執行摘要</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold text-techaccent">${competitors.length}</div>
-                                    <div class="text-sm text-gray-400">競爭對手分析</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold text-techaccent">${analysisData.industry?.category || '未指定'}</div>
-                                    <div class="text-sm text-gray-400">行業類別</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold text-techaccent">${analysisData.market?.size || '未指定'}</div>
-                                    <div class="text-sm text-gray-400">市場規模</div>
-                                </div>
-                            </div>
-                            <p class="text-gray-300">
-                                本報告針對「${analysisData.topic || '未指定主題'}」進行深度市場分析，
-                                涵蓋 ${competitors.length} 個主要競爭對手的詳細比較，
-                                為 ${analysisData.brand?.name || '您的品牌'} 提供市場定位和競爭策略建議。
-                            </p>
-                        </div>
-
-                        <!-- 品牌分析 -->
-                        <div class="bg-gray-800 rounded-lg p-6">
-                            <h2 class="text-xl font-bold text-techaccent mb-4">🏢 品牌分析</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-200 mb-3">自身品牌資訊</h3>
-                                    <div class="space-y-2 text-sm">
-                                        <div><span class="text-gray-400">品牌名稱：</span><span class="text-gray-200">${analysisData.brand?.name || '未指定'}</span></div>
-                                        <div><span class="text-gray-400">品牌官網：</span><span class="text-gray-200">${analysisData.brand?.website || '未指定'}</span></div>
-                                        <div><span class="text-gray-400">品牌描述：</span><span class="text-gray-200">${analysisData.brand?.description || '未指定'}</span></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-200 mb-3">市場定位</h3>
-                                    <div class="space-y-2 text-sm">
-                                        <div><span class="text-gray-400">行業類別：</span><span class="text-gray-200">${analysisData.industry?.category || '未指定'}</span></div>
-                                        <div><span class="text-gray-400">市場規模：</span><span class="text-gray-200">${analysisData.market?.size || '未指定'}</span></div>
-                                        <div><span class="text-gray-400">分析主題：</span><span class="text-gray-200">${analysisData.topic || '未指定'}</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 競爭對手比較表 -->
-                        <div class="bg-gray-800 rounded-lg p-6">
-                            <h2 class="text-xl font-bold text-techaccent mb-4">📊 競爭對手比較分析</h2>
-                            <div class="overflow-x-auto">
-                                <table class="w-full comparison-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-left">競爭對手</th>
-                                            <th class="text-left">成立時間</th>
-                                            <th class="text-left">員工數</th>
-                                            <th class="text-left">營收規模</th>
-                                            <th class="text-left">市場地位</th>
-                                            <th class="text-left">主要優勢</th>
-                                            <th class="text-left">主要弱勢</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                `;
-
-                competitors.forEach(competitor => {
-                    report += `
-                        <tr>
-                            <td class="font-semibold">
-                                <div>${competitor.name}</div>
-                                <div class="text-xs text-gray-400">${competitor.description}</div>
-                            </td>
-                            <td>${competitor.founded || '未知'}</td>
-                            <td>${competitor.employees || '未知'}</td>
-                            <td>${competitor.revenue || '未知'}</td>
-                            <td>${competitor.marketShare || '未知'}</td>
-                            <td class="text-green-400 text-sm">${competitor.strengths || '未提供'}</td>
-                            <td class="text-red-400 text-sm">${competitor.weaknesses || '未提供'}</td>
-                        </tr>
-                    `;
-                });
-
-                report += `
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- SWOT 分析 -->
-                        <div class="bg-gray-800 rounded-lg p-6">
-                            <h2 class="text-xl font-bold text-techaccent mb-4">🎯 SWOT 分析</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-4">
-                                    <div class="border-l-4 border-green-500 pl-4">
-                                        <h3 class="text-lg font-semibold text-green-400 mb-2">優勢 (Strengths)</h3>
-                                        <ul class="text-sm text-gray-300 space-y-1">
-                                            <li>• 品牌知名度在目標市場中具有優勢</li>
-                                            <li>• 產品/服務特色符合市場需求</li>
-                                            <li>• 技術實力和創新能力</li>
-                                        </ul>
-                                    </div>
-                                    <div class="border-l-4 border-red-500 pl-4">
-                                        <h3 class="text-lg font-semibold text-red-400 mb-2">弱勢 (Weaknesses)</h3>
-                                        <ul class="text-sm text-gray-300 space-y-1">
-                                            <li>• 市場份額相對較小</li>
-                                            <li>• 資源投入有限</li>
-                                            <li>• 品牌認知度有待提升</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="space-y-4">
-                                    <div class="border-l-4 border-blue-500 pl-4">
-                                        <h3 class="text-lg font-semibold text-blue-400 mb-2">機會 (Opportunities)</h3>
-                                        <ul class="text-sm text-gray-300 space-y-1">
-                                            <li>• 市場快速成長期</li>
-                                            <li>• 技術創新帶來新機會</li>
-                                            <li>• 競爭對手策略調整的窗口期</li>
-                                        </ul>
-                                    </div>
-                                    <div class="border-l-4 border-yellow-500 pl-4">
-                                        <h3 class="text-lg font-semibold text-yellow-400 mb-2">威脅 (Threats)</h3>
-                                        <ul class="text-sm text-gray-300 space-y-1">
-                                            <li>• 大型競爭對手進入市場</li>
-                                            <li>• 技術變革速度加快</li>
-                                            <li>• 市場飽和度增加</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 策略建議 -->
-                        <div class="bg-gray-800 rounded-lg p-6">
-                            <h2 class="text-xl font-bold text-techaccent mb-4">💡 策略建議</h2>
-                            <div class="space-y-4">
-                                <div class="border-l-4 border-techaccent pl-4">
-                                    <h3 class="text-lg font-semibold text-techaccent mb-2">短期策略 (3-6個月)</h3>
-                                    <ul class="text-sm text-gray-300 space-y-1">
-                                        <li>• 強化品牌定位和市場訊息</li>
-                                        <li>• 優化產品/服務體驗</li>
-                                        <li>• 建立競爭優勢的差異化特色</li>
-                                    </ul>
-                                </div>
-                                <div class="border-l-4 border-techprimary pl-4">
-                                    <h3 class="text-lg font-semibold text-techprimary mb-2">中期策略 (6-12個月)</h3>
-                                    <ul class="text-sm text-gray-300 space-y-1">
-                                        <li>• 擴大市場份額和客戶基礎</li>
-                                        <li>• 開發新產品線或服務</li>
-                                        <li>• 建立戰略合作夥伴關係</li>
-                                    </ul>
-                                </div>
-                                <div class="border-l-4 border-techsecondary pl-4">
-                                    <h3 class="text-lg font-semibold text-techsecondary mb-2">長期策略 (1-3年)</h3>
-                                    <ul class="text-sm text-gray-300 space-y-1">
-                                        <li>• 成為行業領導者</li>
-                                        <li>• 國際化擴張</li>
-                                        <li>• 建立生態系統和平台</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 行動方案 -->
-                        <div class="bg-gray-800 rounded-lg p-6">
-                            <h2 class="text-xl font-bold text-techaccent mb-4">🚀 立即行動方案</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-200 mb-3">優先級高</h3>
-                                    <ul class="text-sm text-gray-300 space-y-2">
-                                        <li>• 完成競爭對手深度分析</li>
-                                        <li>• 制定差異化策略</li>
-                                        <li>• 建立監控機制</li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-200 mb-3">優先級中</h3>
-                                    <ul class="text-sm text-gray-300 space-y-2">
-                                        <li>• 優化產品定位</li>
-                                        <li>• 加強行銷推廣</li>
-                                        <li>• 建立客戶關係</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 報告操作按鈕 -->
-                        <div class="flex gap-4 justify-center pt-6 border-t border-gray-700">
-                            <button onclick="downloadReport()" class="bg-techprimary hover:bg-techaccent text-white px-6 py-3 rounded-lg font-semibold">
-                                📥 下載報告
-                            </button>
-                            <button onclick="saveToGoogleDrive()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
-                                ☁️ 儲存到 Google Drive
-                            </button>
-                            <button onclick="goToStep(1)" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold">
-                                🔄 重新分析
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                return report;
-
-            } catch (error) {
-                console.error('創建完整報告失敗:', error);
-                return '<p class="text-red-400">報告生成失敗，請重新嘗試</p>';
-            }
-        }
-
-        // 下載報告
-        function downloadReport() {
-            try {
-                const reportContent = document.getElementById('final-report-content').innerText;
-                const projectId = document.getElementById('project-id')?.value || 'TEMP_' + Date.now();
-                const filename = `市場情資分析報告_${projectId}_${new Date().toISOString().split('T')[0]}.txt`;
-                
-                const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showAlert('下載成功', '報告已下載到您的裝置', 'success');
-            } catch (error) {
-                console.error('下載報告失敗:', error);
-                showAlert('下載失敗', '無法下載報告，請重試', 'error');
-            }
-        }
-
-        // 儲存到 Google Drive
+        // 更新儲存到 Google Drive 函數
         function saveToGoogleDrive() {
             try {
                 if (!state.isAuthenticated) {
@@ -1108,10 +646,20 @@
                 
                 showAlert('儲存中', '正在儲存報告到 Google Drive...', 'info');
                 
-                // 這裡可以實作 Google Drive API 儲存邏輯
-                setTimeout(() => {
-                    showAlert('儲存成功', '報告已儲存到 Google Drive', 'success');
-                }, 2000);
+                // 獲取報告內容
+                const reportContent = document.getElementById('final-report-content').innerText;
+                const projectId = document.getElementById('project-id')?.value || 'TEMP_' + Date.now();
+                const fileName = `市場情資分析報告_${projectId}_${new Date().toISOString().split('T')[0]}.txt`;
+                
+                // 儲存到 Google Drive
+                saveFileToGoogleDrive(fileName, reportContent, 'text/plain')
+                    .then(() => {
+                        showAlert('儲存成功', '報告已儲存到 Google Drive', 'success');
+                    })
+                    .catch((error) => {
+                        console.error('儲存到 Google Drive 失敗:', error);
+                        showAlert('儲存失敗', '無法儲存到 Google Drive，請重試', 'error');
+                    });
                 
             } catch (error) {
                 console.error('儲存到 Google Drive 失敗:', error);
@@ -1637,7 +1185,6 @@
                         <span id="user-name" class="font-semibold text-gray-200"></span>
                         <button id="signout_button" class="text-sm text-gray-400 hover:text-techaccent">登出</button>
                     </div>
-                     <button id="authorize_button" class="hidden bg-gradient-to-tr from-techprimary to-techaccent hover:from-techsecondary hover:to-techaccent font-bold text-white px-5 py-2 rounded-lg shadow-lg">登入 Google</button>
                 </div>
                 <div class="text-xs text-yellow-400 mt-2">※ 需授權 Google Drive 全權限才能正確儲存資料</div>
             </div>
@@ -1662,6 +1209,31 @@
                     <div class="space-y-4">
                         <div><label for="google-api-key" class="block text-sm font-medium text-gray-300">Google API 金鑰</label><input type="password" id="google-api-key" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Gemini/Custom Search API Key"></div>
                         <div><label for="search-engine-id" class="block text-sm font-medium text-gray-300">可程式化搜尋引擎 ID (CX)</label><input type="text" id="search-engine-id" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Custom Search Engine ID"></div>
+                        
+                        <!-- Google 登入設定說明 -->
+                        <div class="border-t border-techprimary/30 pt-4 mt-6">
+                            <h3 class="text-lg font-semibold text-techaccent mb-4">🔐 Google 登入設定</h3>
+                            <div class="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4 mb-4">
+                                <h4 class="font-semibold text-yellow-400 mb-2">⚠️ 重要提醒</h4>
+                                <p class="text-sm text-gray-300 mb-3">要使用 Google Drive 儲存功能，您需要：</p>
+                                <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
+                                    <li>在 Google Cloud Console 建立專案</li>
+                                    <li>啟用 Google Drive API 和 Google+ API</li>
+                                    <li>建立 OAuth 2.0 憑證</li>
+                                    <li>將 Client ID 填入程式碼中</li>
+                                </ol>
+                                <div class="mt-3 p-3 bg-gray-800 rounded text-xs">
+                                    <p class="text-gray-400 mb-2">目前程式碼中的 Client ID 設定位置：</p>
+                                    <code class="text-green-400">handleGoogleAuth() 函數中的 'YOUR_GOOGLE_CLIENT_ID'</code>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button id="authorize_button" class="bg-gradient-to-tr from-techprimary to-techaccent hover:from-techsecondary hover:to-techaccent font-bold text-white px-6 py-3 rounded-lg shadow-lg">
+                                    🔐 登入 Google
+                                </button>
+                                <p class="text-xs text-gray-400 mt-2">點擊登入以測試 Google 認證功能</p>
+                            </div>
+                        </div>
                         
                         <!-- 集中化資料夾管理設定 -->
                         <div class="border-t border-techprimary/30 pt-4 mt-6">
