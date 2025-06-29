@@ -1384,7 +1384,7 @@ ${generateExecutionRecommendations(keywords)}
                     
                     console.log('應用程式初始化完成');
                     resolve();
-                } catch (error) {
+            } catch (error) {
                     console.error('應用程式初始化失敗:', error);
                     reject(error);
                 }
@@ -5394,16 +5394,17 @@ function getTypeDisplayName(type) {
                     return;
                 }
 
-                showAlert('開始智能搜尋', '正在使用 Google Search API 和 AI 分析生成關鍵字建議...', 'info');
+                showAlert('開始智能搜尋', '正在使用本地智能分析生成關鍵字建議...', 'info');
                 
                 // 使用 Google Search API 搜尋
                 const searchResults = await performGoogleKeywordSearch(brand, industry, businessModel);
                 
                 // 使用 AI 分析生成智能建議
-                const aiSuggestions = await generateAIKeywordSuggestions(brand, industry, businessModel, products, searchResults);
+                // 使用本地智能關鍵字生成器
+                const keywordSuggestions = generateKeywordSuggestions(brand, industry, businessModel, products);
                 
                 // 合併結果並分類
-                const categorizedKeywords = categorizeKeywords(aiSuggestions, keywordTypes);
+                const categorizedKeywords = categorizeKeywords(keywordSuggestions, keywordTypes);
                 
                 // 更新顯示
                 updateKeywordDisplay(categorizedKeywords);
