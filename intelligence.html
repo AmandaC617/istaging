@@ -1244,9 +1244,8 @@ ${generateExecutionRecommendations(keywords)}
                 const brandName = state.analysisData.brand?.name;
                 const industry = state.analysisData.industry?.category;
                 const products = state.analysisData.products || [];
-                
+
                 if (!topic || !brandName || !industry) {
-                    console.warn('缺少分析主題、品牌名稱或行業類別');
                     showAlert('資料不完整', '請確保填寫了分析主題、品牌名稱和行業類別', 'warning');
                     return;
                 }
@@ -1268,7 +1267,25 @@ ${generateExecutionRecommendations(keywords)}
                 setTimeout(async () => {
                     try {
                         const realCompetitors = await analyzeIndustryCompetitors(topic, brandName, industry, products);
-                        displaySearchResults(realCompetitors);
+                        
+                        console.log('競爭對手分析完成，結果:', realCompetitors);
+                        
+                        if (realCompetitors && realCompetitors.length > 0) {
+                            displaySearchResults(realCompetitors);
+                            showAlert('分析完成', `成功找到 ${realCompetitors.length} 個競爭對手`, 'success');
+                        } else {
+                            console.error('競爭對手分析未返回有效資料');
+                            showAlert('分析失敗', '未找到相關競爭對手', 'warning');
+                            
+                            if (resultsContainer) {
+                                resultsContainer.innerHTML = `
+                                    <div class="text-center py-8">
+                                        <p class="text-yellow-400 mb-4">未找到相關競爭對手</p>
+                                        <button onclick="searchCompetitors()" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">重新嘗試</button>
+                                    </div>
+                                `;
+                            }
+                        }
                     } catch (error) {
                         console.error('競爭對手分析失敗:', error);
                         showAlert('分析失敗', '競爭對手分析過程中發生錯誤', 'error');
@@ -1278,6 +1295,7 @@ ${generateExecutionRecommendations(keywords)}
                             resultsContainer.innerHTML = `
                                 <div class="text-center py-8">
                                     <p class="text-red-400 mb-4">競爭對手分析失敗</p>
+                                    <p class="text-gray-400 text-sm mb-4">錯誤訊息: ${error.message}</p>
                                     <button onclick="searchCompetitors()" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">重新嘗試</button>
                                 </div>
                             `;
@@ -1294,57 +1312,70 @@ ${generateExecutionRecommendations(keywords)}
         // 基於行業和產品分析真實競爭對手
         async function analyzeIndustryCompetitors(topic, brandName, industry, products) {
             try {
+                console.log('開始分析競爭對手:', { topic, brandName, industry, products });
+                
                 // 檢查是否有 API 設定
                 const googleApiKey = document.getElementById('google-api-key')?.value?.trim();
                 const searchEngineId = document.getElementById('search-engine-id')?.value?.trim();
                 const geminiApiKey = document.getElementById('gemini-api-key')?.value?.trim();
                 
-                // 如果有完整的 API 設定，使用智能分析
+                // 如果有完整的 API 設定，嘗試使用智能分析
                 if (googleApiKey && searchEngineId && geminiApiKey) {
                     try {
+                        console.log('嘗試智能競爭對手分析...');
                         const smartAnalysis = await performSmartCompetitorAnalysis(brandName, industry, products, topic);
                         
-                        // 轉換為系統格式
-                        const competitors = smartAnalysis.competitors.map((comp, index) => ({
-                            id: `smart_comp_${Date.now()}_${index}`,
-                            name: comp.name,
-                            website: comp.website,
-                            linkedin: `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(comp.name)}`,
-                            description: comp.description,
-                            industry: industry,
-                            marketShare: comp.marketShare || 10,
-                            strength: comp.strength || 50,
-                            weakness: comp.weakness || 50,
-                            opportunity: comp.opportunity || 50,
-                            threat: comp.threat || 50,
-                            productComparison: comp.productComparison || '智能分析結果',
-                            selected: false
-                        }));
-                        
-                        // 儲存智能分析結果
-                        state.analysisData.smartCompetitorAnalysis = {
-                            competitors: competitors,
-                            marketInsights: smartAnalysis.marketInsights,
-                            competitiveAdvantages: smartAnalysis.competitiveAdvantages,
-                            threats: smartAnalysis.threats,
-                            recommendations: smartAnalysis.recommendations,
-                            searchData: smartAnalysis.searchData
-                        };
-                        
-                        return competitors;
+                        if (smartAnalysis && smartAnalysis.competitors && smartAnalysis.competitors.length > 0) {
+                            console.log('智能分析成功，找到競爭對手:', smartAnalysis.competitors.length);
+                            
+                            // 轉換為系統格式
+                            const competitors = smartAnalysis.competitors.map((comp, index) => ({
+                                id: `smart_comp_${Date.now()}_${index}`,
+                                name: comp.name,
+                                website: comp.website,
+                                linkedin: `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(comp.name)}`,
+                                description: comp.description,
+                                industry: industry,
+                                marketShare: comp.marketShare || 10,
+                                strength: comp.strength || 50,
+                                weakness: comp.weakness || 50,
+                                opportunity: comp.opportunity || 50,
+                                threat: comp.threat || 50,
+                                productComparison: comp.productComparison || '智能分析結果',
+                                selected: false
+                            }));
+                            
+                            // 儲存智能分析結果
+                            state.analysisData.smartCompetitorAnalysis = {
+                                competitors: competitors,
+                                marketInsights: smartAnalysis.marketInsights,
+                                competitiveAdvantages: smartAnalysis.competitiveAdvantages,
+                                threats: smartAnalysis.threats,
+                                recommendations: smartAnalysis.recommendations,
+                                searchData: smartAnalysis.searchData
+                            };
+                            
+                            return competitors;
+                        } else {
+                            console.log('智能分析未返回有效競爭對手資料，回退到模板分析');
+                        }
                         
                     } catch (error) {
                         console.error('智能競爭對手分析失敗，回退到模板分析:', error);
-                        // 回退到模板分析
+                        showAlert('智能分析失敗', '智能分析失敗，已回退到模板分析', 'warning');
                     }
+                } else {
+                    console.log('API 設定不完整，使用模板分析');
                 }
                 
-                // 回退到模板分析（原有邏輯）
+                // 回退到模板分析
+                console.log('開始模板競爭對手分析...');
                 const competitors = [];
                 const competitorCount = state.analysisData.competitorCount || 8;
                 
                 // 根據行業類別生成相關的競爭對手
                 const industryCompetitors = getIndustryCompetitors(industry, products);
+                console.log('找到行業競爭對手:', industryCompetitors.length);
                 
                 // 選擇指定數量的競爭對手
                 const selectedCompetitors = industryCompetitors.slice(0, competitorCount);
@@ -1388,11 +1419,54 @@ ${generateExecutionRecommendations(keywords)}
                     }
                 });
                 
+                console.log('模板分析完成，返回競爭對手:', competitors.length);
                 return competitors;
+                
             } catch (error) {
                 console.error('分析行業競爭對手失敗:', error);
-                throw error;
+                showAlert('分析失敗', '競爭對手分析失敗，請重試', 'error');
+                
+                // 返回預設競爭對手
+                return getDefaultCompetitors(industry);
             }
+        }
+
+        // 獲取預設競爭對手
+        function getDefaultCompetitors(industry) {
+            const defaultCompetitors = [
+                {
+                    id: `default_comp_${Date.now()}_1`,
+                    name: `${industry}競爭對手1`,
+                    website: 'https://example.com',
+                    linkedin: 'https://www.linkedin.com',
+                    description: `${industry}行業的知名競爭對手`,
+                    industry: industry,
+                    marketShare: 15,
+                    strength: 70,
+                    weakness: 40,
+                    opportunity: 60,
+                    threat: 35,
+                    productComparison: '需要進一步分析',
+                    selected: false
+                },
+                {
+                    id: `default_comp_${Date.now()}_2`,
+                    name: `${industry}競爭對手2`,
+                    website: 'https://example.com',
+                    linkedin: 'https://www.linkedin.com',
+                    description: `${industry}行業的重要競爭對手`,
+                    industry: industry,
+                    marketShare: 12,
+                    strength: 65,
+                    weakness: 45,
+                    opportunity: 55,
+                    threat: 40,
+                    productComparison: '需要進一步分析',
+                    selected: false
+                }
+            ];
+            
+            return defaultCompetitors;
         }
 
         // 根據行業獲取競爭對手資料
@@ -3710,9 +3784,13 @@ ${generateExecutionRecommendations(keywords)}
                 
                 if (isJsonMode) {
                     try {
-                        return JSON.parse(generatedText);
+                        // 清理 JSON 回應，移除 markdown 代碼塊標記
+                        const cleanedText = cleanJsonResponse(generatedText);
+                        console.log('清理後的 JSON 文字:', cleanedText);
+                        return JSON.parse(cleanedText);
                     } catch (parseError) {
                         console.error('JSON 解析失敗:', parseError);
+                        console.error('原始回應:', generatedText);
                         throw new Error('AI 回應格式錯誤');
                     }
                 }
@@ -3723,6 +3801,37 @@ ${generateExecutionRecommendations(keywords)}
                 console.error('Gemini API 調用失敗:', error);
                 throw error;
             }
+        }
+
+        // 清理 JSON 回應
+        function cleanJsonResponse(text) {
+            if (!text) return '{}';
+            
+            let cleaned = text.trim();
+            
+            // 移除 markdown 代碼塊標記
+            cleaned = cleaned.replace(/```json\s*/gi, '');
+            cleaned = cleaned.replace(/```\s*$/gi, '');
+            cleaned = cleaned.replace(/^```\s*/gi, '');
+            
+            // 移除可能的 markdown 標記
+            cleaned = cleaned.replace(/^#+\s*/gm, '');
+            cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, '$1');
+            cleaned = cleaned.replace(/\*(.*?)\*/g, '$1');
+            
+            // 移除多餘的空白和換行
+            cleaned = cleaned.replace(/\n\s*\n/g, '\n');
+            cleaned = cleaned.trim();
+            
+            // 確保以 { 開始，以 } 結束
+            const startBrace = cleaned.indexOf('{');
+            const endBrace = cleaned.lastIndexOf('}');
+            
+            if (startBrace !== -1 && endBrace !== -1 && endBrace > startBrace) {
+                cleaned = cleaned.substring(startBrace, endBrace + 1);
+            }
+            
+            return cleaned;
         }
 
         // 智能競爭對手分析
@@ -3921,8 +4030,7 @@ ${generateExecutionRecommendations(keywords)}
 
         // 構建競爭對手分析提示
         function buildCompetitorAnalysisPrompt(extractedData, brand, industry, products, topic) {
-            const prompt = `
-你是一個專業的市場分析師，請基於以下搜尋結果資料，為品牌 "${brand}" 在 "${industry}" 行業進行智能競爭對手分析。
+            const prompt = `你是一個專業的市場分析師，請基於以下搜尋結果資料，為品牌 "${brand}" 在 "${industry}" 行業進行智能競爭對手分析。
 
 搜尋結果摘要：
 - 發現的公司：${extractedData.companies.join(', ')}
@@ -3931,7 +4039,7 @@ ${generateExecutionRecommendations(keywords)}
 - 市場指標：${extractedData.marketIndicators.join(', ')}
 - 產品/服務：${products.map(p => p.name || p).join(', ')}
 
-請以 JSON 格式回傳分析結果，包含以下結構：
+請以純 JSON 格式回傳分析結果，不要包含任何 markdown 標記、代碼塊或說明文字。直接返回有效的 JSON 物件：
 
 {
   "competitors": [
@@ -3939,11 +4047,11 @@ ${generateExecutionRecommendations(keywords)}
       "name": "競爭對手名稱",
       "website": "官方網站",
       "description": "公司描述",
-      "marketShare": 市場份額百分比,
-      "strength": 競爭優勢評分(1-100),
-      "weakness": 競爭劣勢評分(1-100),
-      "opportunity": 機會評分(1-100),
-      "threat": 威脅評分(1-100),
+      "marketShare": 15,
+      "strength": 75,
+      "weakness": 45,
+      "opportunity": 60,
+      "threat": 30,
       "productComparison": "與${brand}的產品比較分析",
       "competitivePosition": "競爭定位分析"
     }
@@ -3966,13 +4074,7 @@ ${generateExecutionRecommendations(keywords)}
   ]
 }
 
-請確保：
-1. 競爭對手資料基於實際搜尋結果
-2. 分析客觀且具有洞察力
-3. 提供具體的市場策略建議
-4. 所有評分都在合理範圍內
-5. 回傳格式為有效的 JSON
-`;
+重要：請確保回傳的是純 JSON 格式，不要包含 \`\`\`json 或其他 markdown 標記。`;
 
             return prompt;
         }
