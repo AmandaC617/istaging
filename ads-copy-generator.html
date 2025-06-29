@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Google Ads 關鍵字文案產出工具 - iStaging</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        // --- Firebase v11.6.1 SDKs ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- App Config & State ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyALiBzYT1uRmRKBD7nlDLw0TyD3UVyn3S4",
+            authDomain: "istagingworkflow.firebaseapp.com",
+            projectId: "istagingworkflow",
+            storageBucket: "istagingworkflow.appspot.com",
+            messagingSenderId: "619527055783",
+            appId: "1:619527055783:web:2636704afb69595e752e82"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let currentUser = null;
+
+        // Tailwind CSS configuration
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        techbg: '#181D27',
+                        techpanel: '#22283A',
+                        techaccent: '#2EE9E4',
+                        techprimary: '#3762F0',
+                        techsecondary: '#7D5FFF'
+                    },
+                    fontFamily: {
+                        'tech': ['"Segoe UI"', 'Roboto', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+
+        // 全域狀態管理
+        window.state = {
+            generatedCopy: [],
+            projectId: '',
+            isAuthenticated: false
+        };
+
+        // 頁面載入完成後初始化
+        window.addEventListener('load', function() {
+            console.log('Google Ads 文案產出工具載入完成');
+            initializeApp();
+        });
+
+        // 初始化應用程式
+        function initializeApp() {
+            try {
+                // 檢查 URL 參數
+                checkUrlParameters();
+                
+                // 設定事件監聽器
+                setupEventListeners();
+                
+                console.log('應用程式初始化完成');
+            } catch (error) {
+                console.error('應用程式初始化失敗:', error);
+                showAlert('初始化錯誤', '頁面初始化失敗，請重新整理頁面', 'error');
+            }
+        }
+
+        // 檢查 URL 參數
+        function checkUrlParameters() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('projectId');
+                
+                if (projectId) {
+                    state.projectId = projectId;
+                    const projectIdInput = document.getElementById('project-id');
+                    if (projectIdInput) {
+                        projectIdInput.value = projectId;
+                    }
+                }
+            } catch (error) {
+                console.warn('檢查 URL 參數失敗:', error);
+            }
+        }
+
+        // 設定事件監聽器
+        function setupEventListeners() {
+            try {
+                // 登入按鈕
+                const loginBtn = document.getElementById('google-login-btn');
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', handleGoogleLogin);
+                }
+
+                // 登出按鈕
+                const logoutBtn = document.getElementById('logout-button');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', () => signOut(auth));
+                }
+
+                // 生成文案按鈕
+                const generateBtn = document.getElementById('generate-ads-copy-btn');
+                if (generateBtn) {
+                    generateBtn.addEventListener('click', generateAdsCopy);
+                }
+
+                // 下載文案按鈕
+                const downloadBtn = document.getElementById('download-ads-copy-btn');
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', downloadAdsCopy);
+                }
+
+                // 複製到剪貼簿按鈕
+                const copyBtn = document.getElementById('copy-ads-copy-btn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', copyAdsCopyToClipboard);
+                }
+
+                // 清除結果按鈕
+                const clearBtn = document.getElementById('clear-ads-copy-btn');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', clearAdsCopyResults);
+                }
+
+                // 儲存到專案按鈕
+                const saveToProjectBtn = document.getElementById('save-to-project-btn');
+                if (saveToProjectBtn) {
+                    saveToProjectBtn.addEventListener('click', saveAdsCopyToProject);
+                }
+
+                console.log('事件監聽器設定完成');
+            } catch (error) {
+                console.error('設定事件監聽器失敗:', error);
+            }
+        }
+
+        // Google 登入處理
+        async function handleGoogleLogin() {
+            try {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error('登入失敗:', error);
+                showAlert('登入失敗', error.message, 'error');
+            }
+        }
+
+        // 身份驗證狀態監聽
+        onAuthStateChanged(auth, (user) => {
+            console.log('身份驗證狀態變更:', user ? '已登入' : '未登入');
+            
+            if (user) {
+                currentUser = { uid: user.uid, name: user.displayName, email: user.email, avatar: user.photoURL };
+                state.isAuthenticated = true;
+                
+                // 更新 UI
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('app-section').classList.remove('hidden');
+                document.getElementById('user-name').textContent = currentUser.name || '使用者';
+                document.getElementById('user-avatar').src = currentUser.avatar || '';
+                
+                console.log('使用者已登入:', currentUser);
+            } else {
+                currentUser = null;
+                state.isAuthenticated = false;
+                
+                // 更新 UI
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('app-section').classList.add('hidden');
+                
+                console.log('使用者已登出');
+            }
+        });
+
+        // 儲存文案到專案
+        async function saveAdsCopyToProject() {
+            if (!state.isAuthenticated) {
+                showAlert('請先登入', '您需要登入才能儲存文案到專案', 'warning');
+                return;
+            }
+
+            if (!state.projectId) {
+                showAlert('缺少專案 ID', '請確保從專案管理系統開啟此工具', 'warning');
+                return;
+            }
+
+            if (!state.generatedCopy || state.generatedCopy.length === 0) {
+                showAlert('沒有文案可儲存', '請先生成文案', 'warning');
+                return;
+            }
+
+            try {
+                const saveBtn = document.getElementById('save-to-project-btn');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="btn-spinner"></span>儲存中...';
+
+                // 準備儲存的資料
+                const adsCopyData = {
+                    generatedAt: new Date().toISOString(),
+                    generatedBy: {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        name: currentUser.name
+                    },
+                    businessModel: document.getElementById('ads-business-model')?.value,
+                    productKeywords: document.getElementById('ads-product-keywords')?.value,
+                    purchaseKeywords: document.getElementById('ads-purchase-keywords')?.value,
+                    targetAudience: document.getElementById('ads-target-audience')?.value,
+                    marketRegion: document.getElementById('ads-market-region')?.value,
+                    copyVariations: state.generatedCopy
+                };
+
+                // 儲存到 Firestore
+                const projectRef = doc(db, "projects", state.projectId);
+                await updateDoc(projectRef, {
+                    adsCopyResults: arrayUnion(adsCopyData),
+                    updatedAt: serverTimestamp()
+                });
+
+                showAlert('儲存成功', '文案已成功儲存到專案中', 'success');
+                console.log('文案已儲存到專案:', state.projectId);
+
+            } catch (error) {
+                console.error('儲存文案失敗:', error);
+                showAlert('儲存失敗', error.message, 'error');
+            } finally {
+                const saveBtn = document.getElementById('save-to-project-btn');
+                saveBtn.disabled = false;
+                saveBtn.textContent = '儲存到專案';
+            }
+        }
+
+        // 顯示警告訊息
+        function showAlert(title, message, type = 'info') {
+            try {
+                const alertContainer = document.getElementById('alert-container');
+                if (!alertContainer) return;
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `p-4 mb-4 rounded-lg shadow-lg ${
+                    type === 'error' ? 'bg-red-600 text-white' :
+                    type === 'success' ? 'bg-green-600 text-white' :
+                    type === 'warning' ? 'bg-yellow-600 text-white' :
+                    'bg-blue-600 text-white'
+                }`;
+                
+                alertDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold">${title}</h4>
+                            <p class="text-sm mt-1">${message}</p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                alertContainer.appendChild(alertDiv);
+
+                // 自動移除警告
+                setTimeout(() => {
+                    if (alertDiv.parentElement) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            } catch (error) {
+                console.error('顯示警告失敗:', error);
+            }
+        }
+
+        // 生成 Google Ads 關鍵字文案
+        function generateAdsCopy() {
+            try {
+                // 收集輸入資料
+                const businessModel = document.getElementById('ads-business-model')?.value?.trim();
+                const productKeywords = document.getElementById('ads-product-keywords')?.value?.trim();
+                const purchaseKeywords = document.getElementById('ads-purchase-keywords')?.value?.trim();
+                const targetAudience = document.getElementById('ads-target-audience')?.value;
+                const marketRegion = document.getElementById('ads-market-region')?.value;
+                const projectId = document.getElementById('project-id')?.value?.trim() || state.projectId;
+
+                // 驗證必填欄位
+                if (!businessModel) {
+                    showAlert('請選擇商業模式', '商業模式為必填項目', 'warning');
+                    return;
+                }
+
+                if (!productKeywords) {
+                    showAlert('請輸入產品官網字組', '產品官網字組為必填項目', 'warning');
+                    return;
+                }
+
+                if (!purchaseKeywords) {
+                    showAlert('請輸入推薦購買關鍵字', '推薦購買關鍵字為必填項目', 'warning');
+                    return;
+                }
+
+                showAlert('生成中', '正在生成 Google Ads 關鍵字文案...', 'info');
+
+                // 解析關鍵字
+                const productKeywordList = productKeywords.split('\n').filter(k => k.trim());
+                const purchaseKeywordList = purchaseKeywords.split('\n').filter(k => k.trim());
+
+                // 生成文案
+                const generatedCopy = generateAdsCopyVariations(
+                    businessModel,
+                    productKeywordList,
+                    purchaseKeywordList,
+                    targetAudience,
+                    marketRegion
+                );
+
+                // 儲存結果
+                state.generatedCopy = generatedCopy;
+
+                // 顯示結果
+                displayAdsCopyResults(generatedCopy, projectId);
+
+                showAlert('生成完成', '已成功生成 10 組關鍵字文案', 'success');
+
+            } catch (error) {
+                console.error('生成文案失敗:', error);
+                showAlert('生成失敗', error.message, 'error');
+            }
+        }
+
+        // 生成文案變體
+        function generateAdsCopyVariations(businessModel, productKeywords, purchaseKeywords, targetAudience, marketRegion) {
+            const variations = [];
+            const maxLength = 35; // 最大字元數
+
+            // 根據商業模式調整文案風格
+            const tone = businessModel === 'B2C' ? '親民活潑' : '專業穩重';
+            const audience = targetAudience || '目標客戶';
+            const region = marketRegion || '台灣';
+
+            // 文案模板
+            const templates = [
+                `【${region}限定】{product} {purchase} 限時優惠`,
+                `{product} {purchase} | ${audience}首選`,
+                `{product} {purchase} 專業推薦`,
+                `{product} {purchase} 品質保證`,
+                `{product} {purchase} 熱銷中`,
+                `{product} {purchase} 限時特價`,
+                `{product} {purchase} 免費諮詢`,
+                `{product} {purchase} 立即體驗`,
+                `{product} {purchase} 專家推薦`,
+                `{product} {purchase} 優質選擇`
+            ];
+
+            // 生成文案變體
+            for (let i = 0; i < 10; i++) {
+                const template = templates[i % templates.length];
+                const productKeyword = productKeywords[i % productKeywords.length] || productKeywords[0];
+                const purchaseKeyword = purchaseKeywords[i % purchaseKeywords.length] || purchaseKeywords[0];
+
+                let copy = template
+                    .replace('{product}', productKeyword)
+                    .replace('{purchase}', purchaseKeyword);
+
+                // 確保不超過字元限制
+                if (copy.length > maxLength) {
+                    copy = copy.substring(0, maxLength - 3) + '...';
+                }
+
+                variations.push({
+                    id: i + 1,
+                    copy: copy,
+                    length: copy.length,
+                    businessModel: businessModel,
+                    targetAudience: targetAudience,
+                    marketRegion: marketRegion
+                });
+            }
+
+            return variations;
+        }
+
+        // 顯示文案結果
+        function displayAdsCopyResults(copyVariations, projectId) {
+            const resultsContainer = document.getElementById('ads-copy-results');
+            if (!resultsContainer) return;
+
+            let html = `
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">生成的文案結果</h3>
+                        <div class="flex space-x-2">
+                            <button id="copy-ads-copy-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">
+                                複製到剪貼簿
+                            </button>
+                            <button id="download-ads-copy-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm">
+                                下載文案
+                            </button>
+                            <button id="clear-ads-copy-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm">
+                                清除結果
+                            </button>
+                            ${state.isAuthenticated && projectId ? `
+                                <button id="save-to-project-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm">
+                                    儲存到專案
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+            `;
+
+            copyVariations.forEach((variation, index) => {
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">文案 ${variation.id}</span>
+                                    <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded">${variation.length} 字元</span>
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">${variation.businessModel}</span>
+                                </div>
+                                <p class="text-gray-800 font-medium">${variation.copy}</p>
+                            </div>
+                            <button onclick="copyToClipboard('${variation.copy.replace(/'/g, "\\'")}')" class="ml-4 text-blue-600 hover:text-blue-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                    <div class="mt-4 text-sm text-gray-600">
+                        <p><strong>生成資訊：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>商業模式：${copyVariations[0]?.businessModel || 'N/A'}</li>
+                            <li>目標受眾：${copyVariations[0]?.targetAudience || 'N/A'}</li>
+                            <li>市場區域：${copyVariations[0]?.marketRegion || 'N/A'}</li>
+                            <li>生成時間：${new Date().toLocaleString('zh-TW')}</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+            resultsContainer.classList.remove('hidden');
+
+            // 重新綁定按鈕事件
+            setupEventListeners();
+        }
+
+        // 複製到剪貼簿
+        window.copyToClipboard = function(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showAlert('複製成功', '文案已複製到剪貼簿', 'success');
+            }).catch(err => {
+                console.error('複製失敗:', err);
+                showAlert('複製失敗', '無法複製到剪貼簿', 'error');
+            });
+        };
+
+        // 複製所有文案到剪貼簿
+        function copyAdsCopyToClipboard() {
+            if (!state.generatedCopy || state.generatedCopy.length === 0) {
+                showAlert('沒有文案可複製', '請先生成文案', 'warning');
+                return;
+            }
+
+            const allCopy = state.generatedCopy.map(v => `${v.id}. ${v.copy}`).join('\n');
+            copyToClipboard(allCopy);
+        }
+
+        // 下載文案
+        function downloadAdsCopy() {
+            if (!state.generatedCopy || state.generatedCopy.length === 0) {
+                showAlert('沒有文案可下載', '請先生成文案', 'warning');
+                return;
+            }
+
+            const projectId = state.projectId || 'unknown';
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const fileName = `Google_Ads_文案_${projectId}_${timestamp}.txt`;
+
+            const content = state.generatedCopy.map(v => 
+                `文案 ${v.id}: ${v.copy} (${v.length} 字元)`
+            ).join('\n\n');
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showAlert('下載成功', `文案已下載為 ${fileName}`, 'success');
+        }
+
+        // 清除結果
+        function clearAdsCopyResults() {
+            state.generatedCopy = [];
+            const resultsContainer = document.getElementById('ads-copy-results');
+            if (resultsContainer) {
+                resultsContainer.innerHTML = '';
+                resultsContainer.classList.add('hidden');
+            }
+            showAlert('已清除', '文案結果已清除', 'info');
+        }
+
+        // 全域錯誤處理
+        window.addEventListener('error', function(event) {
+            console.error('全域錯誤:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('未處理的 Promise 拒絕:', event.reason);
+            event.preventDefault();
+        });
+
+    </script>
+    <style>
+        .btn-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- 警告訊息容器 -->
+    <div id="alert-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- 登入區塊 -->
+    <div id="login-section" class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Google Ads 文案產出工具</h1>
+                <p class="text-gray-600">請先登入以使用工具功能</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="google-login-btn" class="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 border border-gray-300 rounded-lg shadow-sm flex items-center justify-center space-x-2 transition duration-300">
+                    <svg class="w-5 h-5" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                        <path fill="none" d="M0 0h48v48H0z"></path>
+                    </svg>
+                    <span>使用 Google 帳號登入</span>
+                </button>
+                
+                <div class="text-center">
+                    <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">返回主頁面</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 應用程式區塊 -->
+    <div id="app-section" class="hidden">
+        <!-- 導航欄 -->
+        <nav class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <h1 class="text-xl font-bold text-gray-800">Google Ads 關鍵字文案產出工具</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name" class="text-gray-700"></span>
+                        <img id="user-avatar" class="h-8 w-8 rounded-full" src="" alt="使用者頭像">
+                        <button id="logout-button" class="text-gray-600 hover:text-gray-800">登出</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要內容 -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- 專案資訊 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">專案資訊</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">專案 ID</label>
+                        <input type="text" id="project-id" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
+                    </div>
+                    <div class="flex items-end">
+                        <a href="workflow.html" class="text-blue-600 hover:text-blue-800 text-sm">返回專案管理系統</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 輸入表單 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">文案生成設定</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="ads-business-model" class="block text-sm font-medium text-gray-700 mb-2">
+                            商業模式 <span class="text-red-500">*</span>
+                        </label>
+                        <select id="ads-business-model" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">請選擇商業模式</option>
+                            <option value="B2C">B2C (企業對消費者)</option>
+                            <option value="B2B">B2B (企業對企業)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="ads-target-audience" class="block text-sm font-medium text-gray-700 mb-2">
+                            目標受眾
+                        </label>
+                        <input type="text" id="ads-target-audience" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="例如：25-35歲都會女性">
+                    </div>
+                    
+                    <div>
+                        <label for="ads-market-region" class="block text-sm font-medium text-gray-700 mb-2">
+                            市場區域
+                        </label>
+                        <select id="ads-market-region" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="台灣">台灣</option>
+                            <option value="香港">香港</option>
+                            <option value="新加坡">新加坡</option>
+                            <option value="馬來西亞">馬來西亞</option>
+                            <option value="泰國">泰國</option>
+                            <option value="越南">越南</option>
+                            <option value="菲律賓">菲律賓</option>
+                            <option value="印尼">印尼</option>
+                        </select>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="ads-product-keywords" class="block text-sm font-medium text-gray-700 mb-2">
+                            產品官網字組 <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="ads-product-keywords" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入產品相關關鍵字，每行一個&#10;例如：&#10;電動機車&#10;智慧電動車&#10;環保交通工具"></textarea>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="ads-purchase-keywords" class="block text-sm font-medium text-gray-700 mb-2">
+                            推薦購買關鍵字 <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="ads-purchase-keywords" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入購買相關關鍵字，每行一個&#10;例如：&#10;立即購買&#10;限時優惠&#10;免費試駕&#10;分期付款"></textarea>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button id="generate-ads-copy-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                        生成 Google Ads 關鍵字文案
+                    </button>
+                </div>
+            </div>
+
+            <!-- 結果顯示區域 -->
+            <div id="ads-copy-results" class="hidden"></div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -945,6 +945,9 @@
                                    <button class="open-mediaplan-btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-project-id="${project.projectId}">
                                        📊 媒體提案引擎
                                    </button>
+                                   <button class="open-ads-copy-btn bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-project-id="${project.projectId}">
+                                       🚀 Google Ads 文案產出
+                                   </button>
                                    <button class="export-to-drive-btn bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-project-id="${project.projectId}">
                                        ☁️ 匯出到 Google Drive
                                    </button>
@@ -1458,6 +1461,19 @@
                     const projectId = mediaplanBtn.dataset.projectId;
                     console.log('開啟媒體提案引擎，專案 ID:', projectId);
                     window.open(`mediaplan.html?projectId=${encodeURIComponent(projectId)}`, '_blank');
+                });
+            }
+
+            // Google Ads 文案產出工具按鈕
+            const adsCopyBtn = detailView.querySelector('.open-ads-copy-btn');
+            if (adsCopyBtn) {
+                console.log('找到 Google Ads 文案產出工具按鈕，綁定事件');
+                adsCopyBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const projectId = adsCopyBtn.dataset.projectId;
+                    console.log('開啟 Google Ads 文案產出工具，專案 ID:', projectId);
+                    window.open(`ads-copy-generator.html?projectId=${encodeURIComponent(projectId)}`, '_blank');
                 });
             }
 

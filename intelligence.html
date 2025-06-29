@@ -2497,7 +2497,7 @@ ${generateExecutionRecommendations(keywords)}
                                     </label>
                                     <label class="flex items-center">
                                         <input type="radio" name="keyword-depth" value="comprehensive" class="mr-2">
-                                        <span class="text-sm">深度分析 (搜尋量、競爭度、出價建議、內容策略)</span>
+                                        <span class="text-sm">全面分析 (搜尋量、競爭度、出價建議、內容策略)</span>
                                     </label>
                                 </div>
                             </div>
@@ -2518,13 +2518,27 @@ ${generateExecutionRecommendations(keywords)}
                                     <button onclick="generateKeywordReport()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
                                         📊 生成關鍵字分析報告
                                     </button>
+                                    <a href="ads-copy-generator.html" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm inline-flex items-center">
+                                        🚀 Google Ads 文案產出工具
+                                    </a>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-2">下載的檔案包含關鍵字清單和分析建議，可用於 SEO 策略規劃</p>
+                                <p class="text-xs text-gray-400 mt-2">下載的檔案包含關鍵字清單和分析建議，可用於 SEO 策略規劃。點擊 Google Ads 文案產出工具可生成符合 Google Ads 規範的關鍵字文案。</p>
                             </div>
                         </div>
 
-                        <!-- 競爭對手數量 -->
+                        <!-- Google Ads 關鍵字文案產出工具 -->
                         <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-techaccent mb-4">📝 Google Ads 關鍵字文案產出工具</h3>
+                            
+                            <div class="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-600/30 rounded-lg p-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- 商業模式分析 -->
+                                    <div>
+                                        <label for="ads-business-model" class="block text-sm font-medium text-gray-300 mb-2">商業模式 *</label>
+                                        <select id="ads-business-model" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" required>
+                                            <option value="">選擇商業模式</option>
+                                            <option value="b2b">B2B (企業對企業)</option>
+                                            <option value="b2c">B2C (企業對消費者)</option>
                             <label for="competitor-count" class="block text-sm font-medium text-gray-300 mb-2">競爭對手分析數量</label>
                             <select id="competitor-count" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
                                 <option value="5">5 個 (快速分析)</option>
