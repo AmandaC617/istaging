@@ -2522,12 +2522,18 @@ ${generateExecutionRecommendations(keywords)}
                 // 獲取文案內容
                 const content = previewArea.innerText || previewArea.textContent;
                 
+                // 獲取 project ID，如果有的話用於檔案名稱
+                const projectId = state.analysisData.projectId;
+                const fileName = projectId && projectId !== `TEMP_${Date.now()}` 
+                    ? `Google_Ads_文案_${projectId}_${new Date().toISOString().split('T')[0]}.txt`
+                    : `Google_Ads_文案_${new Date().toISOString().split('T')[0]}.txt`;
+                
                 // 創建下載連結
                 const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Google_Ads_文案_${new Date().toISOString().split('T')[0]}.txt`;
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -2579,7 +2585,14 @@ ${generateExecutionRecommendations(keywords)}
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `智能關鍵字建議書_${businessModel}_${new Date().toISOString().split('T')[0]}.txt`;
+                
+                // 獲取 project ID，如果有的話用於檔案名稱
+                const projectId = state.analysisData.projectId;
+                const fileName = projectId && projectId !== `TEMP_${Date.now()}` 
+                    ? `智能關鍵字建議書_${projectId}_${businessModel}_${new Date().toISOString().split('T')[0]}.txt`
+                    : `智能關鍵字建議書_${businessModel}_${new Date().toISOString().split('T')[0]}.txt`;
+                
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
