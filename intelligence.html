@@ -1726,34 +1726,166 @@ ${generateExecutionRecommendations(keywords)}
         function generateFinalReport(competitors) {
             const brand = state.analysisData.brand?.name || '未指定';
             const topic = state.analysisData.topic || '未指定';
+            const industry = state.analysisData.industry?.category || '未指定';
+            const keywords = state.analysisData.keywords || {};
             
             return `
-                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <h3 class="text-xl font-semibold text-techaccent mb-4">📊 ${brand} - ${topic} 競爭對手分析報告</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-gray-700 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-200 mb-2">📈 分析概況</h4>
-                            <p class="text-gray-300 text-sm">分析了 ${competitors.length} 個競爭對手</p>
-                            <p class="text-gray-300 text-sm">分析主題: ${topic}</p>
-                            <p class="text-gray-300 text-sm">生成時間: ${new Date().toLocaleString('zh-TW')}</p>
-                        </div>
-                        <div class="bg-gray-700 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-200 mb-2">🎯 競爭對手清單</h4>
-                            <div class="space-y-2">
-                                ${competitors.map(comp => `
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-gray-300 text-sm">${comp.name}</span>
-                                        <span class="text-blue-400 text-sm">${comp.marketShare}%</span>
-                                    </div>
-                                `).join('')}
+                <div class="space-y-6">
+                    <!-- 競爭對手分析報告 -->
+                    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                        <h3 class="text-xl font-semibold text-techaccent mb-4">📊 ${brand} - ${topic} 競爭對手分析報告</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-200 mb-2">📈 分析概況</h4>
+                                <p class="text-gray-300 text-sm">分析了 ${competitors.length} 個競爭對手</p>
+                                <p class="text-gray-300 text-sm">分析主題: ${topic}</p>
+                                <p class="text-gray-300 text-sm">所屬產業: ${industry}</p>
+                                <p class="text-gray-300 text-sm">生成時間: ${new Date().toLocaleString('zh-TW')}</p>
+                            </div>
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-200 mb-2">🎯 競爭對手清單</h4>
+                                <div class="space-y-2">
+                                    ${competitors.map(comp => `
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-300 text-sm">${comp.name}</span>
+                                            <span class="text-blue-400 text-sm">${comp.marketShare}%</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
+                        
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-200 mb-3">📋 詳細分析</h4>
+                            <p class="text-gray-300 text-sm">完整分析報告已準備就緒，請使用下方的關鍵字和文案產出工具。</p>
+                        </div>
                     </div>
-                    
-                    <div class="bg-gray-700 rounded-lg p-4">
-                        <h4 class="font-semibold text-gray-200 mb-3">📋 詳細分析</h4>
-                        <p class="text-gray-300 text-sm">完整分析報告已準備就緒，請使用下方的關鍵字和文案產出工具。</p>
+
+                    <!-- 關鍵字建議清單 -->
+                    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                        <h3 class="text-xl font-semibold text-techaccent mb-4">🔍 關鍵字建議清單</h3>
+                        
+                        <!-- 商業模式選擇 -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">📊 商業模式選擇</h4>
+                            <select id="business-model-select-step3" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                                <option value="">請選擇商業模式</option>
+                                <option value="b2b">B2B (企業對企業)</option>
+                                <option value="b2c">B2C (企業對消費者)</option>
+                                <option value="b2b2c">B2B2C (企業對企業對消費者)</option>
+                                <option value="c2c">C2C (消費者對消費者)</option>
+                                <option value="saas">SaaS (軟體即服務)</option>
+                                <option value="marketplace">Marketplace (平台模式)</option>
+                                <option value="subscription">Subscription (訂閱模式)</option>
+                                <option value="freemium">Freemium (免費增值)</option>
+                                <option value="ecommerce">E-commerce (電商)</option>
+                                <option value="agency">Agency (代理/服務)</option>
+                            </select>
+                        </div>
+
+                        <!-- 關鍵字類型選擇 -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">🎯 關鍵字類型選擇</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="keyword-primary" class="form-checkbox mr-2">
+                                    <span class="text-gray-300">主要關鍵字</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="keyword-longtail" class="form-checkbox mr-2">
+                                    <span class="text-gray-300">長尾關鍵字</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="keyword-commercial" class="form-checkbox mr-2">
+                                    <span class="text-gray-300">商業意圖</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="keyword-informational" class="form-checkbox mr-2">
+                                    <span class="text-gray-300">資訊查詢</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="keyword-navigational" class="form-checkbox mr-2">
+                                    <span class="text-gray-300">導航查詢</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="keyword-transactional" class="form-checkbox mr-2">
+                                    <span class="text-gray-300">交易意圖</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 關鍵字內容顯示 -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">📝 關鍵字內容</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">主要關鍵字</label>
+                                    <textarea id="primary-keywords-step3" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" rows="4" placeholder="主要關鍵字，每行一個" readonly>${(keywords.primary || []).join('\n')}</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">長尾關鍵字</label>
+                                    <textarea id="long-tail-keywords-step3" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" rows="4" placeholder="長尾關鍵字，每行一個" readonly>${(keywords.longTail || []).join('\n')}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 操作按鈕 -->
+                        <div class="flex gap-4">
+                            <button onclick="generateKeywordSuggestions()" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">
+                                📋 生成完整關鍵字建議書
+                            </button>
+                            <button onclick="generateAdsCopy()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                📝 生成 Google Ads 文案
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Google Ads 文案產出工具 -->
+                    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                        <h3 class="text-xl font-semibold text-techaccent mb-4">📝 Google Ads 文案產出工具</h3>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">🎯 文案設定</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">目標受眾</label>
+                                    <select id="target-audience-ads" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                                        <option value="general">一般大眾</option>
+                                        <option value="business">企業客戶</option>
+                                        <option value="youth">年輕族群</option>
+                                        <option value="professional">專業人士</option>
+                                        <option value="elderly">銀髮族</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">文案風格</label>
+                                    <select id="copy-style" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                                        <option value="professional">專業正式</option>
+                                        <option value="friendly">親切友善</option>
+                                        <option value="urgent">緊急促銷</option>
+                                        <option value="luxury">高端奢華</option>
+                                        <option value="casual">輕鬆隨意</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">📊 文案預覽</h4>
+                            <div id="ads-copy-preview" class="bg-gray-700 rounded-lg p-4 min-h-32">
+                                <p class="text-gray-400">選擇關鍵字和設定後，點擊生成按鈕查看文案預覽</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button onclick="previewAdsCopy()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                                👁️ 預覽文案
+                            </button>
+                            <button onclick="downloadAdsCopy()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                💾 下載文案
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1923,300 +2055,314 @@ ${generateExecutionRecommendations(keywords)}
         // 生成 Google Ads 文案
         function generateAdsCopy() {
             try {
-                // 檢查是否選擇了關鍵字
-                const primaryChecked = document.getElementById('keyword-primary')?.checked;
-                const longtailChecked = document.getElementById('keyword-longtail')?.checked;
-                const commercialChecked = document.getElementById('keyword-commercial')?.checked;
-                const informationalChecked = document.getElementById('keyword-informational')?.checked;
-                const navigationalChecked = document.getElementById('keyword-navigational')?.checked;
-                const transactionalChecked = document.getElementById('keyword-transactional')?.checked;
+                const businessModel = document.getElementById('business-model-select-step3')?.value;
+                const targetAudience = document.getElementById('target-audience-ads')?.value;
+                const copyStyle = document.getElementById('copy-style')?.value;
                 
-                if (!primaryChecked && !longtailChecked && !commercialChecked && !informationalChecked && !navigationalChecked && !transactionalChecked) {
-                    showAlert('請選擇關鍵字', '請至少選擇一種關鍵字類型', 'warning');
+                if (!businessModel) {
+                    showAlert('請選擇商業模式', '商業模式是生成廣告文案的必要條件', 'warning');
                     return;
                 }
 
-                // 獲取關鍵字
-                const primaryKeywords = document.getElementById('primary-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
-                const longtailKeywords = document.getElementById('long-tail-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
-                const businessModel = document.getElementById('business-model-select')?.value || '';
+                // 生成廣告文案
+                const adsCopy = generateAdsCopyContent(businessModel, targetAudience, copyStyle);
                 
-                let selectedKeywords = [];
-                if (primaryChecked && primaryKeywords.length > 0) {
-                    selectedKeywords = selectedKeywords.concat(primaryKeywords.map(k => ({ keyword: k, type: 'primary' })));
-                }
-                if (longtailChecked && longtailKeywords.length > 0) {
-                    selectedKeywords = selectedKeywords.concat(longtailKeywords.map(k => ({ keyword: k, type: 'longtail' })));
+                // 更新預覽區域
+                const previewArea = document.getElementById('ads-copy-preview');
+                if (previewArea) {
+                    previewArea.innerHTML = adsCopy.replace(/\n/g, '<br>');
                 }
 
-                if (selectedKeywords.length === 0) {
-                    showAlert('沒有關鍵字', '請先在步驟 1 輸入關鍵字', 'warning');
-                    return;
-                }
-
-                showAlert('生成中', '正在生成 Google Ads 文案...', 'info');
-
-                // 生成文案
-                const adsCopy = generateEnhancedAdsCopyContent(selectedKeywords, businessModel);
-                const filename = `Google_Ads_文案_${new Date().toISOString().split('T')[0]}.txt`;
+                showAlert('文案生成成功', 'Google Ads 文案已生成，請查看預覽區域', 'success');
                 
-                downloadFile(adsCopy, filename);
-                showAlert('文案生成成功', `${filename} 已下載到您的裝置`, 'success');
-
             } catch (error) {
                 console.error('生成 Google Ads 文案失敗:', error);
-                showAlert('文案生成失敗', '無法生成 Google Ads 文案', 'error');
+                showAlert('生成失敗', '無法生成 Google Ads 文案', 'error');
             }
         }
 
-        // 生成增強版 Google Ads 文案內容
-        function generateEnhancedAdsCopyContent(keywords, businessModel) {
-            const topic = state.analysisData.topic || '未指定';
+        // 生成廣告文案內容
+        function generateAdsCopyContent(businessModel, targetAudience, copyStyle) {
             const brand = state.analysisData.brand?.name || '未指定';
-            const industry = state.analysisData.industry?.category || '未指定';
-            const businessModelInfo = getBusinessModelInfo(businessModel);
-
-            let content = `Google Ads 文案產出報告
-生成時間: ${new Date().toLocaleString('zh-TW')}
-
-=== 分析概況 ===
-分析主題: ${topic}
-目標品牌: ${brand}
-所屬產業: ${industry}
-商業模式: ${businessModelInfo.name}
-選擇關鍵字數量: ${keywords.length}
-
-=== 關鍵字清單 ===
-${keywords.map((item, index) => `${index + 1}. ${item.keyword} (${item.type})`).join('\n')}
-
-=== Google Ads 文案建議 ===
-
-`;
-
-            // 為每個關鍵字生成文案
-            keywords.forEach((item, index) => {
-                const keyword = item.keyword;
-                const type = item.type;
-                
-                content += `關鍵字 ${index + 1}: ${keyword} (${type})
-
-標題建議 (最多 30 字元):
-1. ${generateBusinessModelAdTitle(keyword, brand, businessModel, 30)}
-2. ${generateBusinessModelAdTitle(keyword, brand, businessModel, 30)}
-3. ${generateBusinessModelAdTitle(keyword, brand, businessModel, 30)}
-
-描述建議 (最多 90 字元):
-${generateBusinessModelAdDescription(keyword, brand, businessModel, 90)}
-
-行動呼籲建議:
-${generateBusinessModelCTAs(businessModel)}
-
-顯示網址建議:
-www.${brand.toLowerCase().replace(/\s+/g, '')}.com/${keyword.replace(/\s+/g, '-')}
-
-目標網址建議:
-https://www.${brand.toLowerCase().replace(/\s+/g, '')}.com/${keyword.replace(/\s+/g, '-')}
-
-關鍵字匹配建議:
-${generateKeywordMatchSuggestions(keyword, type)}
-
----
-`;
+            const topic = state.analysisData.topic || '未指定';
+            
+            let content = `Google Ads 廣告文案\n`;
+            content += `================================\n\n`;
+            content += `品牌名稱: ${brand}\n`;
+            content += `分析主題: ${topic}\n`;
+            content += `商業模式: ${businessModel}\n`;
+            content += `目標受眾: ${targetAudience}\n`;
+            content += `文案風格: ${copyStyle}\n`;
+            content += `生成時間: ${new Date().toLocaleString('zh-TW')}\n\n`;
+            
+            // 根據商業模式生成文案
+            const copyTemplates = getCopyTemplates(businessModel, targetAudience, copyStyle);
+            
+            content += `標題建議:\n`;
+            copyTemplates.headlines.forEach(headline => {
+                content += `- ${headline}\n`;
             });
-
-            content += `
-=== 文案優化建議 ===
-
-1. 標題優化 (基於 ${businessModelInfo.name})
-   - 包含主要關鍵字
-   - 突出 ${businessModelInfo.focus}
-   - 使用行動詞彙
-   - 控制在 30 字元內
-
-2. 描述優化
-   - 包含長尾關鍵字
-   - 突出產品特色
-   - 加入社會證明
-   - 使用緊急感詞彙
-   - 強調 ${businessModelInfo.focus}
-
-3. 行動呼籲優化
-   - 根據 ${businessModelInfo.name} 選擇
-   - 與目標網頁一致
-   - 創造緊急感
-   - 測試不同版本
-
-4. 關鍵字匹配建議
-   - 廣泛匹配: ${keywords.map(item => `"${item.keyword}"`).join(', ')}
-   - 詞組匹配: ${keywords.map(item => `"${item.keyword}"`).join(', ')}
-   - 完全匹配: [${keywords.map(item => `[${item.keyword}]`).join(', ')}]
-
-5. 出價策略建議
-   - 主要關鍵字: 高競爭出價 ($$$)
-   - 長尾關鍵字: 中等出價 ($$)
-   - 商業意圖: 高價值出價 ($$$)
-   - 資訊型: 低競爭出價 ($)
-
-6. 預算分配建議
-   - 主要關鍵字: 40% 預算
-   - 長尾關鍵字: 35% 預算
-   - 商業意圖: 15% 預算
-   - 資訊型: 10% 預算
-
----
-由 iStaging 市場情資與競品分析平台生成
-`;
-
+            
+            content += `\n描述建議:\n`;
+            copyTemplates.descriptions.forEach(desc => {
+                content += `- ${desc}\n`;
+            });
+            
+            content += `\n行動呼籲:\n`;
+            copyTemplates.cta.forEach(cta => {
+                content += `- ${cta}\n`;
+            });
+            
             return content;
         }
 
-        // 生成商業模式對應的廣告標題
-        function generateBusinessModelAdTitle(keyword, brand, businessModel, maxLength) {
+        // 獲取文案模板
+        function getCopyTemplates(businessModel, targetAudience, copyStyle) {
             const templates = {
-                'b2b': [
-                    `${keyword} - ${brand}企業解決方案`,
-                    `${brand}${keyword}專業服務`,
-                    `${keyword}首選${brand}`,
-                    `${brand}${keyword}專家`,
-                    `${keyword}就找${brand}`
-                ],
-                'b2c': [
-                    `${keyword} - ${brand}優質選擇`,
-                    `${brand}${keyword}推薦`,
-                    `${keyword}首選${brand}`,
-                    `${brand}${keyword}專家`,
-                    `${keyword}就選${brand}`
-                ],
-                'saas': [
-                    `${keyword} - ${brand}雲端服務`,
-                    `${brand}${keyword}解決方案`,
-                    `${keyword}首選${brand}`,
-                    `${brand}${keyword}平台`,
-                    `${keyword}就選${brand}`
-                ],
-                'ecommerce': [
-                    `${keyword} - ${brand}線上購物`,
-                    `${brand}${keyword}專賣`,
-                    `${keyword}首選${brand}`,
-                    `${brand}${keyword}商城`,
-                    `${keyword}就選${brand}`
-                ],
-                'agency': [
-                    `${keyword} - ${brand}專業服務`,
-                    `${brand}${keyword}專家`,
-                    `${keyword}首選${brand}`,
-                    `${brand}${keyword}顧問`,
-                    `${keyword}就找${brand}`
-                ]
+                b2b: {
+                    headlines: [
+                        '專業企業解決方案',
+                        '提升企業效率的選擇',
+                        '值得信賴的B2B服務'
+                    ],
+                    descriptions: [
+                        '為企業提供專業解決方案，提升營運效率',
+                        '多年企業服務經驗，值得您的信賴',
+                        '專業團隊，客製化服務，滿足企業需求'
+                    ],
+                    cta: [
+                        '立即諮詢',
+                        '免費評估',
+                        '了解更多'
+                    ]
+                },
+                b2c: {
+                    headlines: [
+                        '優質生活選擇',
+                        '為您精選好物',
+                        '提升生活品質'
+                    ],
+                    descriptions: [
+                        '精選優質產品，為您的生活增添便利',
+                        '品質保證，價格實惠，值得您的選擇',
+                        '專業服務，貼心體驗，讓您滿意'
+                    ],
+                    cta: [
+                        '立即購買',
+                        '限時優惠',
+                        '馬上體驗'
+                    ]
+                },
+                saas: {
+                    headlines: [
+                        '雲端解決方案',
+                        '智能工具平台',
+                        '提升工作效率'
+                    ],
+                    descriptions: [
+                        '雲端技術，隨時隨地使用，提升工作效率',
+                        '智能工具，簡化流程，節省時間成本',
+                        '專業平台，安全可靠，值得信賴'
+                    ],
+                    cta: [
+                        '免費試用',
+                        '立即註冊',
+                        '開始使用'
+                    ]
+                }
             };
             
-            const modelTemplates = templates[businessModel] || templates['b2b'];
-            const title = modelTemplates[Math.floor(Math.random() * modelTemplates.length)];
-            return title.length > maxLength ? title.substring(0, maxLength - 3) + '...' : title;
+            return templates[businessModel] || templates.b2b;
         }
 
-        // 生成商業模式對應的廣告描述
-        function generateBusinessModelAdDescription(keyword, brand, businessModel, maxLength) {
-            const templates = {
-                'b2b': [
-                    `${brand}提供專業${keyword}服務，企業級解決方案，品質保證。立即諮詢，獲得最佳企業服務！`,
-                    `${keyword}專家${brand}，多年企業服務經驗，客戶滿意度高。免費諮詢，專業建議，立即行動！`,
-                    `${brand}${keyword}服務，快速響應，專業團隊。企業級品質，立即聯繫，搶先體驗！`
-                ],
-                'b2c': [
-                    `${brand}提供優質${keyword}，品質保證，價格實惠。立即購買，享受最佳體驗！`,
-                    `${keyword}首選${brand}，多年經驗，客戶好評如潮。限時優惠，立即行動，搶先體驗！`,
-                    `${brand}${keyword}，快速配送，貼心服務。品質可靠，立即購買，滿意保證！`
-                ],
-                'saas': [
-                    `${brand}提供雲端${keyword}解決方案，提升效率，節省成本。免費試用，立即體驗！`,
-                    `${keyword}雲端服務${brand}，技術領先，穩定可靠。免費試用，專業支援，立即開始！`,
-                    `${brand}${keyword}平台，功能強大，操作簡單。免費試用，滿意再付費，立即註冊！`
-                ],
-                'ecommerce': [
-                    `${brand}${keyword}專賣，正品保證，價格優惠。快速配送，安全支付，立即購買！`,
-                    `${keyword}就選${brand}，品質保證，價格實惠。限時特價，快速配送，立即下單！`,
-                    `${brand}${keyword}商城，品類齊全，服務周到。安全購物，快速配送，立即選購！`
-                ],
-                'agency': [
-                    `${brand}提供專業${keyword}服務，豐富案例，專業團隊。免費諮詢，立即合作！`,
-                    `${keyword}專家${brand}，多年經驗，成功案例多。免費諮詢，專業建議，立即聯繫！`,
-                    `${brand}${keyword}顧問，專業能力，服務周到。免費諮詢，滿意再合作，立即預約！`
-                ]
-            };
+        // 預覽廣告文案
+        function previewAdsCopy() {
+            const previewArea = document.getElementById('ads-copy-preview');
+            if (previewArea && previewArea.innerHTML.includes('選擇關鍵字和設定後')) {
+                showAlert('請先生成文案', '請先點擊「生成 Google Ads 文案」按鈕', 'warning');
+                return;
+            }
             
-            const modelTemplates = templates[businessModel] || templates['b2b'];
-            const description = modelTemplates[Math.floor(Math.random() * modelTemplates.length)];
-            return description.length > maxLength ? description.substring(0, maxLength - 3) + '...' : description;
+            showAlert('預覽功能', '文案已在預覽區域顯示', 'info');
         }
 
-        // 生成完整關鍵字建議書
-        function generateEnhancedKeywordReport() {
+        // 下載廣告文案
+        function downloadAdsCopy() {
             try {
-                const keywords = collectKeywordsData();
-                
-                if (keywords.primary.length === 0 && keywords.longTail.length === 0) {
-                    showAlert('沒有關鍵字', '請先輸入關鍵字再生成報告', 'warning');
+                const previewArea = document.getElementById('ads-copy-preview');
+                if (!previewArea || previewArea.innerHTML.includes('選擇關鍵字和設定後')) {
+                    showAlert('請先生成文案', '請先點擊「生成 Google Ads 文案」按鈕', 'warning');
                     return;
                 }
-
-                showAlert('生成中', '正在生成完整關鍵字建議書...', 'info');
-
-                const report = generateEnhancedKeywordAnalysisReport(keywords);
-                const filename = `完整關鍵字建議書_${new Date().toISOString().split('T')[0]}.txt`;
                 
-                downloadFile(report, filename);
-                showAlert('報告生成成功', `${filename} 已下載到您的裝置`, 'success');
+                // 獲取文案內容
+                const content = previewArea.innerText || previewArea.textContent;
+                
+                // 創建下載連結
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Google_Ads_文案_${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
 
+                showAlert('下載成功', 'Google Ads 文案已下載', 'success');
+                
             } catch (error) {
-                console.error('生成完整關鍵字建議書失敗:', error);
-                showAlert('報告生成失敗', '無法生成完整關鍵字建議書', 'error');
+                console.error('下載廣告文案失敗:', error);
+                showAlert('下載失敗', '無法下載廣告文案', 'error');
             }
         }
 
-        // 生成完整關鍵字建議書內容
-        function generateEnhancedKeywordAnalysisReport(keywords) {
-            const marketInfo = getMarketInfo(keywords.marketPositioning.targetMarket);
-            const businessModelInfo = getBusinessModelInfo(keywords.marketPositioning.businessModel);
-            const languageInfo = getLanguageInfo(keywords.marketPositioning.primaryLanguage);
+        // 生成完整關鍵字建議書
+        function generateKeywordSuggestions() {
+            try {
+                const businessModel = document.getElementById('business-model-select-step3')?.value;
+                const selectedTypes = [];
+                
+                // 獲取選中的關鍵字類型
+                const checkboxes = ['keyword-primary', 'keyword-longtail', 'keyword-commercial', 'keyword-informational', 'keyword-navigational', 'keyword-transactional'];
+                checkboxes.forEach(id => {
+                    if (document.getElementById(id)?.checked) {
+                        selectedTypes.push(id.replace('keyword-', ''));
+                    }
+                });
 
-            return `完整關鍵字建議書
-生成時間: ${new Date().toLocaleString('zh-TW')}
+                if (!businessModel) {
+                    showAlert('請選擇商業模式', '商業模式是生成關鍵字建議的必要條件', 'warning');
+                    return;
+                }
 
-=== 市場定位分析 ===
-目標市場: ${marketInfo.name} (${marketInfo.code})
-商業模式: ${businessModelInfo.name}
-目標客群: ${getTargetAudienceInfo(keywords.marketPositioning.targetAudience)}
-主要語言: ${languageInfo.name}
-本地化程度: ${getLocalizationInfo(keywords.marketPositioning.localizationLevel)}
+                if (selectedTypes.length === 0) {
+                    showAlert('請選擇關鍵字類型', '至少選擇一種關鍵字類型', 'warning');
+                    return;
+                }
 
-=== 主要關鍵字 (${keywords.primary.length} 個) ===
-${keywords.primary.map((keyword, index) => `${index + 1}. ${keyword}`).join('\n')}
+                // 生成關鍵字建議書內容
+                const suggestions = generateKeywordSuggestionsContent(businessModel, selectedTypes);
+                
+                // 創建下載連結
+                const blob = new Blob([suggestions], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `關鍵字建議書_${businessModel}_${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
 
-=== 長尾關鍵字 (${keywords.longTail.length} 個) ===
-${keywords.longTail.map((keyword, index) => `${index + 1}. ${keyword}`).join('\n')}
-
-=== 關鍵字策略分析 ===
-分析深度: ${getKeywordDepthInfo(keywords.depth)}
-
-=== SEO 策略建議 ===
-${generateComprehensiveSEORecommendations(keywords)}
-
-=== 關鍵字購買策略 ===
-${generateComprehensiveKeywordPurchaseStrategy(keywords)}
-
-=== 內容策略建議 ===
-${generateContentStrategyRecommendations(keywords)}
-
----
-由 iStaging 市場情資與競品分析平台生成
-`;
+                showAlert('下載成功', '關鍵字建議書已下載', 'success');
+                
+            } catch (error) {
+                console.error('生成關鍵字建議書失敗:', error);
+                showAlert('生成失敗', '無法生成關鍵字建議書', 'error');
+            }
         }
 
-        // 生成關鍵字匹配建議
-        function generateKeywordMatchSuggestions(keyword, type) {
-            // 這裡應該實作關鍵字匹配建議的生成邏輯
-            return `關鍵字匹配建議：${keyword} 的匹配策略`;
+        // 生成關鍵字建議書內容
+        function generateKeywordSuggestionsContent(businessModel, selectedTypes) {
+            const brand = state.analysisData.brand?.name || '未指定';
+            const topic = state.analysisData.topic || '未指定';
+            const industry = state.analysisData.industry?.category || '未指定';
+            
+            let content = `關鍵字建議書\n`;
+            content += `================================\n\n`;
+            content += `品牌名稱: ${brand}\n`;
+            content += `分析主題: ${topic}\n`;
+            content += `所屬產業: ${industry}\n`;
+            content += `商業模式: ${businessModel}\n`;
+            content += `生成時間: ${new Date().toLocaleString('zh-TW')}\n\n`;
+            
+            content += `關鍵字類型: ${selectedTypes.join(', ')}\n\n`;
+            
+            // 根據商業模式和類型生成關鍵字
+            const keywords = generateKeywordsByModel(businessModel, selectedTypes);
+            
+            selectedTypes.forEach(type => {
+                if (keywords[type] && keywords[type].length > 0) {
+                    content += `${getTypeDisplayName(type)}:\n`;
+                    keywords[type].forEach(keyword => {
+                        content += `- ${keyword}\n`;
+                    });
+                    content += `\n`;
+                }
+            });
+            
+            content += `\n建議使用策略:\n`;
+            content += `1. 主要關鍵字: 用於品牌知名度和主要流量\n`;
+            content += `2. 長尾關鍵字: 用於精準轉換和降低競爭成本\n`;
+            content += `3. 商業意圖: 針對有購買意圖的用戶\n`;
+            content += `4. 資訊查詢: 建立專業形象和信任度\n`;
+            content += `5. 導航查詢: 針對尋找特定品牌的用戶\n`;
+            content += `6. 交易意圖: 直接促進轉換和銷售\n`;
+            
+            return content;
+        }
+
+        // 根據商業模式生成關鍵字
+        function generateKeywordsByModel(businessModel, selectedTypes) {
+            const keywords = {};
+            
+            // 基礎關鍵字模板
+            const baseKeywords = {
+                primary: ['品牌名稱', '主要產品', '核心服務'],
+                longtail: ['品牌名稱 評價', '主要產品 比較', '核心服務 推薦'],
+                commercial: ['購買 品牌名稱', '訂購 主要產品', '諮詢 核心服務'],
+                informational: ['品牌名稱 介紹', '主要產品 說明', '核心服務 指南'],
+                navigational: ['品牌名稱 官網', '主要產品 官網', '核心服務 官網'],
+                transactional: ['品牌名稱 購買', '主要產品 價格', '核心服務 費用']
+            };
+            
+            // 根據商業模式調整關鍵字
+            const modelKeywords = {
+                b2b: {
+                    primary: ['企業解決方案', 'B2B服務', '企業軟體'],
+                    longtail: ['企業解決方案 比較', 'B2B服務 推薦', '企業軟體 評價'],
+                    commercial: ['企業解決方案 報價', 'B2B服務 諮詢', '企業軟體 試用'],
+                    informational: ['企業解決方案 介紹', 'B2B服務 說明', '企業軟體 指南'],
+                    navigational: ['企業解決方案 官網', 'B2B服務 官網', '企業軟體 官網'],
+                    transactional: ['企業解決方案 購買', 'B2B服務 簽約', '企業軟體 授權']
+                },
+                b2c: {
+                    primary: ['消費者產品', '個人服務', '生活用品'],
+                    longtail: ['消費者產品 評價', '個人服務 推薦', '生活用品 比較'],
+                    commercial: ['消費者產品 購買', '個人服務 預約', '生活用品 下單'],
+                    informational: ['消費者產品 介紹', '個人服務 說明', '生活用品 指南'],
+                    navigational: ['消費者產品 官網', '個人服務 官網', '生活用品 官網'],
+                    transactional: ['消費者產品 價格', '個人服務 費用', '生活用品 優惠']
+                },
+                saas: {
+                    primary: ['雲端軟體', 'SaaS平台', '線上工具'],
+                    longtail: ['雲端軟體 比較', 'SaaS平台 推薦', '線上工具 評價'],
+                    commercial: ['雲端軟體 試用', 'SaaS平台 註冊', '線上工具 購買'],
+                    informational: ['雲端軟體 介紹', 'SaaS平台 說明', '線上工具 指南'],
+                    navigational: ['雲端軟體 官網', 'SaaS平台 官網', '線上工具 官網'],
+                    transactional: ['雲端軟體 訂閱', 'SaaS平台 方案', '線上工具 價格']
+                }
+            };
+            
+            selectedTypes.forEach(type => {
+                keywords[type] = modelKeywords[businessModel]?.[type] || baseKeywords[type] || [];
+            });
+            
+            return keywords;
+        }
+
+        // 獲取類型顯示名稱
+        function getTypeDisplayName(type) {
+            const names = {
+                primary: '主要關鍵字',
+                longtail: '長尾關鍵字',
+                commercial: '商業意圖關鍵字',
+                informational: '資訊查詢關鍵字',
+                navigational: '導航查詢關鍵字',
+                transactional: '交易意圖關鍵字'
+            };
+            return names[type] || type;
         }
 
         // 編輯競爭對手
