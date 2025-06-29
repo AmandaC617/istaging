@@ -160,6 +160,7 @@
                     // 更新表單欄位
                     const apiKeyInput = document.getElementById('google-api-key');
                     const searchEngineInput = document.getElementById('search-engine-id');
+                    const geminiApiKeyInput = document.getElementById('gemini-api-key');
                     const centralFolderInput = document.getElementById('central-folder-name');
                     const intelligenceSubfolderInput = document.getElementById('intelligence-subfolder');
                     const mediaplanSubfolderInput = document.getElementById('mediaplan-subfolder');
@@ -167,6 +168,7 @@
                     
                     if (apiKeyInput) apiKeyInput.value = state.settings.googleApiKey || '';
                     if (searchEngineInput) searchEngineInput.value = state.settings.searchEngineId || '';
+                    if (geminiApiKeyInput) geminiApiKeyInput.value = state.settings.geminiApiKey || '';
                     if (centralFolderInput) centralFolderInput.value = state.settings.centralFolderName || '';
                     if (intelligenceSubfolderInput) intelligenceSubfolderInput.value = state.settings.intelligenceSubfolder || '';
                     if (mediaplanSubfolderInput) mediaplanSubfolderInput.value = state.settings.mediaplanSubfolder || '';
@@ -259,7 +261,7 @@
                 const appContainer = document.getElementById('app-container');
                 const analysisPanel = document.getElementById('analysis-panel');
                 const historyPanel = document.getElementById('history-panel');
-                const isConfigured = state.settings.googleApiKey && state.settings.searchEngineId;
+                const isConfigured = state.settings.googleApiKey && state.settings.searchEngineId && state.settings.geminiApiKey;
                 
                 // 移除 app-container 的 locked class，改為只鎖定特定面板
                 if (appContainer) {
@@ -320,6 +322,7 @@
             try {
                 const apiKey = document.getElementById('google-api-key')?.value || '';
                 const searchEngineId = document.getElementById('search-engine-id')?.value || '';
+                const geminiApiKey = document.getElementById('gemini-api-key')?.value || '';
                 const centralFolderName = document.getElementById('central-folder-name')?.value || '';
                 const intelligenceSubfolder = document.getElementById('intelligence-subfolder')?.value || '';
                 const mediaplanSubfolder = document.getElementById('mediaplan-subfolder')?.value || '';
@@ -329,6 +332,7 @@
                 state.settings = {
                     googleApiKey: apiKey,
                     searchEngineId: searchEngineId,
+                    geminiApiKey: geminiApiKey,
                     centralFolderName: centralFolderName,
                     intelligenceSubfolder: intelligenceSubfolder,
                     mediaplanSubfolder: mediaplanSubfolder,
@@ -344,7 +348,7 @@
                 showAlert('設定已儲存', 'API 設定已成功儲存', 'success');
                 
                 // 如果 API 已設定，切換到分析系統
-                if (apiKey && searchEngineId) {
+                if (apiKey && searchEngineId && geminiApiKey) {
                     setTimeout(() => {
                         switchTab('analysis');
                     }, 1000);
@@ -1244,9 +1248,9 @@ ${generateExecutionRecommendations(keywords)}
                 }
 
                 // 基於行業和產品進行真實競爭對手分析
-                setTimeout(() => {
+                setTimeout(async () => {
                     try {
-                        const realCompetitors = analyzeIndustryCompetitors(topic, brandName, industry, products);
+                        const realCompetitors = await analyzeIndustryCompetitors(topic, brandName, industry, products);
                         displaySearchResults(realCompetitors);
                     } catch (error) {
                         console.error('競爭對手分析失敗:', error);
@@ -1271,8 +1275,54 @@ ${generateExecutionRecommendations(keywords)}
         }
 
         // 基於行業和產品分析真實競爭對手
-        function analyzeIndustryCompetitors(topic, brandName, industry, products) {
+        async function analyzeIndustryCompetitors(topic, brandName, industry, products) {
             try {
+                // 檢查是否有 API 設定
+                const googleApiKey = document.getElementById('google-api-key')?.value?.trim();
+                const searchEngineId = document.getElementById('search-engine-id')?.value?.trim();
+                const geminiApiKey = document.getElementById('gemini-api-key')?.value?.trim();
+                
+                // 如果有完整的 API 設定，使用智能分析
+                if (googleApiKey && searchEngineId && geminiApiKey) {
+                    try {
+                        const smartAnalysis = await performSmartCompetitorAnalysis(brandName, industry, products, topic);
+                        
+                        // 轉換為系統格式
+                        const competitors = smartAnalysis.competitors.map((comp, index) => ({
+                            id: `smart_comp_${Date.now()}_${index}`,
+                            name: comp.name,
+                            website: comp.website,
+                            linkedin: `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(comp.name)}`,
+                            description: comp.description,
+                            industry: industry,
+                            marketShare: comp.marketShare || 10,
+                            strength: comp.strength || 50,
+                            weakness: comp.weakness || 50,
+                            opportunity: comp.opportunity || 50,
+                            threat: comp.threat || 50,
+                            productComparison: comp.productComparison || '智能分析結果',
+                            selected: false
+                        }));
+                        
+                        // 儲存智能分析結果
+                        state.analysisData.smartCompetitorAnalysis = {
+                            competitors: competitors,
+                            marketInsights: smartAnalysis.marketInsights,
+                            competitiveAdvantages: smartAnalysis.competitiveAdvantages,
+                            threats: smartAnalysis.threats,
+                            recommendations: smartAnalysis.recommendations,
+                            searchData: smartAnalysis.searchData
+                        };
+                        
+                        return competitors;
+                        
+                    } catch (error) {
+                        console.error('智能競爭對手分析失敗，回退到模板分析:', error);
+                        // 回退到模板分析
+                    }
+                }
+                
+                // 回退到模板分析（原有邏輯）
                 const competitors = [];
                 const competitorCount = state.analysisData.competitorCount || 8;
                 
@@ -1811,11 +1861,18 @@ ${generateExecutionRecommendations(keywords)}
             const industry = state.analysisData.industry?.category || '未指定';
             const keywords = state.analysisData.keywords || {};
             
+            // 檢查是否有智能分析結果
+            const smartAnalysis = state.analysisData.smartCompetitorAnalysis;
+            const isSmartAnalysis = smartAnalysis && smartAnalysis.marketInsights;
+            
             return `
                 <div class="space-y-6">
                     <!-- 競爭對手分析報告 -->
                     <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                        <h3 class="text-xl font-semibold text-techaccent mb-4">📊 ${brand} - ${topic} 競爭對手分析報告</h3>
+                        <h3 class="text-xl font-semibold text-techaccent mb-4">
+                            📊 ${brand} - ${topic} 競爭對手分析報告
+                            ${isSmartAnalysis ? '<span class="text-green-400 text-sm ml-2">🤖 AI 智能分析</span>' : '<span class="text-yellow-400 text-sm ml-2">📋 模板分析</span>'}
+                        </h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div class="bg-gray-700 rounded-lg p-4">
@@ -1824,6 +1881,7 @@ ${generateExecutionRecommendations(keywords)}
                                 <p class="text-gray-300 text-sm">分析主題: ${topic}</p>
                                 <p class="text-gray-300 text-sm">所屬產業: ${industry}</p>
                                 <p class="text-gray-300 text-sm">生成時間: ${new Date().toLocaleString('zh-TW')}</p>
+                                <p class="text-gray-300 text-sm">分析方式: ${isSmartAnalysis ? 'Google Search API + Gemini AI' : '靜態模板'}</p>
                             </div>
                             <div class="bg-gray-700 rounded-lg p-4">
                                 <h4 class="font-semibold text-gray-200 mb-2">🎯 競爭對手清單</h4>
@@ -1838,10 +1896,74 @@ ${generateExecutionRecommendations(keywords)}
                             </div>
                         </div>
                         
+                        ${isSmartAnalysis ? `
+                        <!-- AI 智能分析結果 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-200 mb-3">🧠 AI 市場洞察</h4>
+                                <div class="space-y-2">
+                                    ${smartAnalysis.marketInsights.map(insight => `
+                                        <p class="text-gray-300 text-sm">• ${insight}</p>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-200 mb-3">💡 競爭優勢</h4>
+                                <div class="space-y-2">
+                                    ${smartAnalysis.competitiveAdvantages.map(advantage => `
+                                        <p class="text-gray-300 text-sm">• ${advantage}</p>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-200 mb-3">⚠️ 潛在威脅</h4>
+                                <div class="space-y-2">
+                                    ${smartAnalysis.threats.map(threat => `
+                                        <p class="text-gray-300 text-sm">• ${threat}</p>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-200 mb-3">🎯 AI 策略建議</h4>
+                                <div class="space-y-2">
+                                    ${smartAnalysis.recommendations.map(recommendation => `
+                                        <p class="text-gray-300 text-sm">• ${recommendation}</p>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-700 rounded-lg p-4 mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">🔍 搜尋資料摘要</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-400">發現公司:</span>
+                                    <span class="text-gray-300 ml-2">${smartAnalysis.searchData.companies.length} 個</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">相關網站:</span>
+                                    <span class="text-gray-300 ml-2">${smartAnalysis.searchData.websites.length} 個</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">關鍵字:</span>
+                                    <span class="text-gray-300 ml-2">${smartAnalysis.searchData.keywords.length} 個</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">市場指標:</span>
+                                    <span class="text-gray-300 ml-2">${smartAnalysis.searchData.marketIndicators.length} 個</span>
+                                </div>
+                            </div>
+                        </div>
+                        ` : `
                         <div class="bg-gray-700 rounded-lg p-4">
                             <h4 class="font-semibold text-gray-200 mb-3">📋 詳細分析</h4>
                             <p class="text-gray-300 text-sm">完整分析報告已準備就緒，請使用下方的關鍵字和文案產出工具。</p>
+                            <p class="text-gray-400 text-sm mt-2">💡 提示：設定 Google API Key、Search Engine ID 和 Gemini API Key 可啟用 AI 智能分析功能</p>
                         </div>
+                        `}
                     </div>
 
                     <!-- 關鍵字建議清單 -->
@@ -3396,7 +3518,320 @@ ${generateExecutionRecommendations(keywords)}
             alert(resultMessage);
         }
 
-        // 生成智能文案模板
+        // Gemini API 智能分析功能
+        async function callGeminiAPI(prompt, isJsonMode = false) {
+            try {
+                const apiKey = document.getElementById('gemini-api-key')?.value?.trim();
+                
+                if (!apiKey) {
+                    throw new Error('請先設定 Gemini API Key');
+                }
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const requestBody = {
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 2048
+                    }
+                };
+
+                if (isJsonMode) {
+                    requestBody.generationConfig.temperature = 0.1;
+                }
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Gemini API 錯誤: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const generatedText = data.candidates[0].content.parts[0].text;
+                
+                if (isJsonMode) {
+                    try {
+                        return JSON.parse(generatedText);
+                    } catch (parseError) {
+                        console.error('JSON 解析失敗:', parseError);
+                        throw new Error('AI 回應格式錯誤');
+                    }
+                }
+                
+                return generatedText;
+                
+            } catch (error) {
+                console.error('Gemini API 調用失敗:', error);
+                throw error;
+            }
+        }
+
+        // 智能競爭對手分析
+        async function performSmartCompetitorAnalysis(brand, industry, products, topic) {
+            try {
+                showAlert('分析中', '正在使用 Google Search API 和 Gemini AI 進行智能競爭對手分析...', 'info');
+                
+                // 構建搜尋查詢
+                const searchQueries = [
+                    `${brand} ${industry} 競爭對手`,
+                    `${industry} 品牌 比較`,
+                    `${topic} ${industry} 公司`,
+                    `${industry} 領導品牌`,
+                    `${brand} 同業競爭`
+                ];
+                
+                const allSearchResults = [];
+                
+                // 執行多個搜尋查詢
+                for (const query of searchQueries) {
+                    try {
+                        const results = await performGoogleSearch(query, 5);
+                        allSearchResults.push(...results);
+                    } catch (error) {
+                        console.error(`搜尋查詢 "${query}" 失敗:`, error);
+                    }
+                }
+                
+                // 使用 Gemini AI 分析搜尋結果
+                const smartAnalysis = await analyzeCompetitorsWithAI(allSearchResults, brand, industry, products, topic);
+                
+                return smartAnalysis;
+                
+            } catch (error) {
+                console.error('智能競爭對手分析失敗:', error);
+                throw error;
+            }
+        }
+
+        // 使用 Gemini AI 分析競爭對手
+        async function analyzeCompetitorsWithAI(searchResults, brand, industry, products, topic) {
+            try {
+                // 提取搜尋結果中的關鍵資訊
+                const extractedData = extractCompetitorData(searchResults);
+                
+                // 構建 AI 分析提示
+                const analysisPrompt = buildCompetitorAnalysisPrompt(extractedData, brand, industry, products, topic);
+                
+                // 調用 Gemini API 進行分析
+                const aiAnalysis = await callGeminiAPI(analysisPrompt, true);
+                
+                return {
+                    competitors: aiAnalysis.competitors || [],
+                    marketInsights: aiAnalysis.marketInsights || [],
+                    competitiveAdvantages: aiAnalysis.competitiveAdvantages || [],
+                    threats: aiAnalysis.threats || [],
+                    recommendations: aiAnalysis.recommendations || [],
+                    searchData: extractedData
+                };
+                
+            } catch (error) {
+                console.error('AI 競爭對手分析失敗:', error);
+                throw error;
+            }
+        }
+
+        // 提取競爭對手資料
+        function extractCompetitorData(searchResults) {
+            const extracted = {
+                companies: new Set(),
+                websites: [],
+                descriptions: [],
+                keywords: new Set(),
+                marketIndicators: []
+            };
+
+            searchResults.forEach(item => {
+                if (item.title) {
+                    // 提取公司名稱
+                    const companyNames = extractCompanyNames(item.title);
+                    companyNames.forEach(name => extracted.companies.add(name));
+                    
+                    // 提取關鍵字
+                    const titleKeywords = extractKeywords(item.title);
+                    titleKeywords.forEach(k => extracted.keywords.add(k));
+                }
+                
+                if (item.snippet) {
+                    extracted.descriptions.push(item.snippet);
+                    
+                    // 提取關鍵字
+                    const snippetKeywords = extractKeywords(item.snippet);
+                    snippetKeywords.forEach(k => extracted.keywords.add(k));
+                }
+                
+                if (item.link) {
+                    extracted.websites.push(item.link);
+                    
+                    // 從 URL 提取公司資訊
+                    const urlCompany = extractCompanyFromURL(item.link);
+                    if (urlCompany) {
+                        extracted.companies.add(urlCompany);
+                    }
+                }
+            });
+
+            return {
+                companies: Array.from(extracted.companies),
+                websites: extracted.websites,
+                descriptions: extracted.descriptions,
+                keywords: Array.from(extracted.keywords),
+                marketIndicators: analyzeMarketIndicators(extracted.descriptions)
+            };
+        }
+
+        // 提取公司名稱
+        function extractCompanyNames(text) {
+            if (!text) return [];
+            
+            // 移除 HTML 標籤
+            const cleanText = text.replace(/<[^>]*>/g, '');
+            
+            // 常見的公司名稱模式
+            const patterns = [
+                /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:科技|科技公司|股份有限公司|有限公司|企業|集團|公司)/g,
+                /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:Technology|Tech|Inc|Corp|Ltd|Company)/gi,
+                /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:電子|資訊|軟體|網路|電商|金融|醫療|製造)/g
+            ];
+            
+            const companies = new Set();
+            
+            patterns.forEach(pattern => {
+                const matches = cleanText.match(pattern);
+                if (matches) {
+                    matches.forEach(match => {
+                        const company = match.replace(/\s+(?:科技|科技公司|股份有限公司|有限公司|企業|集團|公司|Technology|Tech|Inc|Corp|Ltd|Company|電子|資訊|軟體|網路|電商|金融|醫療|製造)/gi, '').trim();
+                        if (company.length > 1) {
+                            companies.add(company);
+                        }
+                    });
+                }
+            });
+            
+            return Array.from(companies);
+        }
+
+        // 從 URL 提取公司資訊
+        function extractCompanyFromURL(url) {
+            try {
+                const urlObj = new URL(url);
+                const hostname = urlObj.hostname.toLowerCase();
+                
+                // 移除常見的域名後綴
+                const domain = hostname.replace(/^www\./, '').split('.')[0];
+                
+                // 過濾掉常見的網站
+                const commonSites = ['google', 'facebook', 'youtube', 'twitter', 'linkedin', 'amazon', 'yahoo', 'bing', 'wikipedia'];
+                if (commonSites.includes(domain)) {
+                    return null;
+                }
+                
+                return domain;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // 分析市場指標
+        function analyzeMarketIndicators(descriptions) {
+            const indicators = [];
+            
+            descriptions.forEach(desc => {
+                // 分析市場份額相關詞彙
+                if (desc.includes('市場份額') || desc.includes('市佔率') || desc.includes('market share')) {
+                    indicators.push('market_share');
+                }
+                
+                // 分析營收相關詞彙
+                if (desc.includes('營收') || desc.includes('營業額') || desc.includes('revenue')) {
+                    indicators.push('revenue');
+                }
+                
+                // 分析成長相關詞彙
+                if (desc.includes('成長') || desc.includes('增長') || desc.includes('growth')) {
+                    indicators.push('growth');
+                }
+                
+                // 分析創新相關詞彙
+                if (desc.includes('創新') || desc.includes('技術') || desc.includes('innovation')) {
+                    indicators.push('innovation');
+                }
+            });
+            
+            return [...new Set(indicators)];
+        }
+
+        // 構建競爭對手分析提示
+        function buildCompetitorAnalysisPrompt(extractedData, brand, industry, products, topic) {
+            const prompt = `
+你是一個專業的市場分析師，請基於以下搜尋結果資料，為品牌 "${brand}" 在 "${industry}" 行業進行智能競爭對手分析。
+
+搜尋結果摘要：
+- 發現的公司：${extractedData.companies.join(', ')}
+- 相關網站：${extractedData.websites.length} 個
+- 關鍵字：${extractedData.keywords.join(', ')}
+- 市場指標：${extractedData.marketIndicators.join(', ')}
+- 產品/服務：${products.map(p => p.name || p).join(', ')}
+
+請以 JSON 格式回傳分析結果，包含以下結構：
+
+{
+  "competitors": [
+    {
+      "name": "競爭對手名稱",
+      "website": "官方網站",
+      "description": "公司描述",
+      "marketShare": 市場份額百分比,
+      "strength": 競爭優勢評分(1-100),
+      "weakness": 競爭劣勢評分(1-100),
+      "opportunity": 機會評分(1-100),
+      "threat": 威脅評分(1-100),
+      "productComparison": "與${brand}的產品比較分析",
+      "competitivePosition": "競爭定位分析"
+    }
+  ],
+  "marketInsights": [
+    "市場洞察1",
+    "市場洞察2"
+  ],
+  "competitiveAdvantages": [
+    "${brand}的競爭優勢1",
+    "${brand}的競爭優勢2"
+  ],
+  "threats": [
+    "潛在威脅1",
+    "潛在威脅2"
+  ],
+  "recommendations": [
+    "策略建議1",
+    "策略建議2"
+  ]
+}
+
+請確保：
+1. 競爭對手資料基於實際搜尋結果
+2. 分析客觀且具有洞察力
+3. 提供具體的市場策略建議
+4. 所有評分都在合理範圍內
+5. 回傳格式為有效的 JSON
+`;
+
+            return prompt;
+        }
+
+        // AI 智能分析搜尋結果
     </script>
 </head>
 <body>
@@ -3417,8 +3852,8 @@ ${generateExecutionRecommendations(keywords)}
                     <input type="text" id="search-engine-id" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Search Engine ID">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Central Folder Name</label>
-                    <input type="text" id="central-folder-name" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Central Folder Name">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Gemini API Key</label>
+                    <input type="text" id="gemini-api-key" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Gemini API Key">
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
