@@ -2127,61 +2127,103 @@ ${generateExecutionRecommendations(keywords)}
 
                         <!-- 操作按鈕 -->
                         <div class="flex gap-4 flex-wrap">
-                            <button onclick="performSmartSearch()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+                            <button onclick="performSmartKeywordSearch()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
                                 🔍 智能搜尋關鍵字
                             </button>
                             <button onclick="generateKeywordSuggestions()" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">
                                 📋 生成完整關鍵字建議書
                             </button>
-                            <button onclick="generateAdsCopy()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                                📝 生成 Google Ads 文案
-                            </button>
                         </div>
                     </div>
 
-                    <!-- Google Ads 文案產出工具 -->
+                    <!-- 智能關鍵字建議書 -->
                     <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                        <h3 class="text-xl font-semibold text-techaccent mb-4">📝 Google Ads 文案產出工具</h3>
+                        <h3 class="text-xl font-semibold text-techaccent mb-4">📊 智能關鍵字建議書</h3>
                         
+                        <!-- SEO分類規則 -->
                         <div class="mb-6">
-                            <h4 class="font-semibold text-gray-200 mb-3">🎯 文案設定</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">目標受眾</label>
-                                    <select id="target-audience-ads" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
-                                        <option value="general">一般大眾</option>
-                                        <option value="business">企業客戶</option>
-                                        <option value="youth">年輕族群</option>
-                                        <option value="professional">專業人士</option>
-                                        <option value="elderly">銀髮族</option>
-                                    </select>
+                            <h4 class="font-semibold text-gray-200 mb-3">🏷️ SEO分類規則</h4>
+                            <div id="seo-categories-display" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-gray-700 rounded-lg p-3">
+                                    <h5 class="font-semibold text-gray-200 mb-2">主要關鍵字 (Head Terms)</h5>
+                                    <p class="text-gray-300 text-sm">搜尋量大，競爭度高，適合品牌建立</p>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">文案風格</label>
-                                    <select id="copy-style" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
-                                        <option value="professional">專業正式</option>
-                                        <option value="friendly">親切友善</option>
-                                        <option value="urgent">緊急促銷</option>
-                                        <option value="luxury">高端奢華</option>
-                                        <option value="casual">輕鬆隨意</option>
-                                    </select>
+                                <div class="bg-gray-700 rounded-lg p-3">
+                                    <h5 class="font-semibold text-gray-200 mb-2">長尾關鍵字 (Long Tail)</h5>
+                                    <p class="text-gray-300 text-sm">搜尋量小，競爭度低，轉換率高</p>
+                                </div>
+                                <div class="bg-gray-700 rounded-lg p-3">
+                                    <h5 class="font-semibold text-gray-200 mb-2">品牌關鍵字 (Branded)</h5>
+                                    <p class="text-gray-300 text-sm">品牌相關搜尋，高轉換率</p>
+                                </div>
+                                <div class="bg-gray-700 rounded-lg p-3">
+                                    <h5 class="font-semibold text-gray-200 mb-2">產品關鍵字 (Product)</h5>
+                                    <p class="text-gray-300 text-sm">具體產品搜尋，商業意圖強</p>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- 出價策略 -->
                         <div class="mb-6">
-                            <h4 class="font-semibold text-gray-200 mb-3">📊 文案預覽</h4>
-                            <div id="ads-copy-preview" class="bg-gray-700 rounded-lg p-4 min-h-32">
-                                <p class="text-gray-400">選擇關鍵字和設定後，點擊生成按鈕查看文案預覽</p>
+                            <h4 class="font-semibold text-gray-200 mb-3">💰 出價策略建議</h4>
+                            <div id="bidding-strategy-display" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-green-900/20 rounded-lg p-3 border border-green-500/20">
+                                    <h5 class="font-semibold text-green-400 mb-2">高搜尋量高競爭度</h5>
+                                    <p class="text-gray-300 text-sm">建議出價 NT$ 25-40，專注於高轉換率</p>
+                                </div>
+                                <div class="bg-blue-900/20 rounded-lg p-3 border border-blue-500/20">
+                                    <h5 class="font-semibold text-blue-400 mb-2">高搜尋量低競爭度</h5>
+                                    <p class="text-gray-300 text-sm">建議出價 NT$ 15-25，擴大市場份額</p>
+                                </div>
+                                <div class="bg-yellow-900/20 rounded-lg p-3 border border-yellow-500/20">
+                                    <h5 class="font-semibold text-yellow-400 mb-2">低搜尋量高競爭度</h5>
+                                    <p class="text-gray-300 text-sm">建議出價 NT$ 8-15，精準定位</p>
+                                </div>
+                                <div class="bg-purple-900/20 rounded-lg p-3 border border-purple-500/20">
+                                    <h5 class="font-semibold text-purple-400 mb-2">低搜尋量低競爭度</h5>
+                                    <p class="text-gray-300 text-sm">建議出價 NT$ 5-12，低成本測試</p>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- 市場洞察 -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">📈 市場洞察</h4>
+                            <div id="market-insights-display" class="bg-gray-700 rounded-lg p-4">
+                                <p class="text-gray-300 text-sm">智能分析完成後將顯示市場洞察</p>
+                            </div>
+                        </div>
+
+                        <!-- 語言版本對應 -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-200 mb-3">🌍 語言版本對應</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="bg-gray-700 rounded-lg p-3 text-center">
+                                    <h5 class="font-semibold text-gray-200 mb-1">繁體中文</h5>
+                                    <p class="text-gray-300 text-sm">台灣市場</p>
+                                </div>
+                                <div class="bg-gray-700 rounded-lg p-3 text-center">
+                                    <h5 class="font-semibold text-gray-200 mb-1">English</h5>
+                                    <p class="text-gray-300 text-sm">國際市場</p>
+                                </div>
+                                <div class="bg-gray-700 rounded-lg p-3 text-center">
+                                    <h5 class="font-semibold text-gray-200 mb-1">日本語</h5>
+                                    <p class="text-gray-300 text-sm">日本市場</p>
+                                </div>
+                                <div class="bg-gray-700 rounded-lg p-3 text-center">
+                                    <h5 class="font-semibold text-gray-200 mb-1">한국어</h5>
+                                    <p class="text-gray-300 text-sm">韓國市場</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 下載按鈕 -->
                         <div class="flex gap-4">
-                            <button onclick="previewAdsCopy()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                                👁️ 預覽文案
+                            <button onclick="downloadKeywordReport()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                💾 下載完整關鍵字建議書
                             </button>
-                            <button onclick="downloadAdsCopy()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                                💾 下載文案
+                            <button onclick="downloadKeywordCSV()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                                📊 下載關鍵字 CSV
                             </button>
                         </div>
                     </div>
@@ -4080,6 +4122,642 @@ ${generateExecutionRecommendations(keywords)}
         }
 
         // AI 智能分析搜尋結果
+        async function performSmartKeywordSearch() {
+            try {
+                const businessModel = document.getElementById('business-model-select-step3')?.value;
+                const keywordTypes = getSelectedKeywordTypes();
+                const brand = state.analysisData.brand?.name || '';
+                const industry = state.analysisData.industry?.category || '';
+                const products = state.analysisData.products || [];
+                
+                if (!businessModel) {
+                    showAlert('請選擇商業模式', '商業模式是智能關鍵字搜尋的必要參數', 'warning');
+                    return;
+                }
+                
+                showAlert('開始智能搜尋', '正在使用 Google Search API 和 AI 分析生成關鍵字建議...', 'info');
+                
+                // 使用 Google Search API 搜尋
+                const searchResults = await performGoogleKeywordSearch(brand, industry, businessModel);
+                
+                // 使用 AI 分析生成智能建議
+                const aiSuggestions = await generateAIKeywordSuggestions(brand, industry, businessModel, products, searchResults);
+                
+                // 合併結果並分類
+                const categorizedKeywords = categorizeKeywords(aiSuggestions, keywordTypes);
+                
+                // 更新顯示
+                updateKeywordDisplay(categorizedKeywords);
+                
+                showAlert('智能搜尋完成', `成功生成 ${categorizedKeywords.totalCount} 個關鍵字建議`, 'success');
+                
+            } catch (error) {
+                console.error('智能關鍵字搜尋失敗:', error);
+                showAlert('搜尋失敗', '請檢查 API 設定或稍後重試', 'error');
+            }
+        }
+        
+        // Google Search API 關鍵字搜尋
+        async function performGoogleKeywordSearch(brand, industry, businessModel) {
+            try {
+                const apiKey = document.getElementById('google-api-key')?.value;
+                const searchEngineId = document.getElementById('search-engine-id')?.value;
+                
+                if (!apiKey || !searchEngineId) {
+                    console.log('Google API 未設定，使用回退方案');
+                    return getFallbackSearchResults(brand, industry, businessModel);
+                }
+                
+                const searchQueries = generateSearchQueries(brand, industry, businessModel);
+                const results = [];
+                
+                for (const query of searchQueries) {
+                    try {
+                        const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}&num=10`);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.items) {
+                                results.push(...data.items);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`搜尋查詢 "${query}" 失敗:`, error);
+                    }
+                }
+                
+                return results;
+                
+            } catch (error) {
+                console.error('Google Search API 搜尋失敗:', error);
+                return getFallbackSearchResults(brand, industry, businessModel);
+            }
+        }
+        
+        // AI 智能關鍵字建議生成
+        async function generateAIKeywordSuggestions(brand, industry, businessModel, products, searchResults) {
+            try {
+                const geminiApiKey = document.getElementById('gemini-api-key')?.value;
+                
+                if (!geminiApiKey) {
+                    console.log('Gemini API 未設定，使用模板建議');
+                    return generateTemplateKeywordSuggestions(brand, industry, businessModel, products);
+                }
+                
+                const prompt = buildKeywordSuggestionPrompt(brand, industry, businessModel, products, searchResults);
+                
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const result = data.candidates[0].content.parts[0].text;
+                    
+                    // 清理 JSON 格式
+                    const cleanedResult = cleanJsonResponse(result);
+                    return JSON.parse(cleanedResult);
+                } else {
+                    throw new Error(`Gemini API 回應錯誤: ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('AI 關鍵字建議生成失敗:', error);
+                return generateTemplateKeywordSuggestions(brand, industry, businessModel, products);
+            }
+        }
+        
+        // 構建關鍵字建議提示
+        function buildKeywordSuggestionPrompt(brand, industry, businessModel, products, searchResults) {
+            const productNames = products.map(p => p.name || p).join(', ');
+            const searchTitles = searchResults.map(item => item.title).slice(0, 5).join(', ');
+            
+            return `你是一個專業的 SEO 和數位行銷專家，請為品牌 "${brand}" 在 "${industry}" 行業，採用 "${businessModel}" 商業模式，生成智能關鍵字建議。
+
+產品/服務：${productNames}
+搜尋結果參考：${searchTitles}
+
+請以純 JSON 格式回傳，包含以下結構：
+
+{
+  "primaryKeywords": [
+    {
+      "keyword": "關鍵字",
+      "searchVolume": "高/中/低",
+      "competition": "高/中/低",
+      "suggestedBid": "建議出價範圍",
+      "seoCategory": "SEO分類",
+      "intent": "搜尋意圖",
+      "languages": ["zh-tw", "en", "ja"]
+    }
+  ],
+  "longTailKeywords": [
+    {
+      "keyword": "長尾關鍵字",
+      "searchVolume": "高/中/低",
+      "competition": "高/中/低",
+      "suggestedBid": "建議出價範圍",
+      "seoCategory": "SEO分類",
+      "intent": "搜尋意圖",
+      "languages": ["zh-tw", "en", "ja"]
+    }
+  ],
+  "commercialKeywords": [
+    {
+      "keyword": "商業意圖關鍵字",
+      "searchVolume": "高/中/低",
+      "competition": "高/中/低",
+      "suggestedBid": "建議出價範圍",
+      "seoCategory": "SEO分類",
+      "intent": "商業意圖",
+      "languages": ["zh-tw", "en", "ja"]
+    }
+  ],
+  "informationalKeywords": [
+    {
+      "keyword": "資訊查詢關鍵字",
+      "searchVolume": "高/中/低",
+      "competition": "高/中/低",
+      "suggestedBid": "建議出價範圍",
+      "seoCategory": "SEO分類",
+      "intent": "資訊查詢",
+      "languages": ["zh-tw", "en", "ja"]
+    }
+  ],
+  "navigationalKeywords": [
+    {
+      "keyword": "導航查詢關鍵字",
+      "searchVolume": "高/中/低",
+      "competition": "高/中/低",
+      "suggestedBid": "建議出價範圍",
+      "seoCategory": "SEO分類",
+      "intent": "導航查詢",
+      "languages": ["zh-tw", "en", "ja"]
+    }
+  ],
+  "transactionalKeywords": [
+    {
+      "keyword": "交易意圖關鍵字",
+      "searchVolume": "高/中/低",
+      "competition": "高/中/低",
+      "suggestedBid": "建議出價範圍",
+      "seoCategory": "SEO分類",
+      "intent": "交易意圖",
+      "languages": ["zh-tw", "en", "ja"]
+    }
+  ],
+  "biddingStrategy": {
+    "highVolumeHighCompetition": "高搜尋量高競爭度策略",
+    "highVolumeLowCompetition": "高搜尋量低競爭度策略",
+    "lowVolumeHighCompetition": "低搜尋量高競爭度策略",
+    "lowVolumeLowCompetition": "低搜尋量低競爭度策略"
+  },
+  "seoCategories": {
+    "headTerms": "主要關鍵字說明",
+    "longTailTerms": "長尾關鍵字說明",
+    "brandedTerms": "品牌關鍵字說明",
+    "productTerms": "產品關鍵字說明",
+    "serviceTerms": "服務關鍵字說明",
+    "locationTerms": "地區關鍵字說明"
+  },
+  "marketInsights": [
+    "市場洞察1",
+    "市場洞察2"
+  ]
+}
+
+重要：請確保回傳的是純 JSON 格式，不要包含任何 markdown 標記。`;
+        }
+        
+        // 關鍵字分類
+        function categorizeKeywords(aiSuggestions, keywordTypes) {
+            const categorized = {
+                primary: [],
+                longTail: [],
+                commercial: [],
+                informational: [],
+                navigational: [],
+                transactional: [],
+                totalCount: 0
+            };
+            
+            // 根據選擇的類型分類關鍵字
+            if (keywordTypes.primary && aiSuggestions.primaryKeywords) {
+                categorized.primary = aiSuggestions.primaryKeywords;
+                categorized.totalCount += aiSuggestions.primaryKeywords.length;
+            }
+            
+            if (keywordTypes.longTail && aiSuggestions.longTailKeywords) {
+                categorized.longTail = aiSuggestions.longTailKeywords;
+                categorized.totalCount += aiSuggestions.longTailKeywords.length;
+            }
+            
+            if (keywordTypes.commercial && aiSuggestions.commercialKeywords) {
+                categorized.commercial = aiSuggestions.commercialKeywords;
+                categorized.totalCount += aiSuggestions.commercialKeywords.length;
+            }
+            
+            if (keywordTypes.informational && aiSuggestions.informationalKeywords) {
+                categorized.informational = aiSuggestions.informationalKeywords;
+                categorized.totalCount += aiSuggestions.informationalKeywords.length;
+            }
+            
+            if (keywordTypes.navigational && aiSuggestions.navigationalKeywords) {
+                categorized.navigational = aiSuggestions.navigationalKeywords;
+                categorized.totalCount += aiSuggestions.navigationalKeywords.length;
+            }
+            
+            if (keywordTypes.transactional && aiSuggestions.transactionalKeywords) {
+                categorized.transactional = aiSuggestions.transactionalKeywords;
+                categorized.totalCount += aiSuggestions.transactionalKeywords.length;
+            }
+            
+            // 添加出價策略和SEO分類
+            categorized.biddingStrategy = aiSuggestions.biddingStrategy || {};
+            categorized.seoCategories = aiSuggestions.seoCategories || {};
+            categorized.marketInsights = aiSuggestions.marketInsights || [];
+            
+            return categorized;
+        }
+        
+        // 更新關鍵字顯示
+        function updateKeywordDisplay(categorizedKeywords) {
+            try {
+                // 更新主要關鍵字
+                const primaryTextarea = document.getElementById('primary-keywords-step3');
+                if (primaryTextarea) {
+                    const primaryKeywords = categorizedKeywords.primary.map(k => k.keyword).join('\n');
+                    primaryTextarea.value = primaryKeywords;
+                }
+                
+                // 更新長尾關鍵字
+                const longTailTextarea = document.getElementById('long-tail-keywords-step3');
+                if (longTailTextarea) {
+                    const longTailKeywords = categorizedKeywords.longTail.map(k => k.keyword).join('\n');
+                    longTailTextarea.value = longTailKeywords;
+                }
+                
+                // 儲存完整關鍵字資料
+                state.analysisData.categorizedKeywords = categorizedKeywords;
+                
+            } catch (error) {
+                console.error('更新關鍵字顯示失敗:', error);
+            }
+        }
+        
+        // 獲取選擇的關鍵字類型
+        function getSelectedKeywordTypes() {
+            return {
+                primary: document.getElementById('keyword-primary')?.checked || false,
+                longTail: document.getElementById('keyword-longtail')?.checked || false,
+                commercial: document.getElementById('keyword-commercial')?.checked || false,
+                informational: document.getElementById('keyword-informational')?.checked || false,
+                navigational: document.getElementById('keyword-navigational')?.checked || false,
+                transactional: document.getElementById('keyword-transactional')?.checked || false
+            };
+        }
+        
+        // 生成搜尋查詢
+        function generateSearchQueries(brand, industry, businessModel) {
+            const queries = [
+                `${brand} ${industry}`,
+                `${industry} ${businessModel}`,
+                `${brand} 競爭對手`,
+                `${industry} 市場分析`,
+                `${businessModel} 關鍵字`,
+                `${brand} 產品服務`,
+                `${industry} 趨勢`,
+                `${businessModel} 行銷策略`
+            ];
+            
+            return queries;
+        }
+        
+        // 模板關鍵字建議（回退方案）
+        function generateTemplateKeywordSuggestions(brand, industry, businessModel, products) {
+            const productNames = products.map(p => p.name || p).join(' ');
+            
+            return {
+                primaryKeywords: [
+                    {
+                        keyword: `${brand} ${industry}`,
+                        searchVolume: "高",
+                        competition: "中",
+                        suggestedBid: "NT$ 15-25",
+                        seoCategory: "品牌+行業",
+                        intent: "品牌搜尋",
+                        languages: ["zh-tw", "en"]
+                    },
+                    {
+                        keyword: `${industry} 推薦`,
+                        searchVolume: "高",
+                        competition: "高",
+                        suggestedBid: "NT$ 20-35",
+                        seoCategory: "推薦搜尋",
+                        intent: "資訊查詢",
+                        languages: ["zh-tw", "en"]
+                    }
+                ],
+                longTailKeywords: [
+                    {
+                        keyword: `${brand} ${industry} ${businessModel}`,
+                        searchVolume: "中",
+                        competition: "低",
+                        suggestedBid: "NT$ 8-15",
+                        seoCategory: "長尾關鍵字",
+                        intent: "精準搜尋",
+                        languages: ["zh-tw", "en"]
+                    }
+                ],
+                commercialKeywords: [
+                    {
+                        keyword: `${industry} 價格`,
+                        searchVolume: "高",
+                        competition: "高",
+                        suggestedBid: "NT$ 25-40",
+                        seoCategory: "商業意圖",
+                        intent: "商業意圖",
+                        languages: ["zh-tw", "en"]
+                    }
+                ],
+                biddingStrategy: {
+                    highVolumeHighCompetition: "建議出價 NT$ 25-40，專注於高轉換率",
+                    highVolumeLowCompetition: "建議出價 NT$ 15-25，擴大市場份額",
+                    lowVolumeHighCompetition: "建議出價 NT$ 8-15，精準定位",
+                    lowVolumeLowCompetition: "建議出價 NT$ 5-12，低成本測試"
+                },
+                seoCategories: {
+                    headTerms: "主要關鍵字：搜尋量大，競爭度高",
+                    longTailTerms: "長尾關鍵字：搜尋量小，競爭度低，轉換率高",
+                    brandedTerms: "品牌關鍵字：品牌相關搜尋",
+                    productTerms: "產品關鍵字：具體產品搜尋",
+                    serviceTerms: "服務關鍵字：服務相關搜尋",
+                    locationTerms: "地區關鍵字：地理位置相關"
+                },
+                marketInsights: [
+                    `${industry} 市場呈現穩定成長趨勢`,
+                    `${businessModel} 模式在 ${industry} 中具有競爭優勢`
+                ]
+            };
+        }
+        
+        // 回退搜尋結果
+        function getFallbackSearchResults(brand, industry, businessModel) {
+            return [
+                { title: `${brand} ${industry} 官方網站` },
+                { title: `${industry} ${businessModel} 服務` },
+                { title: `${brand} 產品介紹` },
+                { title: `${industry} 市場分析報告` },
+                { title: `${businessModel} 成功案例` }
+            ];
+        }
+
+        // 下載關鍵字報告
+        function downloadKeywordReport() {
+            try {
+                const categorizedKeywords = state.analysisData.categorizedKeywords;
+                if (!categorizedKeywords) {
+                    showAlert('請先執行智能關鍵字搜尋', '沒有關鍵字資料可供下載', 'warning');
+                    return;
+                }
+                
+                const brand = state.analysisData.brand?.name || '未指定';
+                const industry = state.analysisData.industry?.category || '未指定';
+                const businessModel = document.getElementById('business-model-select-step3')?.value || '未指定';
+                
+                let reportContent = `智能關鍵字建議書\n`;
+                reportContent += `品牌: ${brand}\n`;
+                reportContent += `行業: ${industry}\n`;
+                reportContent += `商業模式: ${businessModel}\n`;
+                reportContent += `生成時間: ${new Date().toLocaleString('zh-TW')}\n`;
+                reportContent += `總關鍵字數量: ${categorizedKeywords.totalCount}\n\n`;
+                
+                // 主要關鍵字
+                if (categorizedKeywords.primary && categorizedKeywords.primary.length > 0) {
+                    reportContent += `=== 主要關鍵字 ===\n`;
+                    categorizedKeywords.primary.forEach((keyword, index) => {
+                        reportContent += `${index + 1}. ${keyword.keyword}\n`;
+                        reportContent += `   搜尋量: ${keyword.searchVolume} | 競爭度: ${keyword.competition}\n`;
+                        reportContent += `   建議出價: ${keyword.suggestedBid} | SEO分類: ${keyword.seoCategory}\n`;
+                        reportContent += `   搜尋意圖: ${keyword.intent} | 語言: ${keyword.languages.join(', ')}\n\n`;
+                    });
+                }
+                
+                // 長尾關鍵字
+                if (categorizedKeywords.longTail && categorizedKeywords.longTail.length > 0) {
+                    reportContent += `=== 長尾關鍵字 ===\n`;
+                    categorizedKeywords.longTail.forEach((keyword, index) => {
+                        reportContent += `${index + 1}. ${keyword.keyword}\n`;
+                        reportContent += `   搜尋量: ${keyword.searchVolume} | 競爭度: ${keyword.competition}\n`;
+                        reportContent += `   建議出價: ${keyword.suggestedBid} | SEO分類: ${keyword.seoCategory}\n`;
+                        reportContent += `   搜尋意圖: ${keyword.intent} | 語言: ${keyword.languages.join(', ')}\n\n`;
+                    });
+                }
+                
+                // 商業意圖關鍵字
+                if (categorizedKeywords.commercial && categorizedKeywords.commercial.length > 0) {
+                    reportContent += `=== 商業意圖關鍵字 ===\n`;
+                    categorizedKeywords.commercial.forEach((keyword, index) => {
+                        reportContent += `${index + 1}. ${keyword.keyword}\n`;
+                        reportContent += `   搜尋量: ${keyword.searchVolume} | 競爭度: ${keyword.competition}\n`;
+                        reportContent += `   建議出價: ${keyword.suggestedBid} | SEO分類: ${keyword.seoCategory}\n`;
+                        reportContent += `   搜尋意圖: ${keyword.intent} | 語言: ${keyword.languages.join(', ')}\n\n`;
+                    });
+                }
+                
+                // 出價策略
+                if (categorizedKeywords.biddingStrategy) {
+                    reportContent += `=== 出價策略建議 ===\n`;
+                    Object.entries(categorizedKeywords.biddingStrategy).forEach(([key, value]) => {
+                        reportContent += `${key}: ${value}\n`;
+                    });
+                    reportContent += `\n`;
+                }
+                
+                // 市場洞察
+                if (categorizedKeywords.marketInsights && categorizedKeywords.marketInsights.length > 0) {
+                    reportContent += `=== 市場洞察 ===\n`;
+                    categorizedKeywords.marketInsights.forEach((insight, index) => {
+                        reportContent += `${index + 1}. ${insight}\n`;
+                    });
+                    reportContent += `\n`;
+                }
+                
+                // 下載檔案
+                const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${brand}_關鍵字建議書_${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showAlert('下載成功', '關鍵字建議書已下載', 'success');
+                
+            } catch (error) {
+                console.error('下載關鍵字報告失敗:', error);
+                showAlert('下載失敗', '無法生成關鍵字報告', 'error');
+            }
+        }
+        
+        // 下載關鍵字 CSV
+        function downloadKeywordCSV() {
+            try {
+                const categorizedKeywords = state.analysisData.categorizedKeywords;
+                if (!categorizedKeywords) {
+                    showAlert('請先執行智能關鍵字搜尋', '沒有關鍵字資料可供下載', 'warning');
+                    return;
+                }
+                
+                const brand = state.analysisData.brand?.name || '未指定';
+                
+                // CSV 標題
+                let csvContent = '關鍵字,搜尋量,競爭度,建議出價,SEO分類,搜尋意圖,語言,類型\n';
+                
+                // 收集所有關鍵字
+                const allKeywords = [];
+                
+                if (categorizedKeywords.primary) {
+                    categorizedKeywords.primary.forEach(keyword => {
+                        allKeywords.push({
+                            ...keyword,
+                            type: '主要關鍵字'
+                        });
+                    });
+                }
+                
+                if (categorizedKeywords.longTail) {
+                    categorizedKeywords.longTail.forEach(keyword => {
+                        allKeywords.push({
+                            ...keyword,
+                            type: '長尾關鍵字'
+                        });
+                    });
+                }
+                
+                if (categorizedKeywords.commercial) {
+                    categorizedKeywords.commercial.forEach(keyword => {
+                        allKeywords.push({
+                            ...keyword,
+                            type: '商業意圖'
+                        });
+                    });
+                }
+                
+                if (categorizedKeywords.informational) {
+                    categorizedKeywords.informational.forEach(keyword => {
+                        allKeywords.push({
+                            ...keyword,
+                            type: '資訊查詢'
+                        });
+                    });
+                }
+                
+                if (categorizedKeywords.navigational) {
+                    categorizedKeywords.navigational.forEach(keyword => {
+                        allKeywords.push({
+                            ...keyword,
+                            type: '導航查詢'
+                        });
+                    });
+                }
+                
+                if (categorizedKeywords.transactional) {
+                    categorizedKeywords.transactional.forEach(keyword => {
+                        allKeywords.push({
+                            ...keyword,
+                            type: '交易意圖'
+                        });
+                    });
+                }
+                
+                // 添加 CSV 行
+                allKeywords.forEach(keyword => {
+                    csvContent += `"${keyword.keyword}","${keyword.searchVolume}","${keyword.competition}","${keyword.suggestedBid}","${keyword.seoCategory}","${keyword.intent}","${keyword.languages.join(', ')}","${keyword.type}"\n`;
+                });
+                
+                // 下載檔案
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${brand}_關鍵字清單_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showAlert('下載成功', '關鍵字 CSV 已下載', 'success');
+                
+            } catch (error) {
+                console.error('下載關鍵字 CSV 失敗:', error);
+                showAlert('下載失敗', '無法生成關鍵字 CSV', 'error');
+            }
+        }
+        
+        // 更新關鍵字建議書顯示
+        function updateKeywordReportDisplay(categorizedKeywords) {
+            try {
+                // 更新 SEO 分類顯示
+                const seoCategoriesDisplay = document.getElementById('seo-categories-display');
+                if (seoCategoriesDisplay && categorizedKeywords.seoCategories) {
+                    let seoHtml = '';
+                    Object.entries(categorizedKeywords.seoCategories).forEach(([key, value]) => {
+                        seoHtml += `
+                            <div class="bg-gray-700 rounded-lg p-3">
+                                <h5 class="font-semibold text-gray-200 mb-2">${key}</h5>
+                                <p class="text-gray-300 text-sm">${value}</p>
+                            </div>
+                        `;
+                    });
+                    seoCategoriesDisplay.innerHTML = seoHtml;
+                }
+                
+                // 更新出價策略顯示
+                const biddingStrategyDisplay = document.getElementById('bidding-strategy-display');
+                if (biddingStrategyDisplay && categorizedKeywords.biddingStrategy) {
+                    let biddingHtml = '';
+                    Object.entries(categorizedKeywords.biddingStrategy).forEach(([key, value]) => {
+                        const colorClass = key.includes('highVolumeHighCompetition') ? 'green' :
+                                         key.includes('highVolumeLowCompetition') ? 'blue' :
+                                         key.includes('lowVolumeHighCompetition') ? 'yellow' : 'purple';
+                        
+                        biddingHtml += `
+                            <div class="bg-${colorClass}-900/20 rounded-lg p-3 border border-${colorClass}-500/20">
+                                <h5 class="font-semibold text-${colorClass}-400 mb-2">${key}</h5>
+                                <p class="text-gray-300 text-sm">${value}</p>
+                            </div>
+                        `;
+                    });
+                    biddingStrategyDisplay.innerHTML = biddingHtml;
+                }
+                
+                // 更新市場洞察顯示
+                const marketInsightsDisplay = document.getElementById('market-insights-display');
+                if (marketInsightsDisplay && categorizedKeywords.marketInsights) {
+                    let insightsHtml = '';
+                    categorizedKeywords.marketInsights.forEach(insight => {
+                        insightsHtml += `<p class="text-gray-300 text-sm mb-2">• ${insight}</p>`;
+                    });
+                    marketInsightsDisplay.innerHTML = insightsHtml;
+                }
+                
+            } catch (error) {
+                console.error('更新關鍵字建議書顯示失敗:', error);
+            }
+        }
     </script>
 </head>
 <body>
@@ -4259,6 +4937,16 @@ ${generateExecutionRecommendations(keywords)}
                     <input type="text" id="project-id" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="項目 ID">
                 </div>
             </div>
+            
+            <!-- 產品管理 -->
+            <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                <h4 class="font-semibold text-gray-200 mb-4">📦 產品/服務管理</h4>
+                <div id="products-container" class="space-y-3 mb-4">
+                    <!-- 產品項目將在這裡動態生成 -->
+                </div>
+                <button id="add-product-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">添加產品</button>
+            </div>
+            
             <div class="flex gap-4">
                 <button id="start-analysis-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">開始分析</button>
                 <button id="generate-report-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">生成報告</button>
@@ -4288,15 +4976,6 @@ ${generateExecutionRecommendations(keywords)}
         <div id="step-1" class="step-panel">
             <h3 class="text-lg font-semibold mb-4">步驟 1: 設定分析</h3>
             <p class="text-gray-300 mb-4">請在上方的分析設定面板中填寫必要資訊，然後點擊「開始分析」按鈕。</p>
-            
-            <!-- 產品管理 -->
-            <div class="bg-gray-800 rounded-lg p-4 mb-6">
-                <h4 class="font-semibold text-gray-200 mb-4">📦 產品/服務管理</h4>
-                <div id="products-container" class="space-y-3 mb-4">
-                    <!-- 產品項目將在這裡動態生成 -->
-                </div>
-                <button id="add-product-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">添加產品</button>
-            </div>
             
             <!-- 開始分析按鈕 -->
             <div class="flex justify-center">
