@@ -1652,15 +1652,22 @@ ${generateExecutionRecommendations(keywords)}
 
                 let html = '';
                 selectedCompetitors.forEach(competitor => {
+                    const websiteText = competitor.website ? competitor.website.replace(/^https?:\/\//, '') : '無網站';
                     html += `
-                        <div class="selected-competitor bg-gray-700 rounded-lg p-3 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <span class="font-semibold text-gray-200">${competitor.name}</span>
-                                <a href="${competitor.website}" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">${competitor.website}</a>
+                        <div class="selected-competitor bg-gray-700 rounded-lg p-3 flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3 flex-1">
+                                <span class="font-semibold text-gray-200 min-w-0 flex-1">${competitor.name}</span>
+                                ${competitor.website ? `<a href="${competitor.website}" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">${websiteText}</a>` : ''}
+                                <span class="text-gray-400 text-sm">市場份額: ${competitor.marketShare}%</span>
                             </div>
-                            <button onclick="removeCompetitor('${competitor.id}')" class="text-red-400 hover:text-red-300 text-sm">
-                                ✕ 移除
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="editCompetitor('${competitor.id}')" class="text-blue-400 hover:text-blue-300 text-sm px-2 py-1">
+                                    ✏️ 編輯
+                                </button>
+                                <button onclick="removeCompetitor('${competitor.id}')" class="text-red-400 hover:text-red-300 text-sm px-2 py-1">
+                                    ✕ 刪除
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
@@ -1779,15 +1786,36 @@ ${generateExecutionRecommendations(keywords)}
                 let addedCount = 0;
                 let skippedCount = 0;
 
-                competitors.forEach(competitorName => {
-                    // 檢查是否已經選擇
-                    if (state.analysisData.selectedCompetitors.includes(competitorName)) {
+                competitors.forEach((competitorName, index) => {
+                    // 為手動添加的競爭對手創建唯一ID
+                    const manualId = `manual_${Date.now()}_${index}`;
+                    
+                    // 檢查是否已經選擇（基於名稱）
+                    const exists = state.analysisData.selectedCompetitors.find(c => c.name === competitorName);
+                    if (exists) {
                         skippedCount++;
                         return;
                     }
 
+                    // 創建競爭對手物件
+                    const competitor = {
+                        id: manualId,
+                        name: competitorName,
+                        website: `https://www.google.com/search?q=${encodeURIComponent(competitorName)}`,
+                        linkedin: null,
+                        description: `${competitorName} - 手動添加的競爭對手`,
+                        industry: state.analysisData.industry?.category || 'other',
+                        marketShare: Math.floor(Math.random() * 20) + 5, // 隨機市場份額
+                        strength: Math.floor(Math.random() * 60) + 40,
+                        weakness: Math.floor(Math.random() * 60) + 40,
+                        opportunity: Math.floor(Math.random() * 60) + 40,
+                        threat: Math.floor(Math.random() * 60) + 40,
+                        productComparison: '手動添加，需要進一步分析',
+                        selected: true
+                    };
+
                     // 添加到選擇清單
-                    state.analysisData.selectedCompetitors.push(competitorName);
+                    state.analysisData.selectedCompetitors.push(competitor);
                     addedCount++;
                 });
                 
@@ -2191,6 +2219,100 @@ ${generateContentStrategyRecommendations(keywords)}
             return `關鍵字匹配建議：${keyword} 的匹配策略`;
         }
 
+        // 編輯競爭對手
+        function editCompetitor(competitorId) {
+            try {
+                const competitor = state.analysisData.selectedCompetitors.find(c => c.id === competitorId);
+                if (!competitor) {
+                    showAlert('找不到競爭對手', '無法編輯該競爭對手', 'error');
+                    return;
+                }
+
+                // 創建編輯對話框
+                const editDialog = document.createElement('div');
+                editDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                editDialog.innerHTML = `
+                    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+                        <h3 class="text-lg font-semibold text-gray-200 mb-4">編輯競爭對手</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">競爭對手名稱</label>
+                                <input type="text" id="edit-competitor-name" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" value="${competitor.name}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">網站</label>
+                                <input type="text" id="edit-competitor-website" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" value="${competitor.website || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">市場份額 (%)</label>
+                                <input type="number" id="edit-competitor-marketshare" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" value="${competitor.marketShare}" min="0" max="100">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">描述</label>
+                                <textarea id="edit-competitor-description" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" rows="3">${competitor.description || ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 mt-6">
+                            <button onclick="closeEditDialog()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">取消</button>
+                            <button onclick="saveCompetitorEdit('${competitorId}')" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">儲存</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(editDialog);
+                
+            } catch (error) {
+                console.error('編輯競爭對手失敗:', error);
+                showAlert('編輯失敗', '無法編輯競爭對手', 'error');
+            }
+        }
+
+        // 儲存競爭對手編輯
+        function saveCompetitorEdit(competitorId) {
+            try {
+                const competitor = state.analysisData.selectedCompetitors.find(c => c.id === competitorId);
+                if (!competitor) {
+                    showAlert('找不到競爭對手', '無法儲存編輯', 'error');
+                    return;
+                }
+
+                const name = document.getElementById('edit-competitor-name')?.value?.trim();
+                const website = document.getElementById('edit-competitor-website')?.value?.trim();
+                const marketShare = parseInt(document.getElementById('edit-competitor-marketshare')?.value) || 10;
+                const description = document.getElementById('edit-competitor-description')?.value?.trim();
+
+                if (!name) {
+                    showAlert('請輸入競爭對手名稱', '名稱不能為空', 'warning');
+                    return;
+                }
+
+                // 更新競爭對手資料
+                competitor.name = name;
+                competitor.website = website || `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                competitor.marketShare = marketShare;
+                competitor.description = description || `${name} - 競爭對手`;
+
+                // 關閉對話框
+                closeEditDialog();
+
+                // 更新顯示
+                updateSelectedCompetitorsDisplay();
+
+                showAlert('儲存成功', '競爭對手資料已更新', 'success');
+                
+            } catch (error) {
+                console.error('儲存競爭對手編輯失敗:', error);
+                showAlert('儲存失敗', '無法儲存編輯', 'error');
+            }
+        }
+
+        // 關閉編輯對話框
+        function closeEditDialog() {
+            const dialog = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+            if (dialog) {
+                dialog.remove();
+            }
+        }
     </script>
 </head>
 <body>
