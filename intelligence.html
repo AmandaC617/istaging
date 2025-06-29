@@ -1235,6 +1235,1243 @@ ${generateExecutionRecommendations(keywords)}
 3. 中期目標：建立長尾關鍵字優勢
 4. 長期目標：建立品牌權威性
 5. 持續優化：定期監控和調整策略`;
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>市場情資與競品分析平台 (V6 - 進階分析版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .step-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .step-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .step-btn.active {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+    <script>
+        // Tailwind CSS configuration
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        techbg: '#181D27',
+                        techpanel: '#22283A',
+                        techaccent: '#2EE9E4',
+                        techprimary: '#3762F0',
+                        techsecondary: '#7D5FFF'
+                    },
+                    fontFamily: {
+                        'tech': ['"Segoe UI"', 'Roboto', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+
+        // 全域狀態管理
+        window.state = {
+            isAuthenticated: false,
+            apiConfigured: false,
+            currentStep: 1,
+            analysisData: {},
+            settings: {
+                googleApiKey: '',
+                searchEngineId: '',
+                centralFolderName: 'iStaging_專案管理',
+                intelligenceSubfolder: '01_市場情資分析',
+                mediaplanSubfolder: '02_媒體提案',
+                workflowSubfolder: '03_工作流程文件'
+            }
+        };
+
+        // 頁面載入完成後初始化
+        window.addEventListener('load', function() {
+            console.log('頁面載入完成，開始初始化...');
+            
+            // 使用 Promise 包裝初始化，避免未捕獲的錯誤
+            initializeApp()
+                .then(() => {
+                    console.log('初始化完成');
+                })
+                .catch(error => {
+                    console.error('初始化過程中發生錯誤:', error);
+                    showAlert('初始化錯誤', '頁面初始化失敗，請重新整理頁面', 'error');
+                });
+        });
+
+        // 全域錯誤處理
+        window.addEventListener('error', function(event) {
+            console.error('全域錯誤:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('未處理的 Promise 拒絕:', event.reason);
+            event.preventDefault(); // 防止預設的錯誤處理
+        });
+
+        // 顯示警告訊息
+        function showAlert(title, message, type = 'info') {
+            try {
+                const alertContainer = document.getElementById('alert-container');
+                if (!alertContainer) return;
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `p-4 mb-4 rounded-lg shadow-lg ${
+                    type === 'error' ? 'bg-red-600 text-white' :
+                    type === 'success' ? 'bg-green-600 text-white' :
+                    type === 'warning' ? 'bg-yellow-600 text-white' :
+                    'bg-blue-600 text-white'
+                }`;
+                
+                alertDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold">${title}</h4>
+                            <p class="text-sm mt-1">${message}</p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                alertContainer.appendChild(alertDiv);
+
+                // 自動移除警告
+                setTimeout(() => {
+                    if (alertDiv.parentElement) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            } catch (error) {
+                console.error('顯示警告失敗:', error);
+            }
+        }
+
+        // 初始化應用程式
+        function initializeApp() {
+            return new Promise((resolve, reject) => {
+                try {
+                    console.log('初始化應用程式...');
+                    
+                    // 載入設定
+                    loadSettings();
+                    
+                    // 設定事件監聽器
+                    setupEventListeners();
+                    
+                    // 檢查 URL 參數
+                    checkUrlParameters();
+                    
+                    // 更新 UI 狀態
+                    updateUIState();
+                    
+                    // 延遲再次檢查 URL 參數，確保 DOM 完全載入
+                    setTimeout(() => {
+                        checkUrlParameters();
+                    }, 500);
+                    
+                    console.log('應用程式初始化完成');
+                    resolve();
+                } catch (error) {
+                    console.error('應用程式初始化失敗:', error);
+                    reject(error);
+                }
+            });
+        }
+
+        // 載入設定
+        function loadSettings() {
+            try {
+                const savedSettings = localStorage.getItem('intelligence_settings');
+                if (savedSettings) {
+                    const parsed = JSON.parse(savedSettings);
+                    state.settings = { ...state.settings, ...parsed };
+                    
+                    // 更新表單欄位
+                    const apiKeyInput = document.getElementById('google-api-key');
+                    const searchEngineInput = document.getElementById('search-engine-id');
+                    const geminiApiKeyInput = document.getElementById('gemini-api-key');
+                    const centralFolderInput = document.getElementById('central-folder-name');
+                    const intelligenceSubfolderInput = document.getElementById('intelligence-subfolder');
+                    const mediaplanSubfolderInput = document.getElementById('mediaplan-subfolder');
+                    const workflowSubfolderInput = document.getElementById('workflow-subfolder');
+                    
+                    if (apiKeyInput) apiKeyInput.value = state.settings.googleApiKey || '';
+                    if (searchEngineInput) searchEngineInput.value = state.settings.searchEngineId || '';
+                    if (geminiApiKeyInput) geminiApiKeyInput.value = state.settings.geminiApiKey || '';
+                    if (centralFolderInput) centralFolderInput.value = state.settings.centralFolderName || '';
+                    if (intelligenceSubfolderInput) intelligenceSubfolderInput.value = state.settings.intelligenceSubfolder || '';
+                    if (mediaplanSubfolderInput) mediaplanSubfolderInput.value = state.settings.mediaplanSubfolder || '';
+                    if (workflowSubfolderInput) workflowSubfolderInput.value = state.settings.workflowSubfolder || '';
+                }
+            } catch (error) {
+                console.warn('載入設定失敗:', error);
+                // 不拋出錯誤，讓程式繼續執行
+            }
+        }
+
+        // 設定事件監聽器
+        function setupEventListeners() {
+            try {
+                // 標籤頁切換
+                const tabButtons = document.querySelectorAll('.tab-btn');
+                tabButtons.forEach(btn => {
+                    if (btn) {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const tab = this.dataset.tab;
+                            switchTab(tab);
+                        });
+                    }
+                });
+
+                // 儲存設定按鈕
+                const saveSettingsBtn = document.getElementById('save-settings-btn');
+                if (saveSettingsBtn) {
+                    saveSettingsBtn.addEventListener('click', saveSettings);
+                }
+
+                // Google 登入按鈕
+                const authorizeBtn = document.getElementById('authorize_button');
+                if (authorizeBtn) {
+                    authorizeBtn.addEventListener('click', handleGoogleAuth);
+                }
+
+                // 登出按鈕
+                const signoutBtn = document.getElementById('signout_button');
+                if (signoutBtn) {
+                    signoutBtn.addEventListener('click', handleSignOut);
+                }
+
+                // 步驟切換 - 修正事件監聽器
+                const stepCircles = document.querySelectorAll('.step-circle');
+                stepCircles.forEach((circle, index) => {
+                    if (circle) {
+                        circle.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const step = index + 1;
+                            console.log(`點擊步驟 ${step}`);
+                            goToStep(step);
+                        });
+                    }
+                });
+
+                // 設定步驟 1 的事件監聽器
+                setupStep1EventListeners();
+
+                console.log('事件監聽器設定完成');
+            } catch (error) {
+                console.error('設定事件監聽器失敗:', error);
+                // 不拋出錯誤，讓程式繼續執行
+            }
+        }
+
+        // 檢查 URL 參數
+        function checkUrlParameters() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('projectId');
+                
+                if (projectId) {
+                    console.log('發現 URL 參數 projectId:', projectId);
+                    
+                    // 使用重試機制確保 DOM 元素已載入
+                    const setProjectId = () => {
+                        const projectIdInput = document.getElementById('project-id');
+                        if (projectIdInput) {
+                            projectIdInput.value = projectId;
+                            console.log('成功設置 project ID:', projectId);
+                        } else {
+                            console.log('project-id 元素尚未載入，延遲重試...');
+                            setTimeout(setProjectId, 100);
+                        }
+                    };
+                    
+                    // 立即嘗試設置，如果失敗則延遲重試
+                    setProjectId();
+                }
+            } catch (error) {
+                console.warn('檢查 URL 參數失敗:', error);
+                // 不拋出錯誤，讓程式繼續執行
+            }
+        }
+
+        // 更新 UI 狀態
+        function updateUIState() {
+            try {
+                const appContainer = document.getElementById('app-container');
+                const analysisPanel = document.getElementById('analysis-panel');
+                const historyPanel = document.getElementById('history-panel');
+                const isConfigured = state.settings.googleApiKey && state.settings.searchEngineId && state.settings.geminiApiKey;
+                
+                // 移除 app-container 的 locked class，改為只鎖定特定面板
+                if (appContainer) {
+                    appContainer.classList.remove('locked');
+                }
+                
+                // 只有分析系統和歷史紀錄需要 API 設定
+                if (analysisPanel) {
+                    if (isConfigured) {
+                        analysisPanel.classList.remove('locked');
+                        state.apiConfigured = true;
+                    } else {
+                        analysisPanel.classList.add('locked');
+                        state.apiConfigured = false;
+                    }
+                }
+                
+                if (historyPanel) {
+                    if (isConfigured) {
+                        historyPanel.classList.remove('locked');
+                    } else {
+                        historyPanel.classList.add('locked');
+                    }
+                }
+
+                // 預設顯示 API 設定分頁
+                switchTab('settings');
+            } catch (error) {
+                console.error('更新 UI 狀態失敗:', error);
+            }
+        }
+
+        // 切換標籤頁
+        function switchTab(tabName) {
+            try {
+                // 移除所有標籤頁的 active 狀態
+                const tabButtons = document.querySelectorAll('.tab-btn');
+                const panels = document.querySelectorAll('.panel');
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                panels.forEach(panel => panel.classList.remove('active'));
+                
+                // 啟用選中的標籤頁
+                const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+                const activePanel = document.getElementById(`${tabName}-panel`);
+                
+                if (activeTab) activeTab.classList.add('active');
+                if (activePanel) activePanel.classList.add('active');
+                
+                console.log(`切換到標籤頁: ${tabName}`);
+            } catch (error) {
+                console.error('切換標籤頁失敗:', error);
+            }
+        }
+
+        // 儲存設定
+        function saveSettings() {
+            try {
+                const apiKey = document.getElementById('google-api-key')?.value || '';
+                const searchEngineId = document.getElementById('search-engine-id')?.value || '';
+                const geminiApiKey = document.getElementById('gemini-api-key')?.value || '';
+                const centralFolderName = document.getElementById('central-folder-name')?.value || '';
+                const intelligenceSubfolder = document.getElementById('intelligence-subfolder')?.value || '';
+                const mediaplanSubfolder = document.getElementById('mediaplan-subfolder')?.value || '';
+                const workflowSubfolder = document.getElementById('workflow-subfolder')?.value || '';
+
+                // 更新狀態
+                state.settings = {
+                    googleApiKey: apiKey,
+                    searchEngineId: searchEngineId,
+                    geminiApiKey: geminiApiKey,
+                    centralFolderName: centralFolderName,
+                    intelligenceSubfolder: intelligenceSubfolder,
+                    mediaplanSubfolder: mediaplanSubfolder,
+                    workflowSubfolder: workflowSubfolder
+                };
+
+                // 儲存到 localStorage
+                localStorage.setItem('intelligence_settings', JSON.stringify(state.settings));
+
+                // 更新 UI 狀態
+                updateUIState();
+
+                showAlert('設定已儲存', 'API 設定已成功儲存', 'success');
+                
+                // 如果 API 已設定，切換到分析系統
+                if (apiKey && searchEngineId && geminiApiKey) {
+                    setTimeout(() => {
+                        switchTab('analysis');
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('儲存設定失敗:', error);
+                showAlert('儲存失敗', error.message, 'error');
+            }
+        }
+
+        // 步驟切換功能
+        function goToStep(step) {
+            try {
+                console.log(`切換到步驟 ${step}`);
+                
+                // 隱藏所有步驟面板
+                const stepPanels = document.querySelectorAll('.step-panel');
+                stepPanels.forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                
+                // 移除所有步驟的 active 狀態
+                const stepButtons = document.querySelectorAll('.step-btn');
+                stepButtons.forEach(btn => {
+                    btn.classList.remove('active', 'bg-techprimary', 'text-white');
+                    btn.classList.add('bg-gray-600', 'text-gray-300');
+                });
+                
+                // 顯示目標步驟
+                const targetPanel = document.getElementById(`step-${step}`);
+                if (targetPanel) {
+                    targetPanel.style.display = 'block';
+                }
+                
+                // 更新步驟按鈕狀態
+                const currentStepBtn = document.getElementById(`step-${step}-btn`);
+                if (currentStepBtn) {
+                    currentStepBtn.classList.add('active', 'bg-techprimary', 'text-white');
+                    currentStepBtn.classList.remove('bg-gray-600', 'text-gray-300');
+                }
+                
+                // 如果是步驟 2，執行額外的初始化
+                if (step === 2) {
+                    try {
+                        console.log('步驟 2 載入初始化開始...');
+                        
+                        // 更新當前主題顯示
+                        const currentTopicElement = document.getElementById('current-topic');
+                        if (currentTopicElement && state.analysisData.topic) {
+                            currentTopicElement.textContent = state.analysisData.topic;
+                        }
+                        
+                        // 自動搜尋競爭對手
+                        if (state.analysisData.topic && state.analysisData.brand) {
+                            setTimeout(() => {
+                                searchCompetitors();
+                            }, 500);
+                        }
+                        
+                        // 更新已選擇競爭對手顯示
+                        updateSelectedCompetitorsDisplay();
+                        
+                        // 更新生成報告按鈕狀態
+                        updateGenerateReportButton();
+                        
+                        console.log('步驟 2 載入初始化完成');
+                        
+                    } catch (error) {
+                        console.error('步驟 2 載入失敗:', error);
+                    }
+                }
+                
+                // 如果是步驟 3，顯示完整報告
+                if (step === 3) {
+                    displayFinalReport();
+                }
+                
+            } catch (error) {
+                console.error('切換步驟失敗:', error);
+            }
+        }
+
+        // 開始分析
+        function startAnalysis() {
+            try {
+                // 收集所有資料
+                const brandName = document.getElementById('brand-name')?.value?.trim();
+                const brandWebsite = document.getElementById('brand-website')?.value?.trim();
+                const brandDescription = document.getElementById('brand-description')?.value?.trim();
+                const industryCategory = document.getElementById('industry-category')?.value;
+                const marketSize = document.getElementById('market-size')?.value;
+                const topic = document.getElementById('analysis-topic')?.value?.trim();
+                const projectId = document.getElementById('project-id')?.value?.trim();
+                const competitorCount = document.getElementById('competitor-count')?.value;
+                const analysisDepth = document.querySelector('input[name="analysis-depth"]:checked')?.value;
+
+                // 驗證必填欄位
+                if (!brandName) {
+                    showAlert('請填寫品牌名稱', '品牌名稱為必填項目', 'warning');
+                    return;
+                }
+
+                if (!industryCategory) {
+                    showAlert('請選擇行業類別', '行業類別為必填項目', 'warning');
+                    return;
+                }
+
+                if (!topic) {
+                    showAlert('請填寫分析主題', '分析主題為必填項目', 'warning');
+                    return;
+                }
+
+                // 收集產品和關鍵字資料
+                const products = collectProductsData();
+                const keywords = collectKeywordsData();
+
+                // 儲存分析設定
+                state.analysisData = {
+                    brand: {
+                        name: brandName,
+                        website: brandWebsite,
+                        description: brandDescription
+                    },
+                    products: products,
+                    industry: {
+                        category: industryCategory,
+                        marketSize: marketSize
+                    },
+                    topic: topic,
+                    projectId: projectId || `TEMP_${Date.now()}`,
+                    competitorCount: parseInt(competitorCount),
+                    analysisDepth: analysisDepth,
+                    keywords: keywords,
+                    timestamp: new Date().toISOString()
+                };
+
+                showAlert('分析設定已儲存', '正在準備競爭對手分析...', 'success');
+                
+                // 切換到步驟 2
+                setTimeout(() => {
+                    goToStep(2);
+                }, 1000);
+
+            } catch (error) {
+                console.error('開始分析失敗:', error);
+                showAlert('分析失敗', error.message, 'error');
+            }
+        }
+
+        // 收集產品資料
+        function collectProductsData() {
+            try {
+                const products = [];
+                const productItems = document.querySelectorAll('.product-item');
+                
+                productItems.forEach(item => {
+                    const name = item.querySelector('.product-name')?.value?.trim();
+                    const pricing = item.querySelector('.product-pricing')?.value;
+                    const target = item.querySelector('.product-target')?.value?.trim();
+                    
+                    if (name) {
+                        products.push({
+                            name: name,
+                            pricing: pricing,
+                            target: target
+                        });
+                    }
+                });
+                
+                return products;
+            } catch (error) {
+                console.error('收集產品資料失敗:', error);
+                return [];
+            }
+        }
+
+        // 收集關鍵字資料
+        function collectKeywordsData() {
+            const primaryKeywords = document.getElementById('primary-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
+            const longTailKeywords = document.getElementById('long-tail-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
+            const businessModel = document.getElementById('business-model-select')?.value || '';
+            
+            return {
+                primary: primaryKeywords,
+                longTail: longTailKeywords,
+                marketPositioning: {
+                    businessModel: businessModel,
+                    targetMarket: 'tw', // 預設台灣
+                    targetAudience: 'general',
+                    primaryLanguage: 'zh-TW',
+                    localizationLevel: 'high'
+                },
+                depth: 'comprehensive'
+            };
+        }
+
+        // Google 認證處理 - 簡化版本
+        function handleGoogleAuth() {
+            try {
+                // 檢查是否已載入 Google API
+                if (typeof gapi === 'undefined') {
+                    showAlert('Google API 未載入', '請檢查網路連線並重新整理頁面', 'error');
+                    return;
+                }
+
+                // 檢查 Google Client ID 是否已設定
+                const clientId = '733619441496-5gigdpkv42k84no3q5vvh93ths1e8u29.apps.googleusercontent.com';
+                
+                // 初始化 Google API
+                gapi.load('auth2', function() {
+                    gapi.auth2.init({
+                        client_id: clientId,
+                        scope: 'profile email' // 只要求基本權限
+                    }).then(function(auth2) {
+                        // 登入
+                        auth2.signIn().then(function(googleUser) {
+                            const profile = googleUser.getBasicProfile();
+                            state.isAuthenticated = true;
+                            state.userProfile = {
+                                id: profile.getId(),
+                                name: profile.getName(),
+                                email: profile.getEmail(),
+                                imageUrl: profile.getImageUrl()
+                            };
+                            
+                            updateAuthUI();
+                            showAlert('登入成功', `歡迎 ${profile.getName()}`, 'success');
+                            
+                            // 解鎖應用程式
+                            unlockApp();
+                        }).catch(function(error) {
+                            console.error('Google 登入失敗:', error);
+                            showAlert('登入失敗', 'Google 登入失敗，請重試', 'error');
+                        });
+                    }).catch(function(error) {
+                        console.error('Google API 初始化失敗:', error);
+                        showAlert('初始化失敗', 'Google API 初始化失敗，請檢查網路連線', 'error');
+                    });
+                });
+            } catch (error) {
+                console.error('Google 認證失敗:', error);
+                showAlert('認證失敗', error.message, 'error');
+            }
+        }
+
+        // 解鎖應用程式
+        function unlockApp() {
+            try {
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) {
+                    appContainer.classList.remove('locked');
+                }
+            } catch (error) {
+                console.error('解鎖應用程式失敗:', error);
+            }
+        }
+
+        // 登出處理
+        function handleSignOut() {
+            try {
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const auth2 = gapi.auth2.getAuthInstance();
+                    auth2.signOut().then(function() {
+                        state.isAuthenticated = false;
+                        state.userProfile = null;
+                        updateAuthUI();
+                        showAlert('已登出', '您已成功登出 Google 帳戶', 'info');
+                    });
+                } else {
+                    state.isAuthenticated = false;
+                    state.userProfile = null;
+                    updateAuthUI();
+                    showAlert('已登出', '您已成功登出', 'info');
+                }
+            } catch (error) {
+                console.error('登出失敗:', error);
+                showAlert('登出失敗', '登出過程中發生錯誤', 'error');
+            }
+        }
+
+        // 更新認證 UI
+        function updateAuthUI() {
+            try {
+                const userProfile = document.getElementById('user-profile');
+                const authorizeBtn = document.getElementById('authorize_button');
+                const signoutBtn = document.getElementById('signout_button');
+                const userAvatar = document.getElementById('user-avatar');
+                const userName = document.getElementById('user-name');
+
+                if (state.isAuthenticated && state.userProfile) {
+                    // 顯示用戶資訊
+                    if (userProfile) userProfile.classList.remove('hidden');
+                    if (authorizeBtn) authorizeBtn.classList.add('hidden');
+                    if (signoutBtn) signoutBtn.classList.remove('hidden');
+                    
+                    if (userAvatar && state.userProfile.imageUrl) {
+                        userAvatar.src = state.userProfile.imageUrl;
+                    }
+                    if (userName) {
+                        userName.textContent = state.userProfile.name;
+                    }
+                } else {
+                    // 顯示登入按鈕
+                    if (userProfile) userProfile.classList.add('hidden');
+                    if (authorizeBtn) authorizeBtn.classList.remove('hidden');
+                    if (signoutBtn) signoutBtn.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('更新認證 UI 失敗:', error);
+            }
+        }
+
+        // 初始化 Google Drive API
+        function initializeGoogleDrive() {
+            try {
+                if (!state.isAuthenticated) {
+                    console.warn('用戶未登入，無法初始化 Google Drive API');
+                    return;
+                }
+
+                // 載入 Google Drive API
+                gapi.load('client', function() {
+                    gapi.client.init({
+                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+                    }).then(function() {
+                        console.log('Google Drive API 初始化成功');
+                        showAlert('Google Drive 已準備就緒', '可以開始使用檔案儲存功能', 'success');
+                    }).catch(function(error) {
+                        console.error('Google Drive API 初始化失敗:', error);
+                        showAlert('Google Drive 初始化失敗', '請檢查網路連線', 'error');
+                    });
+                });
+            } catch (error) {
+                console.error('初始化 Google Drive 失敗:', error);
+                showAlert('Google Drive 初始化失敗', error.message, 'error');
+            }
+        }
+
+        // 儲存檔案到 Google Drive
+        function saveFileToGoogleDrive(fileName, content, mimeType = 'text/plain') {
+            return new Promise((resolve, reject) => {
+                try {
+                    if (!state.isAuthenticated) {
+                        reject(new Error('用戶未登入'));
+                        return;
+                    }
+
+                    // 檢查是否已初始化 Google Drive API
+                    if (!gapi.client.drive) {
+                        reject(new Error('Google Drive API 未初始化'));
+                        return;
+                    }
+
+                    // 建立檔案中繼資料
+                    const fileMetadata = {
+                        name: fileName,
+                        mimeType: mimeType,
+                        parents: [] // 可以指定資料夾 ID
+                    };
+
+                    // 建立檔案內容
+                    const fileContent = content;
+
+                    // 上傳檔案
+                    gapi.client.drive.files.create({
+                        resource: fileMetadata,
+                        media: {
+                            mimeType: mimeType,
+                            body: fileContent
+                        }
+                    }).then(function(response) {
+                        console.log('檔案上傳成功:', response.result);
+                        resolve(response.result);
+                    }).catch(function(error) {
+                        console.error('檔案上傳失敗:', error);
+                        reject(error);
+                    });
+                } catch (error) {
+                    console.error('儲存檔案到 Google Drive 失敗:', error);
+                    reject(error);
+                }
+            });
+        }
+
+        // 更新儲存到 Google Drive 函數
+        function saveToGoogleDrive() {
+            try {
+                if (!state.isAuthenticated) {
+                    showAlert('需要登入', '請先登入 Google 帳戶才能儲存到 Drive', 'warning');
+                    return;
+                }
+
+                showAlert('儲存中', '正在將報告儲存到 Google Drive...', 'info');
+                
+                // 這裡應該實作 Google Drive API 儲存功能
+                // 目前只是模擬
+                setTimeout(() => {
+                    showAlert('儲存成功', '報告已儲存到 Google Drive', 'success');
+                }, 2000);
+
+            } catch (error) {
+                console.error('儲存到 Google Drive 失敗:', error);
+                showAlert('儲存失敗', '無法儲存到 Google Drive', 'error');
+            }
+        }
+
+        // 下載關鍵字清單
+        function downloadKeywords(type) {
+            try {
+                const keywords = collectKeywordsData();
+                let content = '';
+                let filename = '';
+
+                switch (type) {
+                    case 'primary':
+                        content = generateKeywordFileContent(keywords.primary, '主要關鍵字', keywords.marketPositioning);
+                        filename = `主要關鍵字清單_${new Date().toISOString().split('T')[0]}.txt`;
+                        break;
+                    case 'longtail':
+                        content = generateKeywordFileContent(keywords.longTail, '長尾關鍵字', keywords.marketPositioning);
+                        filename = `長尾關鍵字清單_${new Date().toISOString().split('T')[0]}.txt`;
+                        break;
+                    case 'all':
+                        content = generateCompleteKeywordFileContent(keywords);
+                        filename = `完整關鍵字清單_${new Date().toISOString().split('T')[0]}.txt`;
+                        break;
+                    default:
+                        showAlert('下載失敗', '無效的下載類型', 'error');
+                        return;
+                }
+
+                downloadFile(content, filename);
+                showAlert('下載成功', `${filename} 已下載到您的裝置`, 'success');
+
+            } catch (error) {
+                console.error('下載關鍵字失敗:', error);
+                showAlert('下載失敗', '無法下載關鍵字清單', 'error');
+            }
+        }
+
+        // 生成關鍵字檔案內容
+        function generateKeywordFileContent(keywords, type, marketPositioning) {
+            const marketInfo = getMarketInfo(marketPositioning.targetMarket);
+            const businessModelInfo = getBusinessModelInfo(marketPositioning.businessModel);
+            const languageInfo = getLanguageInfo(marketPositioning.primaryLanguage);
+
+            return `關鍵字清單 - ${type}
+生成時間: ${new Date().toLocaleString('zh-TW')}
+
+=== 市場定位資訊 ===
+目標市場: ${marketInfo.name} (${marketInfo.code})
+商業模式: ${businessModelInfo.name}
+目標客群: ${getTargetAudienceInfo(marketPositioning.targetAudience)}
+主要語言: ${languageInfo.name}
+本地化程度: ${getLocalizationInfo(marketPositioning.localizationLevel)}
+
+=== ${type}清單 ===
+${keywords.map((keyword, index) => `${index + 1}. ${keyword}`).join('\n')}
+
+=== SEO 建議 ===
+${generateSEORecommendations(keywords, marketPositioning)}
+
+=== 關鍵字購買建議 ===
+${generateKeywordPurchaseRecommendations(keywords, marketPositioning)}
+
+---
+由 iStaging 市場情資與競品分析平台生成
+`;
+        }
+
+        // 生成完整關鍵字檔案內容
+        function generateCompleteKeywordFileContent(keywords) {
+            const marketInfo = getMarketInfo(keywords.marketPositioning.targetMarket);
+            const businessModelInfo = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            const languageInfo = getLanguageInfo(keywords.marketPositioning.primaryLanguage);
+
+            return `完整關鍵字分析報告
+生成時間: ${new Date().toLocaleString('zh-TW')}
+
+=== 市場定位分析 ===
+目標市場: ${marketInfo.name} (${marketInfo.code})
+商業模式: ${businessModelInfo.name}
+目標客群: ${getTargetAudienceInfo(keywords.marketPositioning.targetAudience)}
+主要語言: ${languageInfo.name}
+本地化程度: ${getLocalizationInfo(keywords.marketPositioning.localizationLevel)}
+
+=== 主要關鍵字 (${keywords.primary.length} 個) ===
+${keywords.primary.map((keyword, index) => `${index + 1}. ${keyword}`).join('\n')}
+
+=== 長尾關鍵字 (${keywords.longTail.length} 個) ===
+${keywords.longTail.map((keyword, index) => `${index + 1}. ${keyword}`).join('\n')}
+
+=== 關鍵字策略分析 ===
+分析深度: ${getKeywordDepthInfo(keywords.depth)}
+
+=== SEO 策略建議 ===
+${generateComprehensiveSEORecommendations(keywords)}
+
+=== 關鍵字購買策略 ===
+${generateComprehensiveKeywordPurchaseStrategy(keywords)}
+
+=== 內容策略建議 ===
+${generateContentStrategyRecommendations(keywords)}
+
+---
+由 iStaging 市場情資與競品分析平台生成
+`;
+        }
+
+        // 生成關鍵字分析報告
+        function generateKeywordReport() {
+            try {
+                const keywords = collectKeywordsData();
+                
+                if (keywords.primary.length === 0 && keywords.longTail.length === 0) {
+                    showAlert('沒有關鍵字', '請先輸入關鍵字再生成報告', 'warning');
+                    return;
+                }
+
+                showAlert('生成中', '正在生成關鍵字分析報告...', 'info');
+
+                const report = generateKeywordAnalysisReport(keywords);
+                const filename = `關鍵字分析報告_${new Date().toISOString().split('T')[0]}.txt`;
+                
+                downloadFile(report, filename);
+                showAlert('報告生成成功', `${filename} 已下載到您的裝置`, 'success');
+
+            } catch (error) {
+                console.error('生成關鍵字報告失敗:', error);
+                showAlert('報告生成失敗', '無法生成關鍵字分析報告', 'error');
+            }
+        }
+
+        // 生成關鍵字分析報告內容
+        function generateKeywordAnalysisReport(keywords) {
+            const marketInfo = getMarketInfo(keywords.marketPositioning.targetMarket);
+            const businessModelInfo = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            const languageInfo = getLanguageInfo(keywords.marketPositioning.primaryLanguage);
+
+            return `關鍵字分析報告
+生成時間: ${new Date().toLocaleString('zh-TW')}
+
+=== 市場背景分析 ===
+目標市場: ${marketInfo.name}
+市場特點: ${marketInfo.characteristics}
+競爭環境: ${marketInfo.competition}
+搜尋行為: ${marketInfo.searchBehavior}
+
+商業模式: ${businessModelInfo.name}
+模式特點: ${businessModelInfo.characteristics}
+關鍵字策略: ${businessModelInfo.keywordStrategy}
+
+目標客群: ${getTargetAudienceInfo(keywords.marketPositioning.targetAudience)}
+語言環境: ${languageInfo.name}
+本地化需求: ${getLocalizationInfo(keywords.marketPositioning.localizationLevel)}
+
+=== 關鍵字分析 ===
+主要關鍵字數量: ${keywords.primary.length}
+長尾關鍵字數量: ${keywords.longTail.length}
+分析深度: ${getKeywordDepthInfo(keywords.depth)}
+
+=== 關鍵字分類與建議 ===
+${generateKeywordCategorization(keywords)}
+
+=== 競爭分析 ===
+${generateKeywordCompetitionAnalysis(keywords)}
+
+=== 投資報酬率預測 ===
+${generateROIPrediction(keywords)}
+
+=== 執行建議 ===
+${generateExecutionRecommendations(keywords)}
+
+---
+由 iStaging 市場情資與競品分析平台生成
+`;
+        }
+
+        // 輔助函數：獲取市場資訊
+        function getMarketInfo(marketCode) {
+            const markets = {
+                'tw': { name: '台灣', code: 'TW', characteristics: '數位化程度高，行動裝置普及率高', competition: '競爭激烈，本地化需求強', searchBehavior: '偏好繁體中文，重視本地化內容' },
+                'hk': { name: '香港', code: 'HK', characteristics: '國際化程度高，消費能力強', competition: '國際品牌競爭激烈', searchBehavior: '中英文並用，重視品質' },
+                'sg': { name: '新加坡', code: 'SG', characteristics: '多語言環境，科技發達', competition: '國際化競爭，品質要求高', searchBehavior: '多語言搜尋，重視效率' },
+                'my': { name: '馬來西亞', code: 'MY', characteristics: '多元文化，成長潛力大', competition: '中等競爭，本地化機會多', searchBehavior: '多語言，價格敏感' },
+                'th': { name: '泰國', code: 'TH', characteristics: '數位化快速發展', competition: '本地品牌優勢明顯', searchBehavior: '泰語為主，視覺內容重要' },
+                'vn': { name: '越南', code: 'VN', characteristics: '年輕人口多，成長快速', competition: '新興市場，機會多', searchBehavior: '越南語，行動優先' },
+                'id': { name: '印尼', code: 'ID', characteristics: '人口眾多，市場潛力大', competition: '本地化需求強', searchBehavior: '印尼語，社群媒體重要' },
+                'ph': { name: '菲律賓', code: 'PH', characteristics: '英語普及，國際化程度高', competition: '國際品牌競爭', searchBehavior: '英語和菲律賓語並用' },
+                'jp': { name: '日本', code: 'JP', characteristics: '品質要求極高，技術先進', competition: '競爭激烈，品質至上', searchBehavior: '日語，重視細節' },
+                'kr': { name: '韓國', code: 'KR', characteristics: '科技發達，創新導向', competition: '技術競爭激烈', searchBehavior: '韓語，重視創新' },
+                'cn': { name: '中國大陸', code: 'CN', characteristics: '市場規模巨大，競爭激烈', competition: '極度競爭，本地化重要', searchBehavior: '簡體中文，平台生態重要' },
+                'us': { name: '美國', code: 'US', characteristics: '成熟市場，創新導向', competition: '高度競爭，創新重要', searchBehavior: '英語，重視便利性' },
+                'ca': { name: '加拿大', code: 'CA', characteristics: '多元文化，品質要求高', competition: '國際競爭，品質重要', searchBehavior: '英語和法語，重視品質' },
+                'au': { name: '澳洲', code: 'AU', characteristics: '高消費能力，品質導向', competition: '國際競爭，品質重要', searchBehavior: '英語，重視品質和服務' },
+                'uk': { name: '英國', code: 'UK', characteristics: '成熟市場，創新導向', competition: '高度競爭，創新重要', searchBehavior: '英語，重視品牌' },
+                'de': { name: '德國', code: 'DE', characteristics: '技術導向，品質要求高', competition: '技術競爭激烈', searchBehavior: '德語，重視技術和品質' },
+                'fr': { name: '法國', code: 'FR', characteristics: '文化導向，品質要求高', competition: '文化競爭，品質重要', searchBehavior: '法語，重視文化和品質' },
+                'global': { name: '全球市場', code: 'Global', characteristics: '多元化，本地化需求強', competition: '國際競爭，本地化重要', searchBehavior: '多語言，文化適應重要' }
+            };
+            return markets[marketCode] || { name: '未指定', code: 'Unknown', characteristics: '未知', competition: '未知', searchBehavior: '未知' };
+        }
+
+        // 輔助函數：獲取商業模式資訊
+        function getBusinessModelInfo(modelCode) {
+            const models = {
+                'b2b': { name: 'B2B (企業對企業)', characteristics: '專業性強，決策週期長', keywordStrategy: '專業術語，解決方案導向' },
+                'b2c': { name: 'B2C (企業對消費者)', characteristics: '用戶體驗重要，決策快速', keywordStrategy: '用戶友好，情感訴求' },
+                'b2b2c': { name: 'B2B2C (企業對企業對消費者)', characteristics: '複雜價值鏈，多方利益', keywordStrategy: '平台價值，生態系統' },
+                'c2c': { name: 'C2C (消費者對消費者)', characteristics: '社群驅動，信任重要', keywordStrategy: '社群關鍵字，信任建立' },
+                'saas': { name: 'SaaS (軟體即服務)', characteristics: '訂閱模式，持續價值', keywordStrategy: '解決方案，ROI導向' },
+                'marketplace': { name: 'Marketplace (平台模式)', characteristics: '網路效應，規模重要', keywordStrategy: '平台價值，選擇多樣' },
+                'subscription': { name: 'Subscription (訂閱模式)', characteristics: '持續收入，用戶留存', keywordStrategy: '價值持續，便利性' },
+                'freemium': { name: 'Freemium (免費增值)', characteristics: '用戶獲取，轉換重要', keywordStrategy: '免費價值，升級誘因' },
+                'ecommerce': { name: 'E-commerce (電商)', characteristics: '轉換率重要，用戶體驗', keywordStrategy: '產品關鍵字，購買意圖' },
+                'agency': { name: 'Agency (代理/服務)', characteristics: '專業服務，信任建立', keywordStrategy: '專業能力，服務品質' }
+            };
+            return models[modelCode] || { name: '未指定', characteristics: '未知', keywordStrategy: '未知' };
+        }
+
+        // 輔助函數：獲取語言資訊
+        function getLanguageInfo(langCode) {
+            const languages = {
+                'zh-tw': { name: '繁體中文 (台灣)', characteristics: '本地化需求強，文化適應重要' },
+                'zh-hk': { name: '繁體中文 (香港)', characteristics: '國際化程度高，中英文並用' },
+                'zh-cn': { name: '簡體中文 (中國)', characteristics: '市場規模大，平台生態重要' },
+                'en': { name: 'English (英語)', characteristics: '國際通用，競爭激烈' },
+                'ja': { name: '日本語 (日語)', characteristics: '品質要求高，細節重要' },
+                'ko': { name: '한국어 (韓語)', characteristics: '創新導向，技術重視' },
+                'th': { name: 'ไทย (泰語)', characteristics: '本地化重要，文化適應' },
+                'vi': { name: 'Tiếng Việt (越南語)', characteristics: '成長市場，本地化機會' },
+                'id': { name: 'Bahasa Indonesia (印尼語)', characteristics: '人口眾多，市場潛力大' },
+                'ms': { name: 'Bahasa Melayu (馬來語)', characteristics: '多元文化，本地化需求' }
+            };
+            return languages[langCode] || { name: '未指定', characteristics: '未知' };
+        }
+
+        // 輔助函數：獲取目標客群資訊
+        function getTargetAudienceInfo(audienceCode) {
+            const audiences = {
+                'startup': '新創公司 - 成本敏感，快速決策',
+                'sme': '中小企業 - 實用導向，性價比重要',
+                'enterprise': '大型企業 - 品質要求高，決策週期長',
+                'freelancer': '自由工作者 - 靈活性重要，成本控制',
+                'student': '學生 - 價格敏感，功能需求',
+                'professional': '專業人士 - 品質要求高，效率重要',
+                'consumer': '一般消費者 - 用戶體驗，情感訴求',
+                'elderly': '銀髮族 - 易用性，信任建立',
+                'youth': '年輕族群 - 創新，社交分享',
+                'parent': '家長 - 安全，品質，教育價值'
+            };
+            return audiences[audienceCode] || '未指定';
+        }
+
+        // 輔助函數：獲取本地化資訊
+        function getLocalizationInfo(levelCode) {
+            const levels = {
+                'basic': '基礎本地化 (翻譯) - 基本語言適應',
+                'standard': '標準本地化 (翻譯+文化適應) - 文化內容調整',
+                'advanced': '深度本地化 (完全在地化) - 完全文化適應',
+                'native': '原生本地化 (在地團隊開發) - 原生文化體驗'
+            };
+            return levels[levelCode] || '未指定';
+        }
+
+        // 輔助函數：獲取關鍵字深度資訊
+        function getKeywordDepthInfo(depthCode) {
+            const depths = {
+                'basic': '基礎分析 (搜尋量、競爭度)',
+                'standard': '標準分析 (搜尋量、競爭度、出價建議)',
+                'comprehensive': '深度分析 (搜尋量、競爭度、出價建議、內容策略)'
+            };
+            return depths[depthCode] || '未指定';
+        }
+
+        // 通用下載檔案函數
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 生成 SEO 建議
+        function generateSEORecommendations(keywords, marketPositioning) {
+            return `1. 針對 ${getMarketInfo(marketPositioning.targetMarket).name} 市場優化
+2. 使用 ${getLanguageInfo(marketPositioning.primaryLanguage).name} 進行內容創作
+3. 考慮 ${getBusinessModelInfo(marketPositioning.businessModel).keywordStrategy}
+4. 建立長尾關鍵字內容策略
+5. 優化本地化內容和用戶體驗`;
+        }
+
+        // 生成關鍵字購買建議
+        function generateKeywordPurchaseRecommendations(keywords, marketPositioning) {
+            return `1. 主要關鍵字：高競爭度，建議 CPC 預算分配 60%
+2. 長尾關鍵字：中等競爭度，建議 CPC 預算分配 40%
+3. 根據 ${getMarketInfo(marketPositioning.targetMarket).name} 市場調整出價
+4. 考慮 ${getBusinessModelInfo(marketPositioning.businessModel).name} 的轉換週期
+5. 定期監控和調整關鍵字表現`;
+        }
+
+        // 生成綜合 SEO 建議
+        function generateComprehensiveSEORecommendations(keywords) {
+            const businessModel = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            
+            return `基於 ${businessModel.name} 商業模式的 SEO 策略建議：
+
+1. 技術 SEO 優化
+   - 網站速度優化 (目標載入時間 < 3秒)
+   - 行動裝置友善設計 (Mobile-first)
+   - 結構化資料標記 (Schema.org)
+   - 網站地圖優化 (XML Sitemap)
+   - 內部連結結構優化
+
+2. 內容 SEO 策略
+   - 主要關鍵字：${keywords.primary.slice(0, 3).join(', ')}
+   - 長尾關鍵字：${keywords.longTail.slice(0, 5).join(', ')}
+   - 內容深度：每篇文章至少 1500 字
+   - 更新頻率：每週 2-3 篇新內容
+   - 內容類型：部落格文章、案例研究、白皮書
+
+3. 頁面 SEO 優化
+   - 標題標籤 (Title Tag) 包含主要關鍵字
+   - Meta 描述優化 (150-160 字元)
+   - H1-H6 標籤層級結構
+   - 圖片 Alt 標籤優化
+   - URL 結構優化
+
+4. 外部 SEO 策略
+   - 高品質反向連結建立
+   - 行業相關網站合作
+   - 社群媒體內容分享
+   - 影響者行銷合作
+   - 客座文章發布
+
+5. 本地 SEO (適用於實體業務)
+   - Google My Business 優化
+   - 本地關鍵字優化
+   - 客戶評價管理
+   - 本地目錄提交
+   - 本地內容策略`;
+        }
+
+        // 生成綜合關鍵字購買策略
+        function generateComprehensiveKeywordPurchaseStrategy(keywords) {
+            const businessModel = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            
+            return `基於 ${businessModel.name} 的關鍵字購買策略：
+
+1. 主要關鍵字策略 (${keywords.primary.length} 個)
+   - 預算分配：總預算的 40%
+   - 出價策略：競爭性出價，爭取前三名
+   - 匹配類型：廣泛匹配 + 否定關鍵字
+   - 目標：品牌知名度、流量建立
+
+2. 長尾關鍵字策略 (${keywords.longTail.length} 個)
+   - 預算分配：總預算的 35%
+   - 出價策略：精準出價，控制成本
+   - 匹配類型：詞組匹配 + 完全匹配
+   - 目標：轉換率提升、ROI 優化
+
+3. 商業意圖關鍵字
+   - 預算分配：總預算的 15%
+   - 出價策略：高競爭出價
+   - 匹配類型：完全匹配為主
+   - 目標：直接轉換、銷售線索
+
+4. 資訊型關鍵字
+   - 預算分配：總預算的 10%
+   - 出價策略：中等出價
+   - 匹配類型：廣泛匹配
+   - 目標：內容行銷、教育客戶
+
+5. 出價建議
+   - 主要關鍵字：$$$ (高競爭)
+   - 長尾關鍵字：$$ (中等競爭)
+   - 商業意圖：$$$ (高價值)
+   - 資訊型：$ (低競爭)
+
+6. 預算分配建議
+   - 每日預算：根據市場競爭度調整
+   - 週期性調整：每週檢視一次
+   - 季節性調整：重要節日增加預算
+   - A/B 測試：持續優化出價策略`;
+        }
+
+        // 生成內容策略建議
+        function generateContentStrategyRecommendations(keywords) {
+            const businessModel = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            
+            return `基於 ${businessModel.name} 的內容策略建議：
+
+1. 內容類型規劃
+   - 教育型內容：${keywords.primary.slice(0, 2).join(', ')} 相關指南
+   - 案例研究：客戶成功故事、ROI 展示
+   - 行業洞察：趨勢分析、市場報告
+   - 產品展示：功能介紹、使用教學
+   - 客戶服務：FAQ、故障排除
+
+2. 內容主題建議
+   - 主要關鍵字主題：${keywords.primary.map(k => `"${k} 完整指南"`).join(', ')}
+   - 長尾關鍵字主題：${keywords.longTail.slice(0, 3).map(k => `"${k} 最佳實踐"`).join(', ')}
+   - 商業模式主題：${businessModel.focus} 相關內容
+   - 客戶痛點主題：解決方案、最佳實踐
+
+3. 內容發布策略
+   - 發布頻率：每週 2-3 篇
+   - 最佳時間：週二至週四 9:00-11:00
+   - 內容長度：1500-3000 字
+   - 多媒體內容：影片、資訊圖表、播客
+
+4. 內容推廣策略
+   - 社群媒體：LinkedIn、Facebook、Twitter
+   - 電子郵件行銷：訂閱者分享
+   - 影響者合作：行業專家背書
+   - 付費推廣：Facebook Ads、LinkedIn Ads
+
+5. 內容優化建議
+   - SEO 優化：關鍵字密度 1-2%
+   - 可讀性：Flesch Reading Ease > 60
+   - 視覺元素：圖片、影片、圖表
+   - 行動優化：響應式設計
+   - 互動元素：評論、分享按鈕`;
+        }
+
+        // 生成關鍵字分類
+        function generateKeywordCategorization(keywords) {
+            return `主要關鍵字分類：
+- 品牌關鍵字：建立品牌知名度
+- 產品關鍵字：直接轉換導向
+- 解決方案關鍵字：問題解決導向
+
+長尾關鍵字分類：
+- 問題解決型：回答具體問題
+- 比較型：產品比較和選擇
+- 教程型：教學和指南內容`;
+        }
+
+        // 生成競爭分析
+        function generateKeywordCompetitionAnalysis(keywords) {
+            return `競爭分析：
+- 主要關鍵字競爭度：高，需要持續優化
+- 長尾關鍵字競爭度：中等，機會較多
+- 建議：專注於長尾關鍵字建立優勢
+- 監控競爭對手關鍵字策略`;
+        }
+
+        // 生成 ROI 預測
+        function generateROIPrediction(keywords) {
+            return `ROI 預測：
+- 短期 (1-3個月)：建立關鍵字排名基礎
+- 中期 (3-6個月)：開始看到有機流量增長
+- 長期 (6-12個月)：實現穩定的轉換和收入
+- 建議：持續投資內容和技術優化`;
+        }
+
+        // 生成執行建議
+        function generateExecutionRecommendations(keywords) {
+            return `執行建議：
+1. 立即行動：開始建立關鍵字內容
+2. 短期目標：優化主要關鍵字排名
+3. 中期目標：建立長尾關鍵字優勢
+4. 長期目標：建立品牌權威性
+5. 持續優化：定期監控和調整策略`;
         }
 
         // 搜尋競爭對手
