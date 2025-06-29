@@ -140,6 +140,11 @@
                     // 更新 UI 狀態
                     updateUIState();
                     
+                    // 延遲再次檢查 URL 參數，確保 DOM 完全載入
+                    setTimeout(() => {
+                        checkUrlParameters();
+                    }, 500);
+                    
                     console.log('應用程式初始化完成');
                     resolve();
                 } catch (error) {
@@ -244,10 +249,22 @@
                 const projectId = urlParams.get('projectId');
                 
                 if (projectId) {
-                    const projectIdInput = document.getElementById('project-id');
-                    if (projectIdInput) {
-                        projectIdInput.value = projectId;
-                    }
+                    console.log('發現 URL 參數 projectId:', projectId);
+                    
+                    // 使用重試機制確保 DOM 元素已載入
+                    const setProjectId = () => {
+                        const projectIdInput = document.getElementById('project-id');
+                        if (projectIdInput) {
+                            projectIdInput.value = projectId;
+                            console.log('成功設置 project ID:', projectId);
+                        } else {
+                            console.log('project-id 元素尚未載入，延遲重試...');
+                            setTimeout(setProjectId, 100);
+                        }
+                    };
+                    
+                    // 立即嘗試設置，如果失敗則延遲重試
+                    setProjectId();
                 }
             } catch (error) {
                 console.warn('檢查 URL 參數失敗:', error);
