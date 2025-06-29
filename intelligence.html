@@ -342,6 +342,51 @@
             }
         }
 
+        // 步驟切換功能
+        function goToStep(step) {
+            try {
+                console.log(`切換到步驟 ${step}`);
+                
+                // 隱藏所有步驟面板
+                const stepPanels = document.querySelectorAll('.step-panel');
+                stepPanels.forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                
+                // 移除所有步驟的 active 狀態
+                const steps = document.querySelectorAll('.step');
+                steps.forEach(s => {
+                    s.classList.remove('active', 'completed');
+                });
+                
+                // 顯示目標步驟
+                const targetPanel = document.getElementById(`step-${step}-content`);
+                if (targetPanel) {
+                    targetPanel.style.display = 'block';
+                }
+                
+                // 更新步驟狀態
+                for (let i = 1; i <= step; i++) {
+                    const stepElement = document.getElementById(`step-${i}`);
+                    if (stepElement) {
+                        if (i === step) {
+                            stepElement.classList.add('active');
+                        } else {
+                            stepElement.classList.add('completed');
+                        }
+                    }
+                }
+                
+                // 如果是步驟 2，執行額外的初始化
+                if (step === 2) {
+                    onStep2Load();
+                }
+                
+            } catch (error) {
+                console.error('切換步驟失敗:', error);
+            }
+        }
+
         // 開始分析
         function startAnalysis() {
             try {
@@ -479,7 +524,7 @@
             }
         }
 
-        // Google 認證處理 - 實作基本功能
+        // Google 認證處理 - 簡化版本
         function handleGoogleAuth() {
             try {
                 // 檢查是否已載入 Google API
@@ -489,17 +534,16 @@
                 }
 
                 // 檢查 Google Client ID 是否已設定
-                const clientId = '733619441496-5gigdpkv42k84no3q5vvh93ths1e8u29.apps.googleusercontent.com'; // 已設定 Google Client ID
+                const clientId = '733619441496-5gigdpkv42k84no3q5vvh93ths1e8u29.apps.googleusercontent.com';
                 
                 // 初始化 Google API
                 gapi.load('auth2', function() {
                     gapi.auth2.init({
-                        client_id: clientId
+                        client_id: clientId,
+                        scope: 'profile email' // 只要求基本權限
                     }).then(function(auth2) {
                         // 登入
-                        auth2.signIn({
-                            scope: 'https://www.googleapis.com/auth/drive.file'
-                        }).then(function(googleUser) {
+                        auth2.signIn().then(function(googleUser) {
                             const profile = googleUser.getBasicProfile();
                             state.isAuthenticated = true;
                             state.userProfile = {
@@ -512,20 +556,32 @@
                             updateAuthUI();
                             showAlert('登入成功', `歡迎 ${profile.getName()}`, 'success');
                             
-                            // 初始化 Google Drive API
-                            initializeGoogleDrive();
+                            // 解鎖應用程式
+                            unlockApp();
                         }).catch(function(error) {
                             console.error('Google 登入失敗:', error);
                             showAlert('登入失敗', 'Google 登入失敗，請重試', 'error');
                         });
                     }).catch(function(error) {
                         console.error('Google API 初始化失敗:', error);
-                        showAlert('初始化失敗', 'Google API 初始化失敗，請檢查 Client ID 設定', 'error');
+                        showAlert('初始化失敗', 'Google API 初始化失敗，請檢查網路連線', 'error');
                     });
                 });
             } catch (error) {
                 console.error('Google 認證失敗:', error);
                 showAlert('認證失敗', error.message, 'error');
+            }
+        }
+
+        // 解鎖應用程式
+        function unlockApp() {
+            try {
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) {
+                    appContainer.classList.remove('locked');
+                }
+            } catch (error) {
+                console.error('解鎖應用程式失敗:', error);
             }
         }
 
