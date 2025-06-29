@@ -488,45 +488,22 @@
 
         // 收集關鍵字資料
         function collectKeywordsData() {
-            try {
-                const primaryKeywords = document.getElementById('primary-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
-                const longTailKeywords = document.getElementById('long-tail-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
-                const keywordDepth = document.querySelector('input[name="keyword-depth"]:checked')?.value || 'standard';
-                
-                // 收集新的市場定位資料
-                const targetMarket = document.getElementById('target-market')?.value || '';
-                const businessModel = document.getElementById('business-model')?.value || '';
-                const targetAudience = document.getElementById('target-audience')?.value || '';
-                const primaryLanguage = document.getElementById('primary-language')?.value || '';
-                const localizationLevel = document.getElementById('localization-level')?.value || '';
-                
-                return {
-                    primary: primaryKeywords,
-                    longTail: longTailKeywords,
-                    depth: keywordDepth,
-                    marketPositioning: {
-                        targetMarket: targetMarket,
-                        businessModel: businessModel,
-                        targetAudience: targetAudience,
-                        primaryLanguage: primaryLanguage,
-                        localizationLevel: localizationLevel
-                    }
-                };
-            } catch (error) {
-                console.error('收集關鍵字資料失敗:', error);
-                return { 
-                    primary: [], 
-                    longTail: [], 
-                    depth: 'standard',
-                    marketPositioning: {
-                        targetMarket: '',
-                        businessModel: '',
-                        targetAudience: '',
-                        primaryLanguage: '',
-                        localizationLevel: ''
-                    }
-                };
-            }
+            const primaryKeywords = document.getElementById('primary-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
+            const longTailKeywords = document.getElementById('long-tail-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
+            const businessModel = document.getElementById('business-model-select')?.value || '';
+            
+            return {
+                primary: primaryKeywords,
+                longTail: longTailKeywords,
+                marketPositioning: {
+                    businessModel: businessModel,
+                    targetMarket: 'tw', // 預設台灣
+                    targetAudience: 'general',
+                    primaryLanguage: 'zh-TW',
+                    localizationLevel: 'high'
+                },
+                depth: 'comprehensive'
+            };
         }
 
         // Google 認證處理 - 簡化版本
@@ -1041,29 +1018,126 @@ ${generateExecutionRecommendations(keywords)}
 
         // 生成綜合 SEO 建議
         function generateComprehensiveSEORecommendations(keywords) {
-            return `1. 技術 SEO：優化網站速度、行動友善性、結構化資料
-2. 內容 SEO：建立高品質、相關性強的內容
-3. 本地化 SEO：針對目標市場進行本地化優化
-4. 用戶體驗：改善網站導航、載入速度、轉換率
-5. 連結建立：建立高品質的反向連結`;
+            const businessModel = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            
+            return `基於 ${businessModel.name} 商業模式的 SEO 策略建議：
+
+1. 技術 SEO 優化
+   - 網站速度優化 (目標載入時間 < 3秒)
+   - 行動裝置友善設計 (Mobile-first)
+   - 結構化資料標記 (Schema.org)
+   - 網站地圖優化 (XML Sitemap)
+   - 內部連結結構優化
+
+2. 內容 SEO 策略
+   - 主要關鍵字：${keywords.primary.slice(0, 3).join(', ')}
+   - 長尾關鍵字：${keywords.longTail.slice(0, 5).join(', ')}
+   - 內容深度：每篇文章至少 1500 字
+   - 更新頻率：每週 2-3 篇新內容
+   - 內容類型：部落格文章、案例研究、白皮書
+
+3. 頁面 SEO 優化
+   - 標題標籤 (Title Tag) 包含主要關鍵字
+   - Meta 描述優化 (150-160 字元)
+   - H1-H6 標籤層級結構
+   - 圖片 Alt 標籤優化
+   - URL 結構優化
+
+4. 外部 SEO 策略
+   - 高品質反向連結建立
+   - 行業相關網站合作
+   - 社群媒體內容分享
+   - 影響者行銷合作
+   - 客座文章發布
+
+5. 本地 SEO (適用於實體業務)
+   - Google My Business 優化
+   - 本地關鍵字優化
+   - 客戶評價管理
+   - 本地目錄提交
+   - 本地內容策略`;
         }
 
         // 生成綜合關鍵字購買策略
         function generateComprehensiveKeywordPurchaseStrategy(keywords) {
-            return `1. 預算分配：主要關鍵字 60%，長尾關鍵字 40%
-2. 出價策略：根據競爭度和轉換率調整
-3. 廣告文案：針對不同關鍵字類型優化
-4. 著陸頁：為不同關鍵字建立專屬頁面
-5. 監控指標：CTR、轉換率、ROAS、品質分數`;
+            const businessModel = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            
+            return `基於 ${businessModel.name} 的關鍵字購買策略：
+
+1. 主要關鍵字策略 (${keywords.primary.length} 個)
+   - 預算分配：總預算的 40%
+   - 出價策略：競爭性出價，爭取前三名
+   - 匹配類型：廣泛匹配 + 否定關鍵字
+   - 目標：品牌知名度、流量建立
+
+2. 長尾關鍵字策略 (${keywords.longTail.length} 個)
+   - 預算分配：總預算的 35%
+   - 出價策略：精準出價，控制成本
+   - 匹配類型：詞組匹配 + 完全匹配
+   - 目標：轉換率提升、ROI 優化
+
+3. 商業意圖關鍵字
+   - 預算分配：總預算的 15%
+   - 出價策略：高競爭出價
+   - 匹配類型：完全匹配為主
+   - 目標：直接轉換、銷售線索
+
+4. 資訊型關鍵字
+   - 預算分配：總預算的 10%
+   - 出價策略：中等出價
+   - 匹配類型：廣泛匹配
+   - 目標：內容行銷、教育客戶
+
+5. 出價建議
+   - 主要關鍵字：$$$ (高競爭)
+   - 長尾關鍵字：$$ (中等競爭)
+   - 商業意圖：$$$ (高價值)
+   - 資訊型：$ (低競爭)
+
+6. 預算分配建議
+   - 每日預算：根據市場競爭度調整
+   - 週期性調整：每週檢視一次
+   - 季節性調整：重要節日增加預算
+   - A/B 測試：持續優化出價策略`;
         }
 
         // 生成內容策略建議
         function generateContentStrategyRecommendations(keywords) {
-            return `1. 主要關鍵字：建立權威性內容，解答核心問題
-2. 長尾關鍵字：建立詳細指南和教程
-3. 內容類型：部落格文章、影片、資訊圖表、案例研究
-4. 內容更新：定期更新內容以保持相關性
-5. 內容推廣：透過社群媒體和電子郵件推廣`;
+            const businessModel = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            
+            return `基於 ${businessModel.name} 的內容策略建議：
+
+1. 內容類型規劃
+   - 教育型內容：${keywords.primary.slice(0, 2).join(', ')} 相關指南
+   - 案例研究：客戶成功故事、ROI 展示
+   - 行業洞察：趨勢分析、市場報告
+   - 產品展示：功能介紹、使用教學
+   - 客戶服務：FAQ、故障排除
+
+2. 內容主題建議
+   - 主要關鍵字主題：${keywords.primary.map(k => `"${k} 完整指南"`).join(', ')}
+   - 長尾關鍵字主題：${keywords.longTail.slice(0, 3).map(k => `"${k} 最佳實踐"`).join(', ')}
+   - 商業模式主題：${businessModel.focus} 相關內容
+   - 客戶痛點主題：解決方案、最佳實踐
+
+3. 內容發布策略
+   - 發布頻率：每週 2-3 篇
+   - 最佳時間：週二至週四 9:00-11:00
+   - 內容長度：1500-3000 字
+   - 多媒體內容：影片、資訊圖表、播客
+
+4. 內容推廣策略
+   - 社群媒體：LinkedIn、Facebook、Twitter
+   - 電子郵件行銷：訂閱者分享
+   - 影響者合作：行業專家背書
+   - 付費推廣：Facebook Ads、LinkedIn Ads
+
+5. 內容優化建議
+   - SEO 優化：關鍵字密度 1-2%
+   - 可讀性：Flesch Reading Ease > 60
+   - 視覺元素：圖片、影片、圖表
+   - 行動優化：響應式設計
+   - 互動元素：評論、分享按鈕`;
         }
 
         // 生成關鍵字分類
@@ -1500,24 +1574,40 @@ ${generateExecutionRecommendations(keywords)}
         function addManualCompetitor() {
             try {
                 const input = document.getElementById('manual-competitor');
-                const competitorName = input?.value?.trim();
+                const competitorNames = input?.value?.trim();
                 
-                if (!competitorName) {
+                if (!competitorNames) {
                     showAlert('請輸入競爭對手名稱', '競爭對手名稱不能為空', 'warning');
                     return;
                 }
 
-                // 檢查是否已經選擇
-                if (state.analysisData.selectedCompetitors && state.analysisData.selectedCompetitors.includes(competitorName)) {
-                    showAlert('已選擇', '此競爭對手已在選擇清單中', 'warning');
+                // 分割逗號分隔的競爭對手名稱
+                const competitors = competitorNames.split(',').map(name => name.trim()).filter(name => name.length > 0);
+                
+                if (competitors.length === 0) {
+                    showAlert('請輸入有效的競爭對手名稱', '競爭對手名稱不能為空', 'warning');
                     return;
                 }
 
-                // 添加到選擇清單
+                // 初始化選擇清單
                 if (!state.analysisData.selectedCompetitors) {
                     state.analysisData.selectedCompetitors = [];
                 }
-                state.analysisData.selectedCompetitors.push(competitorName);
+
+                let addedCount = 0;
+                let skippedCount = 0;
+
+                competitors.forEach(competitorName => {
+                    // 檢查是否已經選擇
+                    if (state.analysisData.selectedCompetitors.includes(competitorName)) {
+                        skippedCount++;
+                        return;
+                    }
+
+                    // 添加到選擇清單
+                    state.analysisData.selectedCompetitors.push(competitorName);
+                    addedCount++;
+                });
                 
                 // 更新顯示
                 updateSelectedCompetitorsDisplay();
@@ -1525,7 +1615,15 @@ ${generateExecutionRecommendations(keywords)}
                 // 清空輸入框
                 input.value = '';
                 
-                showAlert('已添加', `${competitorName} 已添加到選擇清單`, 'success');
+                // 顯示結果
+                if (addedCount > 0) {
+                    const message = skippedCount > 0 
+                        ? `已添加 ${addedCount} 個競爭對手，跳過 ${skippedCount} 個重複項目`
+                        : `已添加 ${addedCount} 個競爭對手`;
+                    showAlert('添加成功', message, 'success');
+                } else {
+                    showAlert('沒有新增', '所有競爭對手都已存在於選擇清單中', 'warning');
+                }
                 
             } catch (error) {
                 console.error('手動添加競爭對手失敗:', error);
@@ -1923,802 +2021,513 @@ ${generateStrategyRecommendations()}
                 console.error('顯示完整報告失敗:', error);
             }
         }
+
+        // 生成 Google Ads 文案
+        function generateAdsCopy() {
+            try {
+                // 檢查是否選擇了關鍵字
+                const primaryChecked = document.getElementById('keyword-primary')?.checked;
+                const longtailChecked = document.getElementById('keyword-longtail')?.checked;
+                const commercialChecked = document.getElementById('keyword-commercial')?.checked;
+                const informationalChecked = document.getElementById('keyword-informational')?.checked;
+                const navigationalChecked = document.getElementById('keyword-navigational')?.checked;
+                const transactionalChecked = document.getElementById('keyword-transactional')?.checked;
+                
+                if (!primaryChecked && !longtailChecked && !commercialChecked && !informationalChecked && !navigationalChecked && !transactionalChecked) {
+                    showAlert('請選擇關鍵字', '請至少選擇一種關鍵字類型', 'warning');
+                    return;
+                }
+
+                // 獲取關鍵字
+                const primaryKeywords = document.getElementById('primary-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
+                const longtailKeywords = document.getElementById('long-tail-keywords')?.value?.split('\n').filter(k => k.trim()) || [];
+                const businessModel = document.getElementById('business-model-select')?.value || '';
+                
+                let selectedKeywords = [];
+                if (primaryChecked && primaryKeywords.length > 0) {
+                    selectedKeywords = selectedKeywords.concat(primaryKeywords.map(k => ({ keyword: k, type: 'primary' })));
+                }
+                if (longtailChecked && longtailKeywords.length > 0) {
+                    selectedKeywords = selectedKeywords.concat(longtailKeywords.map(k => ({ keyword: k, type: 'longtail' })));
+                }
+
+                if (selectedKeywords.length === 0) {
+                    showAlert('沒有關鍵字', '請先在步驟 1 輸入關鍵字', 'warning');
+                    return;
+                }
+
+                showAlert('生成中', '正在生成 Google Ads 文案...', 'info');
+
+                // 生成文案
+                const adsCopy = generateEnhancedAdsCopyContent(selectedKeywords, businessModel);
+                const filename = `Google_Ads_文案_${new Date().toISOString().split('T')[0]}.txt`;
+                
+                downloadFile(adsCopy, filename);
+                showAlert('文案生成成功', `${filename} 已下載到您的裝置`, 'success');
+
+            } catch (error) {
+                console.error('生成 Google Ads 文案失敗:', error);
+                showAlert('文案生成失敗', '無法生成 Google Ads 文案', 'error');
+            }
+        }
+
+        // 生成增強版 Google Ads 文案內容
+        function generateEnhancedAdsCopyContent(keywords, businessModel) {
+            const topic = state.analysisData.topic || '未指定';
+            const brand = state.analysisData.brand?.name || '未指定';
+            const industry = state.analysisData.industry?.category || '未指定';
+            const businessModelInfo = getBusinessModelInfo(businessModel);
+
+            let content = `Google Ads 文案產出報告
+生成時間: ${new Date().toLocaleString('zh-TW')}
+
+=== 分析概況 ===
+分析主題: ${topic}
+目標品牌: ${brand}
+所屬產業: ${industry}
+商業模式: ${businessModelInfo.name}
+選擇關鍵字數量: ${keywords.length}
+
+=== 關鍵字清單 ===
+${keywords.map((item, index) => `${index + 1}. ${item.keyword} (${item.type})`).join('\n')}
+
+=== Google Ads 文案建議 ===
+
+`;
+
+            // 為每個關鍵字生成文案
+            keywords.forEach((item, index) => {
+                const keyword = item.keyword;
+                const type = item.type;
+                
+                content += `關鍵字 ${index + 1}: ${keyword} (${type})
+
+標題建議 (最多 30 字元):
+1. ${generateBusinessModelAdTitle(keyword, brand, businessModel, 30)}
+2. ${generateBusinessModelAdTitle(keyword, brand, businessModel, 30)}
+3. ${generateBusinessModelAdTitle(keyword, brand, businessModel, 30)}
+
+描述建議 (最多 90 字元):
+${generateBusinessModelAdDescription(keyword, brand, businessModel, 90)}
+
+行動呼籲建議:
+${generateBusinessModelCTAs(businessModel)}
+
+顯示網址建議:
+www.${brand.toLowerCase().replace(/\s+/g, '')}.com/${keyword.replace(/\s+/g, '-')}
+
+目標網址建議:
+https://www.${brand.toLowerCase().replace(/\s+/g, '')}.com/${keyword.replace(/\s+/g, '-')}
+
+關鍵字匹配建議:
+${generateKeywordMatchSuggestions(keyword, type)}
+
+---
+`;
+            });
+
+            content += `
+=== 文案優化建議 ===
+
+1. 標題優化 (基於 ${businessModelInfo.name})
+   - 包含主要關鍵字
+   - 突出 ${businessModelInfo.focus}
+   - 使用行動詞彙
+   - 控制在 30 字元內
+
+2. 描述優化
+   - 包含長尾關鍵字
+   - 突出產品特色
+   - 加入社會證明
+   - 使用緊急感詞彙
+   - 強調 ${businessModelInfo.focus}
+
+3. 行動呼籲優化
+   - 根據 ${businessModelInfo.name} 選擇
+   - 與目標網頁一致
+   - 創造緊急感
+   - 測試不同版本
+
+4. 關鍵字匹配建議
+   - 廣泛匹配: ${keywords.map(item => `"${item.keyword}"`).join(', ')}
+   - 詞組匹配: ${keywords.map(item => `"${item.keyword}"`).join(', ')}
+   - 完全匹配: [${keywords.map(item => `[${item.keyword}]`).join(', ')}]
+
+5. 出價策略建議
+   - 主要關鍵字: 高競爭出價 ($$$)
+   - 長尾關鍵字: 中等出價 ($$)
+   - 商業意圖: 高價值出價 ($$$)
+   - 資訊型: 低競爭出價 ($)
+
+6. 預算分配建議
+   - 主要關鍵字: 40% 預算
+   - 長尾關鍵字: 35% 預算
+   - 商業意圖: 15% 預算
+   - 資訊型: 10% 預算
+
+---
+由 iStaging 市場情資與競品分析平台生成
+`;
+
+            return content;
+        }
+
+        // 生成商業模式對應的廣告標題
+        function generateBusinessModelAdTitle(keyword, brand, businessModel, maxLength) {
+            const templates = {
+                'b2b': [
+                    `${keyword} - ${brand}企業解決方案`,
+                    `${brand}${keyword}專業服務`,
+                    `${keyword}首選${brand}`,
+                    `${brand}${keyword}專家`,
+                    `${keyword}就找${brand}`
+                ],
+                'b2c': [
+                    `${keyword} - ${brand}優質選擇`,
+                    `${brand}${keyword}推薦`,
+                    `${keyword}首選${brand}`,
+                    `${brand}${keyword}專家`,
+                    `${keyword}就選${brand}`
+                ],
+                'saas': [
+                    `${keyword} - ${brand}雲端服務`,
+                    `${brand}${keyword}解決方案`,
+                    `${keyword}首選${brand}`,
+                    `${brand}${keyword}平台`,
+                    `${keyword}就選${brand}`
+                ],
+                'ecommerce': [
+                    `${keyword} - ${brand}線上購物`,
+                    `${brand}${keyword}專賣`,
+                    `${keyword}首選${brand}`,
+                    `${brand}${keyword}商城`,
+                    `${keyword}就選${brand}`
+                ],
+                'agency': [
+                    `${keyword} - ${brand}專業服務`,
+                    `${brand}${keyword}專家`,
+                    `${keyword}首選${brand}`,
+                    `${brand}${keyword}顧問`,
+                    `${keyword}就找${brand}`
+                ]
+            };
+            
+            const modelTemplates = templates[businessModel] || templates['b2b'];
+            const title = modelTemplates[Math.floor(Math.random() * modelTemplates.length)];
+            return title.length > maxLength ? title.substring(0, maxLength - 3) + '...' : title;
+        }
+
+        // 生成商業模式對應的廣告描述
+        function generateBusinessModelAdDescription(keyword, brand, businessModel, maxLength) {
+            const templates = {
+                'b2b': [
+                    `${brand}提供專業${keyword}服務，企業級解決方案，品質保證。立即諮詢，獲得最佳企業服務！`,
+                    `${keyword}專家${brand}，多年企業服務經驗，客戶滿意度高。免費諮詢，專業建議，立即行動！`,
+                    `${brand}${keyword}服務，快速響應，專業團隊。企業級品質，立即聯繫，搶先體驗！`
+                ],
+                'b2c': [
+                    `${brand}提供優質${keyword}，品質保證，價格實惠。立即購買，享受最佳體驗！`,
+                    `${keyword}首選${brand}，多年經驗，客戶好評如潮。限時優惠，立即行動，搶先體驗！`,
+                    `${brand}${keyword}，快速配送，貼心服務。品質可靠，立即購買，滿意保證！`
+                ],
+                'saas': [
+                    `${brand}提供雲端${keyword}解決方案，提升效率，節省成本。免費試用，立即體驗！`,
+                    `${keyword}雲端服務${brand}，技術領先，穩定可靠。免費試用，專業支援，立即開始！`,
+                    `${brand}${keyword}平台，功能強大，操作簡單。免費試用，滿意再付費，立即註冊！`
+                ],
+                'ecommerce': [
+                    `${brand}${keyword}專賣，正品保證，價格優惠。快速配送，安全支付，立即購買！`,
+                    `${keyword}就選${brand}，品質保證，價格實惠。限時特價，快速配送，立即下單！`,
+                    `${brand}${keyword}商城，品類齊全，服務周到。安全購物，快速配送，立即選購！`
+                ],
+                'agency': [
+                    `${brand}提供專業${keyword}服務，豐富案例，專業團隊。免費諮詢，立即合作！`,
+                    `${keyword}專家${brand}，多年經驗，成功案例多。免費諮詢，專業建議，立即聯繫！`,
+                    `${brand}${keyword}顧問，專業能力，服務周到。免費諮詢，滿意再合作，立即預約！`
+                ]
+            };
+            
+            const modelTemplates = templates[businessModel] || templates['b2b'];
+            const description = modelTemplates[Math.floor(Math.random() * modelTemplates.length)];
+            return description.length > maxLength ? description.substring(0, maxLength - 3) + '...' : description;
+        }
+
+        // 生成完整關鍵字建議書
+        function generateEnhancedKeywordReport() {
+            try {
+                const keywords = collectKeywordsData();
+                
+                if (keywords.primary.length === 0 && keywords.longTail.length === 0) {
+                    showAlert('沒有關鍵字', '請先輸入關鍵字再生成報告', 'warning');
+                    return;
+                }
+
+                showAlert('生成中', '正在生成完整關鍵字建議書...', 'info');
+
+                const report = generateEnhancedKeywordAnalysisReport(keywords);
+                const filename = `完整關鍵字建議書_${new Date().toISOString().split('T')[0]}.txt`;
+                
+                downloadFile(report, filename);
+                showAlert('報告生成成功', `${filename} 已下載到您的裝置`, 'success');
+
+            } catch (error) {
+                console.error('生成完整關鍵字建議書失敗:', error);
+                showAlert('報告生成失敗', '無法生成完整關鍵字建議書', 'error');
+            }
+        }
+
+        // 生成完整關鍵字建議書內容
+        function generateEnhancedKeywordAnalysisReport(keywords) {
+            const marketInfo = getMarketInfo(keywords.marketPositioning.targetMarket);
+            const businessModelInfo = getBusinessModelInfo(keywords.marketPositioning.businessModel);
+            const languageInfo = getLanguageInfo(keywords.marketPositioning.primaryLanguage);
+
+            return `完整關鍵字建議書
+生成時間: ${new Date().toLocaleString('zh-TW')}
+
+=== 市場定位分析 ===
+目標市場: ${marketInfo.name} (${marketInfo.code})
+商業模式: ${businessModelInfo.name}
+目標客群: ${getTargetAudienceInfo(keywords.marketPositioning.targetAudience)}
+主要語言: ${languageInfo.name}
+本地化程度: ${getLocalizationInfo(keywords.marketPositioning.localizationLevel)}
+
+=== 主要關鍵字 (${keywords.primary.length} 個) ===
+${keywords.primary.map((keyword, index) => `${index + 1}. ${keyword}`).join('\n')}
+
+=== 長尾關鍵字 (${keywords.longTail.length} 個) ===
+${keywords.longTail.map((keyword, index) => `${index + 1}. ${keyword}`).join('\n')}
+
+=== 關鍵字策略分析 ===
+分析深度: ${getKeywordDepthInfo(keywords.depth)}
+
+=== SEO 策略建議 ===
+${generateComprehensiveSEORecommendations(keywords)}
+
+=== 關鍵字購買策略 ===
+${generateComprehensiveKeywordPurchaseStrategy(keywords)}
+
+=== 內容策略建議 ===
+${generateContentStrategyRecommendations(keywords)}
+
+---
+由 iStaging 市場情資與競品分析平台生成
+`;
+        }
+
+        // 生成關鍵字匹配建議
+        function generateKeywordMatchSuggestions(keyword, type) {
+            // 這裡應該實作關鍵字匹配建議的生成邏輯
+            return `關鍵字匹配建議：${keyword} 的匹配策略`;
+        }
+
     </script>
-    <style>
-        /* Base styling and animations */
-        body { font-family: "Segoe UI", Roboto, Arial, sans-serif; }
-        .tab-main.active { border-color: #2EE9E4; background-color: #181D27; color: #2EE9E4; }
-        .panel { display: none; }
-        .panel.active { display: block; animation: fadeIn 0.5s ease; }
-        .locked { opacity: 0.5; pointer-events: none; }
-        .spinner { border: 4px solid rgba(59,130,246,.2); width: 36px; height: 36px; border-radius: 50%; border-left-color: #2EE9E4; animation: spin 1s ease infinite; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Table and result panel styling */
-        th, td { padding: 12px 15px; }
-        .result-panel { max-height: 65vh; overflow-y: auto; }
-        .overflow-x-auto { overflow-x: auto; }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { height: 8px; width: 8px; }
-        ::-webkit-scrollbar-track { background: #181D27; }
-        ::-webkit-scrollbar-thumb { background: #3762F0; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #7D5FFF; }
-
-        /* Stepper UI */
-        .stepper-container { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
-        .step { flex: 1; text-align: center; position: relative; }
-        .step-circle { width: 32px; height: 32px; line-height: 30px; border-radius: 50%; background-color: #22283A; color: #fff; display: inline-block; border: 2px solid #3762F0; font-weight: bold; cursor: pointer; transition: all .3s ease; }
-        .step-title { margin-top: 0.5rem; font-size: 0.875rem; color: #9ca3af; }
-        .step-line { position: absolute; top: 16px; left: 50%; width: 100%; height: 2px; background-color: #3762F0; z-index: -1; }
-        .step:first-child .step-line { left: 50%; width: 50%; }
-        .step:last-child .step-line { left: 0; width: 50%;}
-        
-        .step.active .step-circle { background-color: #3762F0; color: #fff; border-color: #2EE9E4; transform: scale(1.1); }
-        .step.active .step-title { color: #2EE9E4; font-weight: bold; }
-        .step.completed .step-circle { background-color: #2EE9E4; color: #181D27; border-color: #2EE9E4; }
-        .step.completed .step-title { color: #d1d5db; }
-
-        /* Badge Styles */
-        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-weight: 600; font-size: 0.75rem; }
-        .badge-high { background-color: #ef4444; color: white; }
-        .badge-mid { background-color: #f97316; color: white; }
-        .badge-low { background-color: #22c55e; color: white; }
-        .badge-unknown { background-color: #6b7280; color: white; }
-
-        /* Dashboard Cards */
-        .dashboard-card { background: linear-gradient(135deg, #22283A 0%, #1a1f2e 100%); border: 1px solid #3762F0; border-radius: 12px; padding: 1.5rem; }
-        .metric-value { font-size: 2rem; font-weight: bold; color: #2EE9E4; }
-        .metric-label { color: #9ca3af; font-size: 0.875rem; margin-top: 0.5rem; }
-
-        /* Comparison Table */
-        .comparison-table { border-collapse: separate; border-spacing: 0; }
-        .comparison-table th { background: #1a1f2e; border: 1px solid #3762F0; padding: 12px; }
-        .comparison-table td { border: 1px solid #3762F0; padding: 12px; }
-        .comparison-table tr:nth-child(even) { background: rgba(55, 98, 240, 0.05); }
-
-        /* Chart Container */
-        .chart-container { position: relative; height: 300px; margin: 1rem 0; }
-    </style>
 </head>
-<body class="bg-techbg font-tech text-gray-100 min-h-screen">
-    <!-- Header Section -->
-    <header class="bg-techpanel shadow-lg sticky top-0 z-40">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold tracking-wide text-techaccent flex items-center gap-2">
-                <svg class="w-8 h-8 text-techprimary inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-7.364l-1.414 1.414M6.05 17.95l-1.414 1.414m12.728 0l1.414-1.414M6.05 6.05L4.636 4.636" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                市場情資與競品分析平台
-            </h1>
-            <div id="auth-container">
-                <div class="flex items-center gap-4">
-                    <div id="user-profile" class="hidden items-center gap-3">
-                        <img id="user-avatar" class="w-10 h-10 rounded-full" src="" alt="User Avatar">
-                        <span id="user-name" class="font-semibold text-gray-200"></span>
-                        <button id="signout_button" class="text-sm text-gray-400 hover:text-techaccent">登出</button>
+<body>
+    <div id="app-container" class="p-6 bg-techbg text-white min-h-screen">
+        <h1 class="text-2xl font-semibold mb-6">市場情資與競品分析平台 (V6 - 進階分析版)</h1>
+
+        <div id="alert-container"></div>
+
+        <div id="settings-panel" class="bg-techpanel rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">API 設定</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Google API Key</label>
+                    <input type="text" id="google-api-key" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Google API Key">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Search Engine ID</label>
+                    <input type="text" id="search-engine-id" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Search Engine ID">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Central Folder Name</label>
+                    <input type="text" id="central-folder-name" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Central Folder Name">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Intelligence Subfolder</label>
+                    <input type="text" id="intelligence-subfolder" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Intelligence Subfolder">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Media Plan Subfolder</label>
+                    <input type="text" id="mediaplan-subfolder" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Media Plan Subfolder">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Workflow Subfolder</label>
+                    <input type="text" id="workflow-subfolder" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="Workflow Subfolder">
+                </div>
+            </div>
+            <button id="save-settings-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">儲存設定</button>
+        </div>
+
+        <div id="analysis-panel" class="bg-techpanel rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">分析設定</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">品牌名稱</label>
+                    <input type="text" id="brand-name" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="品牌名稱">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">品牌網站</label>
+                    <input type="text" id="brand-website" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="品牌網站">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">品牌描述</label>
+                    <textarea id="brand-description" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" rows="3" placeholder="品牌描述"></textarea>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">行業類別</label>
+                    <select id="industry-category" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                        <option value="">請選擇行業類別</option>
+                        <option value="ecommerce">電商</option>
+                        <option value="saas">SaaS</option>
+                        <option value="fintech">金融科技</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">市場規模</label>
+                    <input type="text" id="market-size" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="市場規模">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">分析主題</label>
+                    <input type="text" id="analysis-topic" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="分析主題">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">競爭對手數量</label>
+                    <input type="number" id="competitor-count" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="競爭對手數量">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">分析深度</label>
+                    <div class="flex gap-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="analysis-depth" value="basic" class="form-radio">
+                            <span class="ml-2">基礎分析 (搜尋量、競爭度)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="analysis-depth" value="standard" class="form-radio">
+                            <span class="ml-2">標準分析 (搜尋量、競爭度、出價建議)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="analysis-depth" value="comprehensive" class="form-radio">
+                            <span class="ml-2">深度分析 (搜尋量、競爭度、出價建議、內容策略)</span>
+                        </label>
                     </div>
                 </div>
-                <div class="text-xs text-yellow-400 mt-2">※ 需授權 Google Drive 全權限才能正確儲存資料</div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">主要關鍵字</label>
+                    <textarea id="primary-keywords" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" rows="3" placeholder="主要關鍵字，每行一個"></textarea>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">長尾關鍵字</label>
+                    <textarea id="long-tail-keywords" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" rows="3" placeholder="長尾關鍵字，每行一個"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">商業模式</label>
+                    <select id="business-model-select" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                        <option value="">請選擇商業模式</option>
+                        <option value="b2b">B2B (企業對企業)</option>
+                        <option value="b2c">B2C (企業對消費者)</option>
+                        <option value="b2b2c">B2B2C (企業對企業對消費者)</option>
+                        <option value="c2c">C2C (消費者對消費者)</option>
+                        <option value="saas">SaaS (軟體即服務)</option>
+                        <option value="marketplace">Marketplace (平台模式)</option>
+                        <option value="subscription">Subscription (訂閱模式)</option>
+                        <option value="freemium">Freemium (免費增值)</option>
+                        <option value="ecommerce">E-commerce (電商)</option>
+                        <option value="agency">Agency (代理/服務)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">本地化程度</label>
+                    <select id="localization-level" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                        <option value="">請選擇本地化程度</option>
+                        <option value="basic">基礎本地化 (翻譯) - 基本語言適應</option>
+                        <option value="standard">標準本地化 (翻譯+文化適應) - 文化內容調整</option>
+                        <option value="advanced">深度本地化 (完全在地化) - 完全文化適應</option>
+                        <option value="native">原生本地化 (在地團隊開發) - 原生文化體驗</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">主要語言</label>
+                    <select id="primary-language" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                        <option value="">請選擇主要語言</option>
+                        <option value="zh-tw">繁體中文 (台灣)</option>
+                        <option value="zh-hk">繁體中文 (香港)</option>
+                        <option value="zh-cn">簡體中文 (中國)</option>
+                        <option value="en">English (英語)</option>
+                        <option value="ja">日本語 (日語)</option>
+                        <option value="ko">한국어 (韓語)</option>
+                        <option value="th">ไทย (泰語)</option>
+                        <option value="vi">Tiếng Việt (越南語)</option>
+                        <option value="id">Bahasa Indonesia (印尼語)</option>
+                        <option value="ms">Bahasa Melayu (馬來語)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">目標客群</label>
+                    <select id="target-audience" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
+                        <option value="">請選擇目標客群</option>
+                        <option value="startup">新創公司 - 成本敏感，快速決策</option>
+                        <option value="sme">中小企業 - 實用導向，性價比重要</option>
+                        <option value="enterprise">大型企業 - 品質要求高，決策週期長</option>
+                        <option value="freelancer">自由工作者 - 靈活性重要，成本控制</option>
+                        <option value="student">學生 - 價格敏感，功能需求</option>
+                        <option value="professional">專業人士 - 品質要求高，效率重要</option>
+                        <option value="consumer">一般消費者 - 用戶體驗，情感訴求</option>
+                        <option value="elderly">銀髮族 - 易用性，信任建立</option>
+                        <option value="youth">年輕族群 - 創新，社交分享</option>
+                        <option value="parent">家長 - 安全，品質，教育價值</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">項目 ID</label>
+                    <input type="text" id="project-id" class="w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="項目 ID">
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button id="start-analysis-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">開始分析</button>
+                <button id="generate-report-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">生成報告</button>
             </div>
         </div>
-    </header>
 
-    <div id="alert-container" class="fixed top-24 right-6 z-50"></div>
+        <div id="history-panel" class="bg-techpanel rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">歷史紀錄</h2>
+            <div id="auto-search-results"></div>
+        </div>
 
-    <main class="container mx-auto px-6 py-8">
-        <div id="app-container" class="locked">
-            <!-- Main Tabs -->
-            <div class="flex border-b border-techprimary/20 mb-6">
-                <button data-tab="analysis" class="tab-main tab-btn active flex-1 p-4 font-semibold">分析系統</button>
-                <button data-tab="settings" class="tab-main tab-btn flex-1 p-4 font-semibold">API 設定</button>
-                <button data-tab="history" class="tab-main tab-btn flex-1 p-4 font-semibold">歷史紀錄</button>
-            </div>
-
-            <!-- API 設定面板 -->
-            <div id="settings-panel" class="panel">
-                <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8 max-w-lg mx-auto">
-                    <h2 class="text-2xl font-bold mb-6 text-techaccent text-center">API 與應用程式設定</h2>
-                    <div class="space-y-4">
-                        <div><label for="google-api-key" class="block text-sm font-medium text-gray-300">Google API 金鑰</label><input type="password" id="google-api-key" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Gemini/Custom Search API Key"></div>
-                        <div><label for="search-engine-id" class="block text-sm font-medium text-gray-300">可程式化搜尋引擎 ID (CX)</label><input type="text" id="search-engine-id" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="填寫 Custom Search Engine ID"></div>
-                        
-                        <!-- Google 登入設定說明 -->
-                        <div class="border-t border-techprimary/30 pt-4 mt-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">🔐 Google 登入設定</h3>
-                            <div class="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4 mb-4">
-                                <h4 class="font-semibold text-yellow-400 mb-2">⚠️ 重要提醒</h4>
-                                <p class="text-sm text-gray-300 mb-3">要使用 Google Drive 儲存功能，您需要：</p>
-                                <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-                                    <li>在 Google Cloud Console 建立專案</li>
-                                    <li>啟用 Google Drive API 和 Google+ API</li>
-                                    <li>建立 OAuth 2.0 憑證</li>
-                                    <li>將 Client ID 填入程式碼中</li>
-                                </ol>
-                                <div class="mt-3 p-3 bg-gray-800 rounded text-xs">
-                                    <p class="text-gray-400 mb-2">目前程式碼中的 Client ID 設定位置：</p>
-                                    <code class="text-green-400">handleGoogleAuth() 函數中已設定 Client ID</code>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <button id="authorize_button" class="bg-gradient-to-tr from-techprimary to-techaccent hover:from-techsecondary hover:to-techaccent font-bold text-white px-6 py-3 rounded-lg shadow-lg">
-                                    🔐 登入 Google
-                                </button>
-                                <p class="text-xs text-gray-400 mt-2">點擊登入以測試 Google 認證功能</p>
-                            </div>
-                        </div>
-                        
-                        <!-- 集中化資料夾管理設定 -->
-                        <div class="border-t border-techprimary/30 pt-4 mt-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">📁 集中化資料夾管理</h3>
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="central-folder-name" class="block text-sm font-medium text-gray-300">主要專案資料夾名稱</label>
-                                    <input type="text" id="central-folder-name" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="iStaging_專案管理" placeholder="例如: iStaging_專案管理">
-                                    <p class="text-xs text-gray-400 mt-1">此資料夾將包含所有專案的子資料夾</p>
-                                </div>
-                                <div>
-                                    <label for="intelligence-subfolder" class="block text-sm font-medium text-gray-300">市場情資子資料夾名稱</label>
-                                    <input type="text" id="intelligence-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="01_市場情資分析" placeholder="例如: 01_市場情資分析">
-                                </div>
-                                <div>
-                                    <label for="mediaplan-subfolder" class="block text-sm font-medium text-gray-300">媒體提案子資料夾名稱</label>
-                                    <input type="text" id="mediaplan-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="02_媒體提案" placeholder="例如: 02_媒體提案">
-                                </div>
-                                <div>
-                                    <label for="workflow-subfolder" class="block text-sm font-medium text-gray-300">工作流程子資料夾名稱</label>
-                                    <input type="text" id="workflow-subfolder" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" value="03_工作流程文件" placeholder="例如: 03_工作流程文件">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button id="save-settings-btn" class="w-full bg-gradient-to-tr from-techprimary to-techaccent font-bold text-white px-5 py-3 rounded-lg shadow-lg mt-6">儲存設定</button>
-                    </div>
-                </section>
-            </div>
-
-            <!-- 分析系統面板 -->
-            <div id="analysis-panel" class="panel">
-                <!-- Stepper -->
-                <div class="stepper-container mb-8">
-                    <div id="step-1" class="step active">
-                        <div class="step-circle">1</div>
-                        <div class="step-title">分析設定</div>
-                        <div class="step-line"></div>
-                    </div>
-                    <div id="step-2" class="step">
-                        <div class="step-circle">2</div>
-                        <div class="step-title">對手篩選與補充</div>
-                        <div class="step-line"></div>
-                    </div>
-                    <div id="step-3" class="step">
-                        <div class="step-circle">3</div>
-                        <div class="step-title">完整報告</div>
-                    </div>
-                </div>
-
-                <!-- Step 1: 分析設定 -->
-                <div id="step-1-content" class="step-panel">
-                    <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
-                        <h2 class="text-2xl font-bold mb-6 text-techaccent">📊 品牌與市場分析設定</h2>
-                        
-                        <!-- Project ID 輸入 -->
-                        <div class="mb-6">
-                            <label for="project-id" class="block text-sm font-medium text-gray-300 mb-2">專案 ID (可選)</label>
-                            <input type="text" id="project-id" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="請輸入專案 ID (可選)">
-                            <p class="text-xs text-gray-400 mt-1">此 ID 將用於檔案命名和資料夾組織。如無專案ID，系統將自動產生臨時ID</p>
-                        </div>
-
-                        <!-- 自身品牌資訊 -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">🏢 自身品牌資訊</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="brand-name" class="block text-sm font-medium text-gray-300 mb-2">品牌名稱 *</label>
-                                    <input type="text" id="brand-name" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="您的品牌名稱" required>
-                                </div>
-                                <div>
-                                    <label for="brand-website" class="block text-sm font-medium text-gray-300 mb-2">品牌官網</label>
-                                    <input type="url" id="brand-website" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="https://your-brand.com">
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <label for="brand-description" class="block text-sm font-medium text-gray-300 mb-2">品牌描述</label>
-                                <textarea id="brand-description" rows="3" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="簡述您的品牌定位、核心產品/服務、目標客群等"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- 產品/服務分析 -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">📦 核心產品/服務</h3>
-                            <div id="products-container">
-                                <div class="product-item bg-gray-800 rounded-lg p-4 mb-3">
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-300 mb-2">產品/服務名稱</label>
-                                            <input type="text" class="product-name w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="主要產品名稱">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-300 mb-2">價格定位</label>
-                                            <select class="product-pricing w-full px-3 py-2 rounded bg-techbg border border-techprimary/20">
-                                                <option value="">選擇價格定位</option>
-                                                <option value="premium">高價位 (Premium)</option>
-                                                <option value="mid-high">中高價位</option>
-                                                <option value="mid">中價位</option>
-                                                <option value="mid-low">中低價位</option>
-                                                <option value="budget">平價 (Budget)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-300 mb-2">目標客群</label>
-                                            <input type="text" class="product-target w-full px-3 py-2 rounded bg-techbg border border-techprimary/20" placeholder="目標客群描述">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button id="add-product-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded-lg text-sm">+ 添加產品/服務</button>
-                        </div>
-
-                        <!-- 行業與市場分析 -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">🎯 行業與市場分析</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="industry-category" class="block text-sm font-medium text-gray-300 mb-2">行業類別 *</label>
-                                    <select id="industry-category" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" required>
-                                        <option value="">選擇行業類別</option>
-                                        <option value="ecommerce">電商平台</option>
-                                        <option value="saas">SaaS/軟體服務</option>
-                                        <option value="fintech">金融科技</option>
-                                        <option value="healthcare">醫療健康</option>
-                                        <option value="education">教育科技</option>
-                                        <option value="marketing">數位行銷</option>
-                                        <option value="ai-ml">AI/機器學習</option>
-                                        <option value="gaming">遊戲娛樂</option>
-                                        <option value="food-delivery">外送服務</option>
-                                        <option value="travel">旅遊服務</option>
-                                        <option value="real-estate">房地產</option>
-                                        <option value="automotive">汽車產業</option>
-                                        <option value="fashion">時尚服飾</option>
-                                        <option value="beauty">美妝保養</option>
-                                        <option value="other">其他</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="market-size" class="block text-sm font-medium text-gray-300 mb-2">市場規模</label>
-                                    <select id="market-size" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                        <option value="">選擇市場規模</option>
-                                        <option value="niche">利基市場 (小眾)</option>
-                                        <option value="small">小型市場</option>
-                                        <option value="medium">中型市場</option>
-                                        <option value="large">大型市場</option>
-                                        <option value="massive">超大市場</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <label for="analysis-topic" class="block text-sm font-medium text-gray-300 mb-2">具體分析主題 *</label>
-                                <input type="text" id="analysis-topic" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="例如：台灣電商平台、數位行銷工具、AI 聊天機器人等" required>
-                                <p class="text-xs text-gray-400 mt-1">請具體描述您要分析的市場細分或產品類別，避免過於廣泛</p>
-                            </div>
-                        </div>
-
-                        <!-- SEO 關鍵字策略 -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">🔍 SEO 關鍵字策略</h3>
-                            
-                            <!-- 市場定位與商業模式分析 -->
-                            <div class="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-                                <h4 class="text-md font-semibold text-gray-200 mb-4">🌍 市場定位與商業模式</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label for="target-market" class="block text-sm font-medium text-gray-300 mb-2">目標市場/國家</label>
-                                        <select id="target-market" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                            <option value="">選擇目標市場</option>
-                                            <option value="tw">台灣 (Taiwan)</option>
-                                            <option value="hk">香港 (Hong Kong)</option>
-                                            <option value="sg">新加坡 (Singapore)</option>
-                                            <option value="my">馬來西亞 (Malaysia)</option>
-                                            <option value="th">泰國 (Thailand)</option>
-                                            <option value="vn">越南 (Vietnam)</option>
-                                            <option value="id">印尼 (Indonesia)</option>
-                                            <option value="ph">菲律賓 (Philippines)</option>
-                                            <option value="jp">日本 (Japan)</option>
-                                            <option value="kr">韓國 (South Korea)</option>
-                                            <option value="cn">中國大陸 (China)</option>
-                                            <option value="us">美國 (United States)</option>
-                                            <option value="ca">加拿大 (Canada)</option>
-                                            <option value="au">澳洲 (Australia)</option>
-                                            <option value="uk">英國 (United Kingdom)</option>
-                                            <option value="de">德國 (Germany)</option>
-                                            <option value="fr">法國 (France)</option>
-                                            <option value="global">全球市場 (Global)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label for="business-model" class="block text-sm font-medium text-gray-300 mb-2">商業模式</label>
-                                        <select id="business-model" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                            <option value="">選擇商業模式</option>
-                                            <option value="b2b">B2B (企業對企業)</option>
-                                            <option value="b2c">B2C (企業對消費者)</option>
-                                            <option value="b2b2c">B2B2C (企業對企業對消費者)</option>
-                                            <option value="c2c">C2C (消費者對消費者)</option>
-                                            <option value="saas">SaaS (軟體即服務)</option>
-                                            <option value="marketplace">Marketplace (平台模式)</option>
-                                            <option value="subscription">Subscription (訂閱模式)</option>
-                                            <option value="freemium">Freemium (免費增值)</option>
-                                            <option value="ecommerce">E-commerce (電商)</option>
-                                            <option value="agency">Agency (代理/服務)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label for="target-audience" class="block text-sm font-medium text-gray-300 mb-2">目標客群</label>
-                                        <select id="target-audience" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                            <option value="">選擇目標客群</option>
-                                            <option value="startup">新創公司</option>
-                                            <option value="sme">中小企業</option>
-                                            <option value="enterprise">大型企業</option>
-                                            <option value="freelancer">自由工作者</option>
-                                            <option value="student">學生</option>
-                                            <option value="professional">專業人士</option>
-                                            <option value="consumer">一般消費者</option>
-                                            <option value="elderly">銀髮族</option>
-                                            <option value="youth">年輕族群</option>
-                                            <option value="parent">家長</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 語言與本地化策略 -->
-                            <div class="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-                                <h4 class="text-md font-semibold text-gray-200 mb-4">🌐 語言與本地化策略</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="primary-language" class="block text-sm font-medium text-gray-300 mb-2">主要語言</label>
-                                        <select id="primary-language" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                            <option value="zh-tw">繁體中文 (台灣)</option>
-                                            <option value="zh-hk">繁體中文 (香港)</option>
-                                            <option value="zh-cn">簡體中文 (中國)</option>
-                                            <option value="en">English (英語)</option>
-                                            <option value="ja">日本語 (日語)</option>
-                                            <option value="ko">한국어 (韓語)</option>
-                                            <option value="th">ไทย (泰語)</option>
-                                            <option value="vi">Tiếng Việt (越南語)</option>
-                                            <option value="id">Bahasa Indonesia (印尼語)</option>
-                                            <option value="ms">Bahasa Melayu (馬來語)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label for="localization-level" class="block text-sm font-medium text-gray-300 mb-2">本地化程度</label>
-                                        <select id="localization-level" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                            <option value="basic">基礎本地化 (翻譯)</option>
-                                            <option value="standard">標準本地化 (翻譯+文化適應)</option>
-                                            <option value="advanced">深度本地化 (完全在地化)</option>
-                                            <option value="native">原生本地化 (在地團隊開發)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 關鍵字輸入區塊 -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="primary-keywords" class="block text-sm font-medium text-gray-300 mb-2">主要關鍵字</label>
-                                    <textarea id="primary-keywords" rows="3" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="輸入 3-5 個主要關鍵字，每行一個&#10;例如：&#10;電商平台&#10;線上購物&#10;網路商店"></textarea>
-                                </div>
-                                <div>
-                                    <label for="long-tail-keywords" class="block text-sm font-medium text-gray-300 mb-2">長尾關鍵字</label>
-                                    <textarea id="long-tail-keywords" rows="3" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="輸入 5-10 個長尾關鍵字，每行一個&#10;例如：&#10;台灣電商平台推薦&#10;小型企業電商解決方案&#10;B2B 電商平台比較"></textarea>
-                                </div>
-                            </div>
-                            
-                            <!-- 關鍵字分析深度 -->
-                            <div class="mt-4">
-                                <label class="block text-sm font-medium text-gray-300 mb-2">關鍵字分析深度</label>
-                                <div class="space-y-2">
-                                    <label class="flex items-center">
-                                        <input type="radio" name="keyword-depth" value="basic" class="mr-2">
-                                        <span class="text-sm">基礎分析 (搜尋量、競爭度)</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="keyword-depth" value="standard" checked class="mr-2">
-                                        <span class="text-sm">標準分析 (搜尋量、競爭度、出價建議)</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="radio" name="keyword-depth" value="comprehensive" class="mr-2">
-                                        <span class="text-sm">全面分析 (搜尋量、競爭度、出價建議、內容策略)</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <!-- 關鍵字下載功能 -->
-                            <div class="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
-                                <h4 class="text-md font-semibold text-gray-200 mb-3">📥 關鍵字清單下載</h4>
-                                <div class="flex flex-wrap gap-3">
-                                    <button onclick="downloadKeywords('primary')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
-                                        📋 下載主要關鍵字
-                                    </button>
-                                    <button onclick="downloadKeywords('longtail')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
-                                        📋 下載長尾關鍵字
-                                    </button>
-                                    <button onclick="downloadKeywords('all')" class="bg-gradient-to-tr from-techprimary to-techaccent text-white px-4 py-2 rounded-lg text-sm">
-                                        📋 下載完整關鍵字清單
-                                    </button>
-                                    <button onclick="generateKeywordReport()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
-                                        📊 生成關鍵字分析報告
-                                    </button>
-                                    <a href="ads-copy-generator.html" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm inline-flex items-center">
-                                        🚀 Google Ads 文案產出工具
-                                    </a>
-                                </div>
-                                <p class="text-xs text-gray-400 mt-2">下載的檔案包含關鍵字清單和分析建議，可用於 SEO 策略規劃。點擊 Google Ads 文案產出工具可生成符合 Google Ads 規範的關鍵字文案。</p>
-                            </div>
-                        </div>
-
-                        <!-- Google Ads 關鍵字文案產出工具 -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">📝 Google Ads 關鍵字文案產出工具</h3>
-                            
-                            <div class="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-600/30 rounded-lg p-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- 商業模式分析 -->
-                                    <div>
-                                        <label for="ads-business-model" class="block text-sm font-medium text-gray-300 mb-2">商業模式 *</label>
-                                        <select id="ads-business-model" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" required>
-                                            <option value="">選擇商業模式</option>
-                                            <option value="b2b">B2B (企業對企業)</option>
-                                            <option value="b2c">B2C (企業對消費者)</option>
-                                            <option value="b2b2c">B2B2C (企業對企業對消費者)</option>
-                                            <option value="c2c">C2C (消費者對消費者)</option>
-                                            <option value="saas">SaaS (軟體即服務)</option>
-                                            <option value="marketplace">Marketplace (平台模式)</option>
-                                            <option value="subscription">Subscription (訂閱模式)</option>
-                                            <option value="freemium">Freemium (免費增值)</option>
-                                            <option value="ecommerce">E-commerce (電商)</option>
-                                            <option value="agency">Agency (代理/服務)</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <!-- 目標市場 -->
-                                    <div>
-                                        <label for="ads-target-market" class="block text-sm font-medium text-gray-300 mb-2">目標市場</label>
-                                        <select id="ads-target-market" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                            <option value="tw">台灣</option>
-                                            <option value="hk">香港</option>
-                                            <option value="sg">新加坡</option>
-                                            <option value="my">馬來西亞</option>
-                                            <option value="th">泰國</option>
-                                            <option value="vn">越南</option>
-                                            <option value="id">印尼</option>
-                                            <option value="ph">菲律賓</option>
-                                            <option value="jp">日本</option>
-                                            <option value="kr">韓國</option>
-                                            <option value="cn">中國大陸</option>
-                                            <option value="us">美國</option>
-                                            <option value="ca">加拿大</option>
-                                            <option value="au">澳洲</option>
-                                            <option value="uk">英國</option>
-                                            <option value="de">德國</option>
-                                            <option value="fr">法國</option>
-                                            <option value="global">全球市場</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <!-- 產品官網字組 -->
-                                <div class="mt-4">
-                                    <label for="ads-website-keywords" class="block text-sm font-medium text-gray-300 mb-2">產品官網字組</label>
-                                    <textarea id="ads-website-keywords" rows="3" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="輸入產品官網的主要字組，用逗號分隔&#10;例如：電商平台, 線上購物, 網路商店, 數位行銷"></textarea>
-                                </div>
-                                
-                                <!-- 推薦購買關鍵字 -->
-                                <div class="mt-4">
-                                    <label for="ads-purchase-keywords" class="block text-sm font-medium text-gray-300 mb-2">推薦購買關鍵字</label>
-                                    <textarea id="ads-purchase-keywords" rows="3" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="輸入推薦購買的關鍵字，用逗號分隔&#10;例如：最佳, 推薦, 比較, 評價, 優惠"></textarea>
-                                </div>
-                                
-                                <!-- 快速跳轉按鈕 -->
-                                <div class="mt-4 flex justify-center">
-                                    <a href="ads-copy-generator.html" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg text-sm font-semibold inline-flex items-center">
-                                        🚀 前往 Google Ads 文案產出工具
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 競爭對手分析設定 -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-techaccent mb-4">🎯 競爭對手分析設定</h3>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- 競爭對手分析數量 -->
-                                <div>
-                                    <label for="competitor-count" class="block text-sm font-medium text-gray-300 mb-2">競爭對手分析數量</label>
-                                    <select id="competitor-count" class="w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20">
-                                        <option value="5">5 個 (快速分析)</option>
-                                        <option value="10" selected>10 個 (標準分析)</option>
-                                        <option value="15">15 個 (詳細分析)</option>
-                                        <option value="20">20 個 (全面分析)</option>
-                                    </select>
-                                </div>
-
-                                <!-- 分析深度 -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">競爭對手分析深度</label>
-                                    <div class="space-y-2">
-                                        <label class="flex items-center">
-                                            <input type="radio" name="analysis-depth" value="basic" class="mr-2">
-                                            <span class="text-sm">基礎分析 (基本資訊、產品比較)</span>
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="radio" name="analysis-depth" value="standard" checked class="mr-2">
-                                            <span class="text-sm">標準分析 (詳細資訊、SWOT 分析、行銷策略)</span>
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="radio" name="analysis-depth" value="comprehensive" class="mr-2">
-                                            <span class="text-sm">深度分析 (財務分析、技術實力、未來發展預測)</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button id="start-analysis-btn" class="w-full bg-gradient-to-tr from-techprimary to-techaccent font-bold text-white px-6 py-3 rounded-lg shadow-lg">開始分析</button>
-                    </section>
-                </div>
-
-                <!-- Step 2: 對手篩選與補充 -->
-                <div id="step-2-content" class="step-panel" style="display: none;">
-                    <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
-                        <h2 class="text-2xl font-bold mb-6 text-techaccent">🎯 對手篩選與補充</h2>
-                        <div id="competitor-selection-content">
-                            <div class="mb-6">
-                                <h3 class="text-lg font-semibold text-gray-200 mb-4">分析主題：<span id="current-topic" class="text-techaccent"></span></h3>
-                                <p class="text-gray-400 mb-4">系統將自動搜尋並分析相關競爭對手，您也可以手動添加或移除競爭對手。</p>
-                            </div>
-
-                            <!-- 自動搜尋結果 -->
-                            <div class="mb-6">
-                                <h4 class="text-md font-semibold text-gray-200 mb-3">🔍 自動搜尋結果</h4>
-                                <div id="auto-search-results" class="space-y-3">
-                                    <div class="flex items-center justify-center py-8">
-                                        <div class="spinner"></div>
-                                        <span class="ml-3 text-gray-400">正在搜尋競爭對手...</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 手動添加競爭對手 -->
-                            <div class="mb-6">
-                                <h4 class="text-md font-semibold text-gray-200 mb-3">➕ 手動添加競爭對手</h4>
-                                <div class="flex gap-2 mb-3">
-                                    <input type="text" id="manual-competitor" class="flex-1 px-4 py-2 rounded-lg bg-techbg border border-techprimary/20" placeholder="輸入競爭對手名稱">
-                                    <button id="add-competitor-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded-lg">添加</button>
-                                </div>
-                            </div>
-
-                            <!-- 已選擇的競爭對手 -->
-                            <div class="mb-6">
-                                <h4 class="text-md font-semibold text-gray-200 mb-3">📋 已選擇的競爭對手 (<span id="selected-count">0</span>)</h4>
-                                <div id="selected-competitors" class="space-y-2">
-                                    <p class="text-gray-500 text-sm">尚未選擇任何競爭對手</p>
-                                </div>
-                            </div>
-
-                            <div class="flex gap-4">
-                                <button id="generate-report-btn" class="bg-gradient-to-tr from-techprimary to-techaccent font-bold text-white px-6 py-3 rounded-lg shadow-lg" disabled>生成完整報告</button>
-                                <button id="back-to-step1-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg">返回步驟 1</button>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-
-                <!-- Step 3: 完整報告 -->
-                <div id="step-3-content" class="step-panel" style="display: none;">
-                    <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
-                        <h2 class="text-2xl font-bold mb-6 text-techaccent">📋 完整報告</h2>
-                        <div id="final-report-content">
-                            <p class="text-gray-400">請先完成步驟 2 的對手篩選</p>
-                        </div>
-                        
-                        <!-- 關鍵字下載功能 -->
-                        <div class="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-                            <h4 class="text-md font-semibold text-gray-200 mb-3">📥 關鍵字清單下載</h4>
-                            <div class="flex flex-wrap gap-3">
-                                <button onclick="downloadKeywords('primary')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
-                                    📋 下載主要關鍵字
-                                </button>
-                                <button onclick="downloadKeywords('longtail')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
-                                    📋 下載長尾關鍵字
-                                </button>
-                                <button onclick="downloadKeywords('all')" class="bg-gradient-to-tr from-techprimary to-techaccent text-white px-4 py-2 rounded-lg text-sm">
-                                    📋 下載完整關鍵字清單
-                                </button>
-                                <button onclick="generateKeywordReport()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
-                                    📊 生成關鍵字分析報告
-                                </button>
-                                <a href="ads-copy-generator.html" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm inline-flex items-center">
-                                    🚀 Google Ads 文案產出工具
-                                </a>
-                            </div>
-                            <p class="text-xs text-gray-400 mt-2">下載的檔案包含關鍵字清單和分析建議，可用於 SEO 策略規劃。點擊 Google Ads 文案產出工具可生成符合 Google Ads 規範的關鍵字文案。</p>
-                        </div>
-                    </section>
-                </div>
-            </div>
-
-            <!-- 歷史紀錄面板 -->
-            <div id="history-panel" class="panel">
-                <section class="bg-techpanel rounded-xl shadow-2xl border border-techprimary/20 p-8">
-                    <h2 class="text-2xl font-bold mb-6 text-techaccent">📚 歷史紀錄</h2>
-                    <div id="history-content">
-                        <p class="text-gray-400">歷史紀錄功能開發中...</p>
-                    </div>
-                </section>
+        <div id="step-1" class="step-panel">
+            <h3 class="text-lg font-semibold mb-4">步驟 1: 設定分析</h3>
+            <div id="products-container"></div>
+            <div class="flex gap-4">
+                <button id="add-product-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">添加產品</button>
+                <button id="add-competitor-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">手動添加競爭對手</button>
             </div>
         </div>
-    </main>
 
-    <!-- 頁面初始化 -->
-    <script>
-        // 頁面載入完成後的初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            try {
-                console.log('Intelligence 頁面初始化開始...');
-                
-                // 初始化狀態
-                if (!state.analysisData) {
-                    state.analysisData = {
-                        selectedCompetitors: []
-                    };
-                }
-                
-                // 初始化 UI 元素
-                initializeUI();
-                
-                // 載入 Google API
-                loadGoogleAPI();
-                
-                // 檢查 URL 參數
-                checkURLParameters();
-                
-                console.log('Intelligence 頁面初始化完成');
-                
-            } catch (error) {
-                console.error('頁面初始化失敗:', error);
-            }
-        });
+        <div id="step-2" class="step-panel">
+            <h3 class="text-lg font-semibold mb-4">步驟 2: 對手篩選</h3>
+            <div id="selected-competitors"></div>
+            <div class="flex justify-between items-center mt-4">
+                <button id="back-to-step1-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">返回步驟 1</button>
+                <button id="search-competitors-btn" class="bg-techprimary hover:bg-techaccent text-white px-4 py-2 rounded">搜尋競爭對手</button>
+            </div>
+        </div>
 
-        // 初始化 UI 元素
-        function initializeUI() {
-            try {
-                // 更新當前主題顯示
-                const currentTopicElement = document.getElementById('current-topic');
-                if (currentTopicElement && state.analysisData.topic) {
-                    currentTopicElement.textContent = state.analysisData.topic;
-                }
-                
-                // 更新已選擇競爭對手顯示
-                updateSelectedCompetitorsDisplay();
-                
-                // 更新生成報告按鈕狀態
-                updateGenerateReportButton();
-                
-            } catch (error) {
-                console.error('初始化 UI 失敗:', error);
-            }
-        }
-
-        // 載入 Google API
-        function loadGoogleAPI() {
-            try {
-                // 動態載入 Google API
-                const script = document.createElement('script');
-                script.src = 'https://apis.google.com/js/api.js';
-                script.onload = function() {
-                    console.log('Google API 載入成功');
-                    // 初始化 Google API
-                    gapi.load('auth2', function() {
-                        console.log('Google Auth2 載入成功');
-                    });
-                };
-                script.onerror = function() {
-                    console.warn('Google API 載入失敗，部分功能可能無法使用');
-                };
-                document.head.appendChild(script);
-                
-            } catch (error) {
-                console.error('載入 Google API 失敗:', error);
-            }
-        }
-
-        // 檢查 URL 參數
-        function checkURLParameters() {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const projectId = urlParams.get('projectId');
-                
-                if (projectId) {
-                    // 如果有 projectId 參數，自動填入
-                    const projectIdInput = document.getElementById('project-id');
-                    if (projectIdInput) {
-                        projectIdInput.value = projectId;
-                    }
-                    
-                    // 更新狀態
-                    if (!state.analysisData) {
-                        state.analysisData = {};
-                    }
-                    state.analysisData.projectId = projectId;
-                    
-                    console.log('從 URL 參數載入 projectId:', projectId);
-                }
-                
-            } catch (error) {
-                console.error('檢查 URL 參數失敗:', error);
-            }
-        }
-
-        // 更新生成報告按鈕狀態
-        function updateGenerateReportButton() {
-            try {
-                const generateBtn = document.getElementById('generate-report-btn');
-                if (!generateBtn) return;
-
-                const selectedCompetitors = state.analysisData.selectedCompetitors || [];
-                
-                if (selectedCompetitors.length > 0) {
-                    generateBtn.disabled = false;
-                    generateBtn.textContent = `生成完整報告 (${selectedCompetitors.length} 個競爭對手)`;
-                } else {
-                    generateBtn.disabled = true;
-                    generateBtn.textContent = '生成完整報告';
-                }
-                
-            } catch (error) {
-                console.error('更新生成報告按鈕狀態失敗:', error);
-            }
-        }
-
-        // 在步驟 2 載入時自動搜尋競爭對手
-        function onStep2Load() {
-            try {
-                // 更新當前主題顯示
-                const currentTopicElement = document.getElementById('current-topic');
-                if (currentTopicElement && state.analysisData.topic) {
-                    currentTopicElement.textContent = state.analysisData.topic;
-                }
-                
-                // 自動搜尋競爭對手
-                if (state.analysisData.topic && state.analysisData.brand) {
-                    setTimeout(() => {
-                        searchCompetitors();
-                    }, 500);
-                }
-                
-            } catch (error) {
-                console.error('步驟 2 載入失敗:', error);
-            }
-        }
-
-        // 修改 goToStep 函數以包含步驟 2 的初始化
-        const originalGoToStep = window.goToStep;
-        window.goToStep = function(step) {
-            try {
-                // 調用原始的 goToStep 函數
-                if (originalGoToStep) {
-                    originalGoToStep(step);
-                }
-                
-                // 如果是步驟 2，執行額外的初始化
-                if (step === 2) {
-                    onStep2Load();
-                }
-                
-            } catch (error) {
-                console.error('切換步驟失敗:', error);
-            }
-        };
-    </script>
+        <div id="step-3" class="step-panel">
+            <h3 class="text-lg font-semibold mb-4">步驟 3: 生成報告</h3>
+            <div id="final-report-content"></div>
+        </div>
+    </div>
 </body>
 </html>
