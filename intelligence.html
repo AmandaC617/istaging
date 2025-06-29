@@ -379,7 +379,33 @@
                 
                 // 如果是步驟 2，執行額外的初始化
                 if (step === 2) {
-                    onStep2Load();
+                    try {
+                        console.log('步驟 2 載入初始化開始...');
+                        
+                        // 更新當前主題顯示
+                        const currentTopicElement = document.getElementById('current-topic');
+                        if (currentTopicElement && state.analysisData.topic) {
+                            currentTopicElement.textContent = state.analysisData.topic;
+                        }
+                        
+                        // 自動搜尋競爭對手
+                        if (state.analysisData.topic && state.analysisData.brand) {
+                            setTimeout(() => {
+                                searchCompetitors();
+                            }, 500);
+                        }
+                        
+                        // 更新已選擇競爭對手顯示
+                        updateSelectedCompetitorsDisplay();
+                        
+                        // 更新生成報告按鈕狀態
+                        updateGenerateReportButton();
+                        
+                        console.log('步驟 2 載入初始化完成');
+                        
+                    } catch (error) {
+                        console.error('步驟 2 載入失敗:', error);
+                    }
                 }
                 
                 // 如果是步驟 3，顯示完整報告
@@ -1524,37 +1550,6 @@ ${generateExecutionRecommendations(keywords)}
             } catch (error) {
                 console.error('手動添加競爭對手失敗:', error);
                 showAlert('添加失敗', '無法添加競爭對手', 'error');
-            }
-        }
-
-        // 步驟 2 載入時的初始化
-        function onStep2Load() {
-            try {
-                console.log('步驟 2 載入初始化開始...');
-                
-                // 更新當前主題顯示
-                const currentTopicElement = document.getElementById('current-topic');
-                if (currentTopicElement && state.analysisData.topic) {
-                    currentTopicElement.textContent = state.analysisData.topic;
-                }
-                
-                // 自動搜尋競爭對手
-                if (state.analysisData.topic && state.analysisData.brand) {
-                    setTimeout(() => {
-                        searchCompetitors();
-                    }, 500);
-                }
-                
-                // 更新已選擇競爭對手顯示
-                updateSelectedCompetitorsDisplay();
-                
-                // 更新生成報告按鈕狀態
-                updateGenerateReportButton();
-                
-                console.log('步驟 2 載入初始化完成');
-                
-            } catch (error) {
-                console.error('步驟 2 載入失敗:', error);
             }
         }
 
