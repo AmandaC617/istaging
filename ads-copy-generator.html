@@ -49,7 +49,10 @@
         window.state = {
             generatedCopy: [],
             projectId: '',
-            isAuthenticated: false
+            isAuthenticated: false,
+            intelligenceData: null,
+            seoAnalysis: null,
+            searchHabits: null
         };
 
         // 頁面載入完成後初始化
@@ -66,6 +69,9 @@
                 
                 // 設定事件監聽器
                 setupEventListeners();
+                
+                // 檢查 intelligence 資料
+                checkIntelligenceData();
                 
                 console.log('應用程式初始化完成');
             } catch (error) {
@@ -90,6 +96,359 @@
             } catch (error) {
                 console.warn('檢查 URL 參數失敗:', error);
             }
+        }
+
+        // 檢查 intelligence 資料
+        async function checkIntelligenceData() {
+            try {
+                if (!state.projectId) return;
+
+                // 從 localStorage 檢查是否有 intelligence 分析資料
+                const intelligenceData = localStorage.getItem(`intelligence_analysis_${state.projectId}`);
+                if (intelligenceData) {
+                    state.intelligenceData = JSON.parse(intelligenceData);
+                    console.log('找到 intelligence 資料:', state.intelligenceData);
+                    
+                    // 分析 SEO 資料
+                    analyzeSEOData();
+                    
+                    // 分析搜索習慣
+                    analyzeSearchHabits();
+                    
+                    // 更新 UI 顯示 intelligence 建議
+                    updateIntelligenceUI();
+                }
+            } catch (error) {
+                console.warn('檢查 intelligence 資料失敗:', error);
+            }
+        }
+
+        // 分析 SEO 資料
+        function analyzeSEOData() {
+            if (!state.intelligenceData) return;
+
+            const data = state.intelligenceData;
+            state.seoAnalysis = {
+                primaryKeywords: data.keywords?.primary || [],
+                longTailKeywords: data.keywords?.longTail || [],
+                commercialKeywords: data.keywords?.commercial || [],
+                informationalKeywords: data.keywords?.informational || [],
+                marketPositioning: data.marketPositioning || {},
+                businessModel: data.businessModel || '',
+                targetAudience: data.targetAudience || '',
+                industryCategory: data.industryCategory || ''
+            };
+
+            console.log('SEO 分析完成:', state.seoAnalysis);
+        }
+
+        // 分析搜索習慣
+        function analyzeSearchHabits() {
+            if (!state.intelligenceData) return;
+
+            const data = state.intelligenceData;
+            state.searchHabits = {
+                searchIntent: {
+                    commercial: data.searchIntent?.commercial || 0.3,
+                    informational: data.searchIntent?.informational || 0.4,
+                    navigational: data.searchIntent?.navigational || 0.2,
+                    transactional: data.searchIntent?.transactional || 0.1
+                },
+                keywordLength: {
+                    short: data.keywordLength?.short || 0.2,
+                    medium: data.keywordLength?.medium || 0.5,
+                    long: data.keywordLength?.long || 0.3
+                },
+                searchVolume: {
+                    high: data.searchVolume?.high || 0.3,
+                    medium: data.searchVolume?.medium || 0.4,
+                    low: data.searchVolume?.low || 0.3
+                }
+            };
+
+            console.log('搜索習慣分析完成:', state.searchHabits);
+        }
+
+        // 更新 Intelligence UI
+        function updateIntelligenceUI() {
+            const intelligenceSection = document.getElementById('intelligence-section');
+            if (!intelligenceSection || !state.seoAnalysis) return;
+
+            let html = `
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 p-4 mb-6">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <h3 class="text-lg font-semibold text-blue-800 mb-2">智能 SEO 分析建議</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            `;
+
+            // SEO 關鍵字建議
+            if (state.seoAnalysis.primaryKeywords.length > 0) {
+                html += `
+                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                        <h4 class="font-semibold text-gray-800 mb-2">主要關鍵字建議</h4>
+                        <div class="space-y-1">
+                            ${state.seoAnalysis.primaryKeywords.slice(0, 3).map(keyword => 
+                                `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1 mb-1">${keyword}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 長尾關鍵字建議
+            if (state.seoAnalysis.longTailKeywords.length > 0) {
+                html += `
+                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                        <h4 class="font-semibold text-gray-800 mb-2">長尾關鍵字建議</h4>
+                        <div class="space-y-1">
+                            ${state.seoAnalysis.longTailKeywords.slice(0, 3).map(keyword => 
+                                `<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-1 mb-1">${keyword}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 商業意圖關鍵字
+            if (state.seoAnalysis.commercialKeywords.length > 0) {
+                html += `
+                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                        <h4 class="font-semibold text-gray-800 mb-2">商業意圖關鍵字</h4>
+                        <div class="space-y-1">
+                            ${state.seoAnalysis.commercialKeywords.slice(0, 3).map(keyword => 
+                                `<span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded mr-1 mb-1">${keyword}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 搜索習慣分析
+            if (state.searchHabits) {
+                const dominantIntent = Object.entries(state.searchHabits.searchIntent)
+                    .sort(([,a], [,b]) => b - a)[0][0];
+                
+                html += `
+                    <div class="bg-white rounded-lg p-3 shadow-sm">
+                        <h4 class="font-semibold text-gray-800 mb-2">搜索習慣分析</h4>
+                        <p class="text-sm text-gray-600">主要搜索意圖: <span class="font-semibold">${getIntentText(dominantIntent)}</span></p>
+                        <p class="text-sm text-gray-600">建議文案風格: <span class="font-semibold">${getStyleRecommendation(dominantIntent)}</span></p>
+                    </div>
+                `;
+            }
+
+            html += `
+                            </div>
+                            <div class="mt-4">
+                                <button id="apply-intelligence-suggestions" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">
+                                    套用智能建議
+                                </button>
+                                <button id="view-detailed-analysis" class="ml-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm">
+                                    查看詳細分析
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            intelligenceSection.innerHTML = html;
+            intelligenceSection.classList.remove('hidden');
+
+            // 綁定按鈕事件
+            setupIntelligenceEventListeners();
+        }
+
+        // 獲取搜索意圖文字
+        function getIntentText(intent) {
+            const intentMap = {
+                commercial: '商業意圖',
+                informational: '資訊查詢',
+                navigational: '導航查詢',
+                transactional: '交易意圖'
+            };
+            return intentMap[intent] || intent;
+        }
+
+        // 獲取風格建議
+        function getStyleRecommendation(intent) {
+            const styleMap = {
+                commercial: '突出產品優勢和價值',
+                informational: '提供專業資訊和解答',
+                navigational: '強調品牌權威性',
+                transactional: '強烈行動呼籲和優惠'
+            };
+            return styleMap[intent] || '平衡型文案';
+        }
+
+        // 設定 Intelligence 事件監聽器
+        function setupIntelligenceEventListeners() {
+            // 套用智能建議按鈕
+            const applyBtn = document.getElementById('apply-intelligence-suggestions');
+            if (applyBtn) {
+                applyBtn.addEventListener('click', applyIntelligenceSuggestions);
+            }
+
+            // 查看詳細分析按鈕
+            const viewBtn = document.getElementById('view-detailed-analysis');
+            if (viewBtn) {
+                viewBtn.addEventListener('click', showDetailedAnalysis);
+            }
+        }
+
+        // 套用智能建議
+        function applyIntelligenceSuggestions() {
+            if (!state.seoAnalysis) {
+                showAlert('沒有智能建議', '請先執行 intelligence 分析', 'warning');
+                return;
+            }
+
+            try {
+                // 自動填入產品關鍵字
+                if (state.seoAnalysis.primaryKeywords.length > 0) {
+                    const productKeywordsInput = document.getElementById('ads-product-keywords');
+                    if (productKeywordsInput) {
+                        const suggestedKeywords = state.seoAnalysis.primaryKeywords.slice(0, 5).join('\n');
+                        productKeywordsInput.value = suggestedKeywords;
+                    }
+                }
+
+                // 自動填入購買關鍵字
+                if (state.seoAnalysis.commercialKeywords.length > 0) {
+                    const purchaseKeywordsInput = document.getElementById('ads-purchase-keywords');
+                    if (purchaseKeywordsInput) {
+                        const suggestedKeywords = state.seoAnalysis.commercialKeywords.slice(0, 5).join('\n');
+                        purchaseKeywordsInput.value = suggestedKeywords;
+                    }
+                }
+
+                // 自動選擇商業模式
+                if (state.seoAnalysis.businessModel) {
+                    const businessModelSelect = document.getElementById('ads-business-model');
+                    if (businessModelSelect) {
+                        businessModelSelect.value = state.seoAnalysis.businessModel;
+                    }
+                }
+
+                // 自動填入目標受眾
+                if (state.seoAnalysis.targetAudience) {
+                    const targetAudienceInput = document.getElementById('ads-target-audience');
+                    if (targetAudienceInput) {
+                        targetAudienceInput.value = state.seoAnalysis.targetAudience;
+                    }
+                }
+
+                showAlert('套用成功', '已自動填入智能建議的關鍵字和設定', 'success');
+
+            } catch (error) {
+                console.error('套用智能建議失敗:', error);
+                showAlert('套用失敗', '無法套用智能建議', 'error');
+            }
+        }
+
+        // 顯示詳細分析
+        function showDetailedAnalysis() {
+            if (!state.seoAnalysis) {
+                showAlert('沒有分析資料', '請先執行 intelligence 分析', 'warning');
+                return;
+            }
+
+            const analysis = generateDetailedAnalysisReport();
+            const filename = `SEO_分析報告_${state.projectId}_${new Date().toISOString().split('T')[0]}.txt`;
+            
+            downloadFile(analysis, filename);
+            showAlert('報告生成成功', `${filename} 已下載到您的裝置`, 'success');
+        }
+
+        // 生成詳細分析報告
+        function generateDetailedAnalysisReport() {
+            const analysis = state.seoAnalysis;
+            const habits = state.searchHabits;
+            
+            let report = `Google Ads 文案 SEO 分析報告
+專案 ID: ${state.projectId}
+生成時間: ${new Date().toLocaleString('zh-TW')}
+
+=== 市場定位分析 ===
+商業模式: ${analysis.businessModel}
+目標受眾: ${analysis.targetAudience}
+行業類別: ${analysis.industryCategory}
+
+=== 關鍵字分析 ===
+主要關鍵字 (${analysis.primaryKeywords.length} 個):
+${analysis.primaryKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
+
+長尾關鍵字 (${analysis.longTailKeywords.length} 個):
+${analysis.longTailKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
+
+商業意圖關鍵字 (${analysis.commercialKeywords.length} 個):
+${analysis.commercialKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
+
+資訊查詢關鍵字 (${analysis.informationalKeywords.length} 個):
+${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
+
+=== 搜索習慣分析 ===
+搜索意圖分布:
+- 商業意圖: ${(habits.searchIntent.commercial * 100).toFixed(1)}%
+- 資訊查詢: ${(habits.searchIntent.informational * 100).toFixed(1)}%
+- 導航查詢: ${(habits.searchIntent.navigational * 100).toFixed(1)}%
+- 交易意圖: ${(habits.searchIntent.transactional * 100).toFixed(1)}%
+
+關鍵字長度偏好:
+- 短關鍵字: ${(habits.keywordLength.short * 100).toFixed(1)}%
+- 中等關鍵字: ${(habits.keywordLength.medium * 100).toFixed(1)}%
+- 長關鍵字: ${(habits.keywordLength.long * 100).toFixed(1)}%
+
+=== Google Ads 文案建議 ===
+1. 標題文案 (40字元):
+   - 主要關鍵字優先
+   - 突出核心賣點
+   - 考慮搜索意圖
+
+2. 描述文案 (90字元):
+   - 包含長尾關鍵字
+   - 提供詳細資訊
+   - 強烈行動呼籲
+
+3. 出價策略建議:
+   - 主要關鍵字: 高競爭出價
+   - 長尾關鍵字: 中等出價
+   - 商業意圖: 高轉換出價
+
+4. 文案風格建議:
+   - 根據主要搜索意圖調整
+   - 考慮目標受眾偏好
+   - 本地化語言習慣
+
+=== 執行建議 ===
+1. 優先使用主要關鍵字生成標題文案
+2. 結合長尾關鍵字生成描述文案
+3. 根據搜索意圖調整文案風格
+4. 定期監控和優化文案表現
+
+---
+由 iStaging Google Ads 文案產出工具生成
+`;
+
+            return report;
+        }
+
+        // 下載檔案
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         // 設定事件監聽器
@@ -137,9 +496,61 @@
                     saveToProjectBtn.addEventListener('click', saveAdsCopyToProject);
                 }
 
+                // 字元限制選擇
+                const charLimitSelect = document.getElementById('ads-char-limit');
+                if (charLimitSelect) {
+                    charLimitSelect.addEventListener('change', updateCharLimitInfo);
+                }
+
                 console.log('事件監聽器設定完成');
             } catch (error) {
                 console.error('設定事件監聽器失敗:', error);
+            }
+        }
+
+        // 更新字元限制資訊
+        function updateCharLimitInfo() {
+            const charLimit = document.getElementById('ads-char-limit').value;
+            const charLimitInfo = document.getElementById('char-limit-info');
+            
+            if (charLimitInfo) {
+                if (charLimit === '40') {
+                    charLimitInfo.innerHTML = `
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        <strong>40 字元限制：</strong>適用於標題文案，簡潔有力，突出核心賣點
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (charLimit === '90') {
+                    charLimitInfo.innerHTML = `
+                        <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-green-700">
+                                        <strong>90 字元限制：</strong>適用於描述文案，可包含更多詳細資訊和行動呼籲
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    charLimitInfo.innerHTML = '';
+                }
             }
         }
 
@@ -216,6 +627,8 @@
                     purchaseKeywords: document.getElementById('ads-purchase-keywords')?.value,
                     targetAudience: document.getElementById('ads-target-audience')?.value,
                     marketRegion: document.getElementById('ads-market-region')?.value,
+                    charLimit: document.getElementById('ads-char-limit')?.value,
+                    officialLinks: document.getElementById('ads-official-links')?.value?.trim(),
                     copyVariations: state.generatedCopy
                 };
 
@@ -289,6 +702,8 @@
                 const purchaseKeywords = document.getElementById('ads-purchase-keywords')?.value?.trim();
                 const targetAudience = document.getElementById('ads-target-audience')?.value;
                 const marketRegion = document.getElementById('ads-market-region')?.value;
+                const charLimit = document.getElementById('ads-char-limit')?.value;
+                const officialLinks = document.getElementById('ads-official-links')?.value?.trim();
                 const projectId = document.getElementById('project-id')?.value?.trim() || state.projectId;
 
                 // 驗證必填欄位
@@ -307,6 +722,11 @@
                     return;
                 }
 
+                if (!charLimit) {
+                    showAlert('請選擇字元限制', '字元限制為必填項目', 'warning');
+                    return;
+                }
+
                 showAlert('生成中', '正在生成 Google Ads 關鍵字文案...', 'info');
 
                 // 解析關鍵字
@@ -319,7 +739,9 @@
                     productKeywordList,
                     purchaseKeywordList,
                     targetAudience,
-                    marketRegion
+                    marketRegion,
+                    parseInt(charLimit),
+                    officialLinks
                 );
 
                 // 儲存結果
@@ -328,7 +750,7 @@
                 // 顯示結果
                 displayAdsCopyResults(generatedCopy, projectId);
 
-                showAlert('生成完成', '已成功生成 10 組關鍵字文案', 'success');
+                showAlert('生成完成', `已成功生成 ${generatedCopy.length} 組關鍵字文案`, 'success');
 
             } catch (error) {
                 console.error('生成文案失敗:', error);
@@ -337,28 +759,29 @@
         }
 
         // 生成文案變體
-        function generateAdsCopyVariations(businessModel, productKeywords, purchaseKeywords, targetAudience, marketRegion) {
+        function generateAdsCopyVariations(businessModel, productKeywords, purchaseKeywords, targetAudience, marketRegion, charLimit, officialLinks) {
             const variations = [];
-            const maxLength = 35; // 最大字元數
+            const maxLength = charLimit;
 
             // 根據商業模式調整文案風格
             const tone = businessModel === 'B2C' ? '親民活潑' : '專業穩重';
             const audience = targetAudience || '目標客戶';
             const region = marketRegion || '台灣';
 
-            // 文案模板
-            const templates = [
-                `【${region}限定】{product} {purchase} 限時優惠`,
-                `{product} {purchase} | ${audience}首選`,
-                `{product} {purchase} 專業推薦`,
-                `{product} {purchase} 品質保證`,
-                `{product} {purchase} 熱銷中`,
-                `{product} {purchase} 限時特價`,
-                `{product} {purchase} 免費諮詢`,
-                `{product} {purchase} 立即體驗`,
-                `{product} {purchase} 專家推薦`,
-                `{product} {purchase} 優質選擇`
-            ];
+            // 根據 intelligence 分析調整文案策略
+            const seoStrategy = getSEOStrategy();
+            const searchIntent = getDominantSearchIntent();
+
+            // 根據字元限制和 SEO 策略選擇不同的文案模板
+            let templates = [];
+            
+            if (charLimit === 40) {
+                // 40字元標題文案模板 - 根據 SEO 策略調整
+                templates = generateTitleTemplates(seoStrategy, searchIntent);
+            } else if (charLimit === 90) {
+                // 90字元描述文案模板 - 根據 SEO 策略調整
+                templates = generateDescriptionTemplates(seoStrategy, searchIntent, audience, region);
+            }
 
             // 生成文案變體
             for (let i = 0; i < 10; i++) {
@@ -369,6 +792,9 @@
                 let copy = template
                     .replace('{product}', productKeyword)
                     .replace('{purchase}', purchaseKeyword);
+
+                // 根據 intelligence 分析優化文案
+                copy = optimizeCopyWithIntelligence(copy, seoStrategy, searchIntent);
 
                 // 確保不超過字元限制
                 if (copy.length > maxLength) {
@@ -381,11 +807,211 @@
                     length: copy.length,
                     businessModel: businessModel,
                     targetAudience: targetAudience,
-                    marketRegion: marketRegion
+                    marketRegion: marketRegion,
+                    charLimit: charLimit,
+                    officialLinks: officialLinks,
+                    seoStrategy: seoStrategy,
+                    searchIntent: searchIntent
                 });
             }
 
             return variations;
+        }
+
+        // 獲取 SEO 策略
+        function getSEOStrategy() {
+            if (!state.seoAnalysis) {
+                return {
+                    primaryKeywords: [],
+                    longTailKeywords: [],
+                    commercialKeywords: [],
+                    focus: 'general'
+                };
+            }
+
+            const analysis = state.seoAnalysis;
+            const hasPrimary = analysis.primaryKeywords.length > 0;
+            const hasLongTail = analysis.longTailKeywords.length > 0;
+            const hasCommercial = analysis.commercialKeywords.length > 0;
+
+            if (hasPrimary && hasCommercial) {
+                return {
+                    primaryKeywords: analysis.primaryKeywords,
+                    longTailKeywords: analysis.longTailKeywords,
+                    commercialKeywords: analysis.commercialKeywords,
+                    focus: 'commercial'
+                };
+            } else if (hasPrimary && hasLongTail) {
+                return {
+                    primaryKeywords: analysis.primaryKeywords,
+                    longTailKeywords: analysis.longTailKeywords,
+                    commercialKeywords: analysis.commercialKeywords,
+                    focus: 'longtail'
+                };
+            } else if (hasPrimary) {
+                return {
+                    primaryKeywords: analysis.primaryKeywords,
+                    longTailKeywords: analysis.longTailKeywords,
+                    commercialKeywords: analysis.commercialKeywords,
+                    focus: 'primary'
+                };
+            }
+
+            return {
+                primaryKeywords: analysis.primaryKeywords,
+                longTailKeywords: analysis.longTailKeywords,
+                commercialKeywords: analysis.commercialKeywords,
+                focus: 'general'
+            };
+        }
+
+        // 獲取主要搜索意圖
+        function getDominantSearchIntent() {
+            if (!state.searchHabits) {
+                return 'informational';
+            }
+
+            const intent = state.searchHabits.searchIntent;
+            return Object.entries(intent)
+                .sort(([,a], [,b]) => b - a)[0][0];
+        }
+
+        // 生成標題文案模板
+        function generateTitleTemplates(seoStrategy, searchIntent) {
+            const templates = [];
+
+            // 根據 SEO 策略和搜索意圖生成模板
+            if (seoStrategy.focus === 'commercial') {
+                // 商業導向模板
+                templates.push(
+                    '{product} {purchase}',
+                    '{product} {purchase} 優惠',
+                    '{product} {purchase} 特價',
+                    '{product} {purchase} 限時',
+                    '{product} {purchase} 推薦',
+                    '{product} {purchase} 熱銷',
+                    '{product} {purchase} 品質',
+                    '{product} {purchase} 保證',
+                    '{product} {purchase} 專業',
+                    '{product} {purchase} 首選'
+                );
+            } else if (seoStrategy.focus === 'longtail') {
+                // 長尾關鍵字導向模板
+                templates.push(
+                    '{product} {purchase}',
+                    '{product} {purchase} 推薦',
+                    '{product} {purchase} 評價',
+                    '{product} {purchase} 比較',
+                    '{product} {purchase} 指南',
+                    '{product} {purchase} 介紹',
+                    '{product} {purchase} 說明',
+                    '{product} {purchase} 教學',
+                    '{product} {purchase} 攻略',
+                    '{product} {purchase} 心得'
+                );
+            } else {
+                // 一般模板
+                templates.push(
+                    '{product} {purchase}',
+                    '{product} {purchase} 優惠',
+                    '{product} {purchase} 推薦',
+                    '{product} {purchase} 熱銷',
+                    '{product} {purchase} 特價',
+                    '{product} {purchase} 限時',
+                    '{product} {purchase} 專業',
+                    '{product} {purchase} 品質',
+                    '{product} {purchase} 保證',
+                    '{product} {purchase} 首選'
+                );
+            }
+
+            return templates;
+        }
+
+        // 生成描述文案模板
+        function generateDescriptionTemplates(seoStrategy, searchIntent, audience, region) {
+            const templates = [];
+
+            // 根據搜索意圖調整模板
+            if (searchIntent === 'commercial') {
+                // 商業意圖模板
+                templates.push(
+                    `{product} {purchase} | ${audience}首選 | ${region}限定優惠 | 專業服務`,
+                    `{product} {purchase} 品質保證 | 限時特價 | 免費諮詢 | 立即體驗`,
+                    `{product} {purchase} 熱銷推薦 | 專業團隊 | 優質服務 | 滿意保證`,
+                    `{product} {purchase} 限時優惠 | 專家推薦 | 品質保證 | 立即購買`,
+                    `{product} {purchase} 專業服務 | 優質選擇 | 限時特價 | 免費試用`
+                );
+            } else if (searchIntent === 'informational') {
+                // 資訊查詢模板
+                templates.push(
+                    `{product} {purchase} | ${audience}專業指南 | ${region}權威推薦 | 詳細介紹`,
+                    `{product} {purchase} 專業評價 | 詳細比較 | 完整攻略 | 專家解析`,
+                    `{product} {purchase} 深度分析 | 專業建議 | 實用指南 | 權威認證`,
+                    `{product} {purchase} 專業介紹 | 詳細說明 | 實用技巧 | 專家推薦`,
+                    `{product} {purchase} 權威評價 | 專業比較 | 完整指南 | 專家建議`
+                );
+            } else if (searchIntent === 'transactional') {
+                // 交易意圖模板
+                templates.push(
+                    `{product} {purchase} | ${audience}立即購買 | ${region}限時優惠 | 快速配送`,
+                    `{product} {purchase} 立即下單 | 限時折扣 | 快速出貨 | 安全支付`,
+                    `{product} {purchase} 馬上購買 | 特價優惠 | 快速送達 | 保障服務`,
+                    `{product} {purchase} 立即訂購 | 限時特價 | 快速配送 | 安全交易`,
+                    `{product} {purchase} 馬上訂購 | 特價折扣 | 快速出貨 | 保障支付`
+                );
+            } else {
+                // 一般模板
+                templates.push(
+                    `{product} {purchase} | ${audience}首選 | ${region}限定優惠 | 專業服務`,
+                    `{product} {purchase} 品質保證 | 限時特價 | 免費諮詢 | 立即體驗`,
+                    `{product} {purchase} 熱銷推薦 | 專業團隊 | 優質服務 | 滿意保證`,
+                    `{product} {purchase} 限時優惠 | 專家推薦 | 品質保證 | 立即購買`,
+                    `{product} {purchase} 專業服務 | 優質選擇 | 限時特價 | 免費試用`
+                );
+            }
+
+            return templates;
+        }
+
+        // 使用 intelligence 分析優化文案
+        function optimizeCopyWithIntelligence(copy, seoStrategy, searchIntent) {
+            let optimizedCopy = copy;
+
+            // 根據 SEO 策略優化關鍵字
+            if (seoStrategy.focus === 'commercial' && seoStrategy.commercialKeywords.length > 0) {
+                // 優先使用商業意圖關鍵字
+                const commercialKeyword = seoStrategy.commercialKeywords[0];
+                if (commercialKeyword && !optimizedCopy.includes(commercialKeyword)) {
+                    optimizedCopy = optimizedCopy.replace('{purchase}', commercialKeyword);
+                }
+            } else if (seoStrategy.focus === 'longtail' && seoStrategy.longTailKeywords.length > 0) {
+                // 優先使用長尾關鍵字
+                const longTailKeyword = seoStrategy.longTailKeywords[0];
+                if (longTailKeyword && !optimizedCopy.includes(longTailKeyword)) {
+                    optimizedCopy = optimizedCopy.replace('{product}', longTailKeyword);
+                }
+            }
+
+            // 根據搜索意圖調整文案風格
+            if (searchIntent === 'commercial') {
+                // 增加商業意圖詞彙
+                if (!optimizedCopy.includes('優惠') && !optimizedCopy.includes('特價')) {
+                    optimizedCopy = optimizedCopy.replace('推薦', '優惠推薦');
+                }
+            } else if (searchIntent === 'informational') {
+                // 增加資訊查詢詞彙
+                if (!optimizedCopy.includes('專業') && !optimizedCopy.includes('指南')) {
+                    optimizedCopy = optimizedCopy.replace('推薦', '專業推薦');
+                }
+            } else if (searchIntent === 'transactional') {
+                // 增加交易意圖詞彙
+                if (!optimizedCopy.includes('立即') && !optimizedCopy.includes('馬上')) {
+                    optimizedCopy = optimizedCopy.replace('推薦', '立即推薦');
+                }
+            }
+
+            return optimizedCopy;
         }
 
         // 顯示文案結果
@@ -414,10 +1040,34 @@
                             ` : ''}
                         </div>
                     </div>
+                    
+                    ${state.seoAnalysis ? `
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-blue-800">智能 SEO 優化</h4>
+                                    <div class="mt-2 text-sm text-blue-700">
+                                        <p><strong>SEO 策略：</strong>${getSEOStrategyText(copyVariations[0]?.seoStrategy?.focus)}</p>
+                                        <p><strong>搜索意圖：</strong>${getIntentText(copyVariations[0]?.searchIntent)}</p>
+                                        <p><strong>關鍵字優化：</strong>${getKeywordOptimizationText(copyVariations[0]?.seoStrategy)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
                     <div class="space-y-3">
             `;
 
             copyVariations.forEach((variation, index) => {
+                const charLimitClass = variation.charLimit === 40 ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                const seoStrategyClass = getSEOStrategyClass(variation.seoStrategy?.focus);
+                
                 html += `
                     <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
                         <div class="flex justify-between items-start">
@@ -425,9 +1075,19 @@
                                 <div class="flex items-center space-x-2 mb-2">
                                     <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">文案 ${variation.id}</span>
                                     <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded">${variation.length} 字元</span>
+                                    <span class="${charLimitClass} text-xs font-medium px-2 py-1 rounded">${variation.charLimit}字元限制</span>
                                     <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">${variation.businessModel}</span>
+                                    ${variation.seoStrategy?.focus ? `
+                                        <span class="${seoStrategyClass} text-xs font-medium px-2 py-1 rounded">${getSEOStrategyText(variation.seoStrategy.focus)}</span>
+                                    ` : ''}
                                 </div>
                                 <p class="text-gray-800 font-medium">${variation.copy}</p>
+                                ${variation.seoStrategy?.focus ? `
+                                    <div class="mt-2 text-xs text-gray-600">
+                                        <span class="font-medium">SEO 優化：</span>
+                                        ${getSEOOptimizationDetails(variation)}
+                                    </div>
+                                ` : ''}
                             </div>
                             <button onclick="copyToClipboard('${variation.copy.replace(/'/g, "\\'")}')" class="ml-4 text-blue-600 hover:text-blue-800">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -447,8 +1107,27 @@
                             <li>商業模式：${copyVariations[0]?.businessModel || 'N/A'}</li>
                             <li>目標受眾：${copyVariations[0]?.targetAudience || 'N/A'}</li>
                             <li>市場區域：${copyVariations[0]?.marketRegion || 'N/A'}</li>
+                            <li>字元限制：${copyVariations[0]?.charLimit || 'N/A'} 字元</li>
+                            ${copyVariations[0]?.seoStrategy?.focus ? `
+                                <li>SEO 策略：${getSEOStrategyText(copyVariations[0].seoStrategy.focus)}</li>
+                            ` : ''}
+                            ${copyVariations[0]?.searchIntent ? `
+                                <li>搜索意圖：${getIntentText(copyVariations[0].searchIntent)}</li>
+                            ` : ''}
                             <li>生成時間：${new Date().toLocaleString('zh-TW')}</li>
                         </ul>
+                        ${copyVariations[0]?.officialLinks ? `
+                            <div class="mt-2">
+                                <p><strong>參考官方連結：</strong></p>
+                                <p class="text-blue-600 break-all">${copyVariations[0].officialLinks}</p>
+                            </div>
+                        ` : ''}
+                        ${state.seoAnalysis ? `
+                            <div class="mt-2">
+                                <p><strong>Intelligence 分析：</strong></p>
+                                <p class="text-green-600">已整合 SEO 分析和搜索習慣優化</p>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -458,6 +1137,62 @@
 
             // 重新綁定按鈕事件
             setupEventListeners();
+        }
+
+        // 獲取 SEO 策略文字
+        function getSEOStrategyText(strategy) {
+            const strategyMap = {
+                'commercial': '商業導向',
+                'longtail': '長尾關鍵字',
+                'primary': '主要關鍵字',
+                'general': '一般策略'
+            };
+            return strategyMap[strategy] || strategy;
+        }
+
+        // 獲取 SEO 策略樣式類別
+        function getSEOStrategyClass(strategy) {
+            const classMap = {
+                'commercial': 'bg-purple-100 text-purple-800',
+                'longtail': 'bg-green-100 text-green-800',
+                'primary': 'bg-blue-100 text-blue-800',
+                'general': 'bg-gray-100 text-gray-800'
+            };
+            return classMap[strategy] || 'bg-gray-100 text-gray-800';
+        }
+
+        // 獲取關鍵字優化文字
+        function getKeywordOptimizationText(seoStrategy) {
+            if (!seoStrategy) return '未優化';
+            
+            if (seoStrategy.focus === 'commercial') {
+                return `優先使用商業意圖關鍵字 (${seoStrategy.commercialKeywords.length} 個)`;
+            } else if (seoStrategy.focus === 'longtail') {
+                return `優先使用長尾關鍵字 (${seoStrategy.longTailKeywords.length} 個)`;
+            } else if (seoStrategy.focus === 'primary') {
+                return `優先使用主要關鍵字 (${seoStrategy.primaryKeywords.length} 個)`;
+            }
+            
+            return '一般關鍵字策略';
+        }
+
+        // 獲取 SEO 優化詳細資訊
+        function getSEOOptimizationDetails(variation) {
+            const details = [];
+            
+            if (variation.seoStrategy?.focus === 'commercial') {
+                details.push('商業意圖優化');
+            } else if (variation.seoStrategy?.focus === 'longtail') {
+                details.push('長尾關鍵字優化');
+            } else if (variation.seoStrategy?.focus === 'primary') {
+                details.push('主要關鍵字優化');
+            }
+            
+            if (variation.searchIntent) {
+                details.push(`${getIntentText(variation.searchIntent)}風格`);
+            }
+            
+            return details.join(' | ') || '標準優化';
         }
 
         // 複製到剪貼簿
@@ -477,7 +1212,7 @@
                 return;
             }
 
-            const allCopy = state.generatedCopy.map(v => `${v.id}. ${v.copy}`).join('\n');
+            const allCopy = state.generatedCopy.map(v => `${v.id}. ${v.copy} (${v.length}/${v.charLimit}字元)`).join('\n');
             copyToClipboard(allCopy);
         }
 
@@ -490,11 +1225,78 @@
 
             const projectId = state.projectId || 'unknown';
             const timestamp = new Date().toISOString().slice(0, 10);
-            const fileName = `Google_Ads_文案_${projectId}_${timestamp}.txt`;
+            const charLimit = state.generatedCopy[0]?.charLimit || 'unknown';
+            const fileName = `Google_Ads_文案_${charLimit}字元_${projectId}_${timestamp}.txt`;
 
-            const content = state.generatedCopy.map(v => 
-                `文案 ${v.id}: ${v.copy} (${v.length} 字元)`
-            ).join('\n\n');
+            let content = `Google Ads 關鍵字文案報告
+專案 ID: ${projectId}
+生成時間: ${new Date().toLocaleString('zh-TW')}
+字元限制: ${charLimit} 字元
+
+`;
+
+            // 添加 Intelligence 分析資訊
+            if (state.seoAnalysis) {
+                content += `=== Intelligence SEO 分析 ===
+SEO 策略: ${getSEOStrategyText(state.generatedCopy[0]?.seoStrategy?.focus)}
+搜索意圖: ${getIntentText(state.generatedCopy[0]?.searchIntent)}
+關鍵字優化: ${getKeywordOptimizationText(state.generatedCopy[0]?.seoStrategy)}
+
+主要關鍵字: ${state.seoAnalysis.primaryKeywords.slice(0, 5).join(', ')}
+長尾關鍵字: ${state.seoAnalysis.longTailKeywords.slice(0, 5).join(', ')}
+商業意圖關鍵字: ${state.seoAnalysis.commercialKeywords.slice(0, 5).join(', ')}
+
+`;
+
+                if (state.searchHabits) {
+                    const dominantIntent = Object.entries(state.searchHabits.searchIntent)
+                        .sort(([,a], [,b]) => b - a)[0][0];
+                    
+                    content += `搜索習慣分析:
+主要搜索意圖: ${getIntentText(dominantIntent)}
+建議文案風格: ${getStyleRecommendation(dominantIntent)}
+
+`;
+                }
+            }
+
+            content += `=== 生成文案 ===
+
+`;
+
+            // 添加文案內容
+            content += state.generatedCopy.map(v => 
+                `文案 ${v.id}: ${v.copy} (${v.length}/${v.charLimit}字元)
+SEO 優化: ${getSEOOptimizationDetails(v)}
+搜索意圖: ${getIntentText(v.searchIntent)}
+
+`
+            ).join('');
+
+            // 添加生成資訊
+            content += `=== 生成資訊 ===
+商業模式: ${state.generatedCopy[0]?.businessModel || 'N/A'}
+目標受眾: ${state.generatedCopy[0]?.targetAudience || 'N/A'}
+市場區域: ${state.generatedCopy[0]?.marketRegion || 'N/A'}
+參考官方連結: ${state.generatedCopy[0]?.officialLinks || 'N/A'}
+
+`;
+
+            // 添加 Intelligence 整合說明
+            if (state.seoAnalysis) {
+                content += `=== Intelligence 整合說明 ===
+本報告已整合 Intelligence 模組的 SEO 分析和搜索習慣優化
+- 根據 SEO 策略自動選擇關鍵字
+- 根據搜索意圖調整文案風格
+- 優化關鍵字密度和相關性
+- 提供專業的 SEO 建議
+
+`;
+            }
+
+            content += `---
+由 iStaging Google Ads 文案產出工具生成
+整合 Intelligence 模組 SEO 分析`;
 
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
@@ -613,6 +1415,9 @@
                 </div>
             </div>
 
+            <!-- Intelligence 分析區塊 -->
+            <div id="intelligence-section" class="hidden"></div>
+
             <!-- 輸入表單 -->
             <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">文案生成設定</h2>
@@ -626,6 +1431,17 @@
                             <option value="">請選擇商業模式</option>
                             <option value="B2C">B2C (企業對消費者)</option>
                             <option value="B2B">B2B (企業對企業)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="ads-char-limit" class="block text-sm font-medium text-gray-700 mb-2">
+                            字元限制 <span class="text-red-500">*</span>
+                        </label>
+                        <select id="ads-char-limit" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">請選擇字元限制</option>
+                            <option value="40">40 字元 (標題文案)</option>
+                            <option value="90">90 字元 (描述文案)</option>
                         </select>
                     </div>
                     
@@ -665,7 +1481,17 @@
                         </label>
                         <textarea id="ads-purchase-keywords" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入購買相關關鍵字，每行一個&#10;例如：&#10;立即購買&#10;限時優惠&#10;免費試駕&#10;分期付款"></textarea>
                     </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="ads-official-links" class="block text-sm font-medium text-gray-700 mb-2">
+                            參考官方連結資料
+                        </label>
+                        <textarea id="ads-official-links" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入參考的官方網站連結或資料來源&#10;例如：https://www.example.com/product-info"></textarea>
+                    </div>
                 </div>
+                
+                <!-- 字元限制說明 -->
+                <div id="char-limit-info" class="mt-4"></div>
                 
                 <div class="mt-6">
                     <button id="generate-ads-copy-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
