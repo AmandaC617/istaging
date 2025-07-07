@@ -916,8 +916,95 @@
             return await callGeminiAPI(prompt, apiKey, true);
         }
 
+        // 當地市場商業模式分析
+        async function analyzeLocalBusinessModel(context, apiKey) {
+            const prompt = `
+                你是一位專精亞洲市場的商業模式分析師，對不同地區的商業生態、消費習慣、企業文化有深入理解。
+                請根據以下情境，分析目標市場的商業模式特點和機會。
+
+                **當地市場商業模式分析情境:**
+                - **目標品牌:** ${context.target}
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **主要市場:** ${context.primaryMarket}
+                - **次要市場:** ${context.secondaryMarkets}
+                - **目標受眾:** ${context.targetAudience}
+                - **銷售通路:** ${context.salesChannels}
+
+                你的任務是產出一個 JSON 物件，包含以下 key：
+
+                1. **local_business_ecosystem:** 包含 "market_maturity", "competitive_landscape", "regulatory_environment", "business_culture"
+                2. **consumer_behavior_analysis:** 包含 "purchase_habits", "decision_factors", "brand_preferences", "price_sensitivity"
+                3. **business_model_adaptation:** 包含 "local_opportunities", "challenges", "adaptation_strategies", "success_factors"
+                4. **market_segmentation:** 包含 "demographic_segments", "psychographic_profiles", "behavioral_patterns", "value_propositions"
+                5. **competitive_advantages:** 包含 "local_differentiation", "cultural_advantages", "operational_efficiencies", "innovation_potential"
+                6. **growth_opportunities:** 包含 "market_gaps", "emerging_trends", "expansion_potential", "partnership_opportunities"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // 當地媒體偏好分析
+        async function analyzeLocalMediaPreferences(context, apiKey) {
+            const prompt = `
+                你是一位專精亞洲媒體市場的資深分析師，對不同地區的媒體生態、用戶習慣、廣告效果有深入理解。
+                請根據以下情境，分析目標市場的媒體偏好和廣告策略。
+
+                **當地媒體偏好分析情境:**
+                - **目標品牌:** ${context.target}
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **主要市場:** ${context.primaryMarket}
+                - **次要市場:** ${context.secondaryMarkets}
+                - **目標受眾:** ${context.targetAudience}
+                - **預算:** ${context.budget}
+
+                你的任務是產出一個 JSON 物件，包含以下 key：
+
+                1. **media_landscape_analysis:** 包含 "traditional_media", "digital_media", "social_media", "emerging_platforms"
+                2. **audience_media_habits:** 包含 "media_consumption_patterns", "platform_preferences", "content_preferences", "engagement_metrics"
+                3. **advertising_effectiveness:** 包含 "cost_performance", "reach_efficiency", "engagement_rates", "conversion_metrics"
+                4. **local_media_strategy:** 包含 "primary_channels", "secondary_channels", "content_strategy", "timing_strategy"
+                5. **cultural_media_factors:** 包含 "cultural_sensitivity", "local_content_preferences", "communication_style", "taboo_topics"
+                6. **competitive_media_analysis:** 包含 "competitor_channels", "advertising_trends", "market_gaps", "opportunity_areas"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // 當地人群深度分析
+        async function analyzeLocalAudienceInsights(context, apiKey) {
+            const prompt = `
+                你是一位專精亞洲消費者行為的資深分析師，對不同地區的人群特徵、消費心理、生活方式有深入理解。
+                請根據以下情境，分析目標市場的人群特點和洞察。
+
+                **當地人群深度分析情境:**
+                - **目標品牌:** ${context.target}
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **主要市場:** ${context.primaryMarket}
+                - **次要市場:** ${context.secondaryMarkets}
+                - **目標受眾:** ${context.targetAudience}
+                - **預算範圍:** ${context.budgetRange}
+
+                你的任務是產出一個 JSON 物件，包含以下 key：
+
+                1. **demographic_analysis:** 包含 "age_distribution", "income_levels", "education_background", "occupation_patterns"
+                2. **psychographic_profiles:** 包含 "lifestyle_preferences", "values_beliefs", "personality_traits", "aspirations"
+                3. **behavioral_insights:** 包含 "purchase_behavior", "brand_loyalty", "decision_process", "influence_factors"
+                4. **cultural_influences:** 包含 "cultural_values", "social_norms", "family_structure", "community_impact"
+                5. **digital_adoption:** 包含 "technology_usage", "online_behavior", "social_media_habits", "e_commerce_preferences"
+                6. **communication_preferences:** 包含 "language_preferences", "communication_style", "content_format", "channel_preferences"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
         // --- Module 3: 提案生成引擎 ('合成引擎') ---
-        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, b2bData, localB2bData, apiKey) {
+        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, b2bData, localB2bData, localBusinessData, localMediaData, localAudienceData, apiKey) {
              const prompt = `
                 你是一位首席媒體策略總監，你的任務是將下屬分析師提交的所有 JSON 資料，整合成一份給客戶看的、專業且有說服力的「市場機會與初步策略建議」報告。報告需以 HTML 格式呈現。
 
@@ -944,10 +1031,13 @@
                 3.  **預算規劃與 KPI 估算:** ${JSON.stringify(kpiEstimation, null, 2)}
                 4.  **跨國市場策略分析:** ${JSON.stringify(internationalData, null, 2)}
                 5.  **跨國文化適應性分析:** ${JSON.stringify(culturalData, null, 2)}
+                6.  **當地市場商業模式分析:** ${JSON.stringify(localBusinessData, null, 2)}
+                7.  **當地媒體偏好分析:** ${JSON.stringify(localMediaData, null, 2)}
+                8.  **當地人群深度分析:** ${JSON.stringify(localAudienceData, null, 2)}
                 ${context.businessModel === 'B2B' ? `
-                6.  **B2B 專業市場分析:** ${JSON.stringify(b2bData, null, 2)}
+                9.  **B2B 專業市場分析:** ${JSON.stringify(b2bData, null, 2)}
                 ${context.primaryMarket === 'taiwan' ? `
-                7.  **台灣 B2B 市場深度分析:** ${JSON.stringify(localB2bData, null, 2)}
+                10. **台灣 B2B 市場深度分析:** ${JSON.stringify(localB2bData, null, 2)}
                 ` : ''}
                 ` : ''}
 
@@ -958,48 +1048,54 @@
                 - 核心策略建議
                 - 預期成效
 
-                ## 2. 市場分析
+                ## 2. 當地市場分析
                 - 目標市場概況
+                - 當地商業生態分析
                 - 競爭環境分析
-                - 消費者洞察
+                - 當地人群洞察
                 ${context.businessModel === 'B2B' ? `
                 - B2B 買家角色分析
                 - 決策流程分析
                 - 採購行為洞察
                 ` : ''}
 
-                ## 3. 策略建議
-                - 品牌定位策略
-                - 內容行銷策略
-                - 通路策略
-                ${context.businessModel === 'B2B' ? `
-                - 銷售漏斗策略
-                - 潛在客戶開發策略
-                - 帳戶基礎行銷策略
-                ` : ''}
+                ## 3. 當地媒體策略
+                - 媒體生態分析
+                - 當地媒體偏好
+                - 廣告效果評估
+                - 媒體選擇建議
+                - 內容策略建議
 
-                ## 4. 跨國策略
+                ## 4. 商業模式適應策略
+                - 當地商業模式分析
+                - 消費者行為洞察
+                - 市場細分策略
+                - 競爭優勢分析
+                - 成長機會識別
+
+                ## 5. 跨國策略
                 - 市場進入策略
                 - 本地化策略
                 - 文化適應策略
                 - 溝通策略
 
-                ## 5. 預算分配與 KPI
+                ## 6. 預算分配與 KPI
                 - 預算分配建議
                 - KPI 設定
                 - 成效追蹤方法
 
-                ## 6. 執行時程
+                ## 7. 執行時程
                 - 短期行動計畫 (1-3個月)
                 - 中期發展計畫 (3-6個月)
                 - 長期策略規劃 (6-12個月)
 
-                ## 7. 風險管理
+                ## 8. 風險管理
                 - 潛在風險識別
                 - 風險緩解策略
                 - 危機管理計畫
 
                 請使用專業的 HTML 格式，包含適當的標題、段落、列表和強調元素。報告應該具有說服力且易於閱讀。
+                特別注意整合當地市場的商業模式判斷、人群分析，以及當地媒體偏好考量。
             `;
             return await callGeminiAPI(prompt, apiKey, false);
         }
@@ -1128,8 +1224,21 @@
                         }
                     }
 
+                    // 當地市場深度分析（所有模式都執行）
+                    const status8 = updateStatus(`分析當地市場商業模式...`);
+                    const localBusinessData = await analyzeLocalBusinessModel(analysisContext, userApiKey);
+                    markStatusDone(status8);
+
+                    const status9 = updateStatus(`分析當地媒體偏好...`);
+                    const localMediaData = await analyzeLocalMediaPreferences(analysisContext, userApiKey);
+                    markStatusDone(status9);
+
+                    const status10 = updateStatus(`分析當地人群洞察...`);
+                    const localAudienceData = await analyzeLocalAudienceInsights(analysisContext, userApiKey);
+                    markStatusDone(status10);
+
                     // 生成最終報告
-                    const status7 = updateStatus(`整合分析結果，生成專業報告...`);
+                    const status11 = updateStatus(`整合分析結果，生成專業報告...`);
                     const finalReport = await synthesizeFinalReport(
                         analysisContext, 
                         forumData, 
@@ -1139,9 +1248,12 @@
                         culturalData, 
                         b2bData, 
                         localB2bData, 
+                        localBusinessData,
+                        localMediaData,
+                        localAudienceData,
                         userApiKey
                     );
-                    markStatusDone(status7);
+                    markStatusDone(status11);
 
                     // 在報告開頭加入 project ID 資訊
                     const projectInfoHtml = `
@@ -1406,6 +1518,150 @@
             const tips = document.getElementById('b2b-tips');
             if (tips) {
                 tips.remove();
+            }
+        }
+
+        // 主要市場選擇的動態功能
+        if (primaryMarketInput) {
+            primaryMarketInput.addEventListener('change', function() {
+                const selectedMarket = this.value;
+                updateMarketAnalysisFocus(selectedMarket);
+            });
+        }
+
+        // 更新市場分析重點
+        function updateMarketAnalysisFocus(selectedMarket) {
+            const marketInsights = getMarketInsights(selectedMarket);
+            showMarketInsights(marketInsights);
+        }
+
+        // 獲取市場洞察
+        function getMarketInsights(market) {
+            const insights = {
+                'taiwan': {
+                    title: '台灣市場洞察',
+                    characteristics: [
+                        '高度數位化，行動裝置普及率高',
+                        '社群媒體使用頻繁，LINE、Facebook、Instagram 為主',
+                        '重視品質和服務，價格敏感度中等',
+                        'B2B 市場重視關係建立和長期合作',
+                        '法規環境相對完善，合規要求高'
+                    ],
+                    media_preferences: [
+                        '數位媒體佔主導地位',
+                        '社群媒體廣告效果佳',
+                        'KOL 和網紅行銷盛行',
+                        '傳統媒體仍有影響力（電視、廣播）',
+                        '搜尋引擎行銷（Google、Yahoo）重要'
+                    ],
+                    business_culture: [
+                        '重視誠信和專業',
+                        '決策過程相對謹慎',
+                        '關係導向的商業文化',
+                        '重視售後服務和支援',
+                        '創新接受度中等'
+                    ]
+                },
+                'japan': {
+                    title: '日本市場洞察',
+                    characteristics: [
+                        '高度成熟的消費市場',
+                        '品質要求極高，品牌忠誠度強',
+                        '決策過程謹慎，需要詳細資訊',
+                        '重視禮貌和細節',
+                        '人口老齡化趨勢明顯'
+                    ],
+                    media_preferences: [
+                        '傳統媒體仍具影響力',
+                        'LINE 是主要社群平台',
+                        '電視廣告效果顯著',
+                        '印刷媒體在 B2B 市場重要',
+                        '行動裝置使用率高'
+                    ],
+                    business_culture: [
+                        '極度重視品質和服務',
+                        '決策層級多，流程複雜',
+                        '關係建立需要時間',
+                        '重視長期合作關係',
+                        '創新接受度相對保守'
+                    ]
+                },
+                'us': {
+                    title: '美國市場洞察',
+                    characteristics: [
+                        '高度競爭的市場環境',
+                        '創新接受度高，願意嘗試新產品',
+                        '價格敏感度中等，重視價值',
+                        '決策過程相對快速',
+                        '多元文化背景'
+                    ],
+                    media_preferences: [
+                        '數位媒體佔絕對主導',
+                        'Google、Facebook、Instagram 重要',
+                        '內容行銷效果顯著',
+                        '影音內容（YouTube、TikTok）流行',
+                        '電子郵件行銷有效'
+                    ],
+                    business_culture: [
+                        '結果導向，重視 ROI',
+                        '決策過程相對直接',
+                        '創新和效率並重',
+                        '競爭激烈，差異化重要',
+                        '數據驅動的決策'
+                    ]
+                }
+            };
+
+            return insights[market] || insights['taiwan'];
+        }
+
+        // 顯示市場洞察
+        function showMarketInsights(insights) {
+            const existingInsights = document.getElementById('market-insights');
+            if (existingInsights) {
+                existingInsights.remove();
+            }
+
+            const insightsHtml = `
+                <div id="market-insights" class="mt-4 p-4 bg-indigo-50 border-l-4 border-indigo-400 rounded-lg">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <h4 class="text-sm font-medium text-indigo-800">${insights.title}</h4>
+                            <div class="mt-2 text-sm text-indigo-700">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <h5 class="font-medium mb-1">市場特徵</h5>
+                                        <ul class="list-disc list-inside space-y-1">
+                                            ${insights.characteristics.map(char => `<li>${char}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-medium mb-1">媒體偏好</h5>
+                                        <ul class="list-disc list-inside space-y-1">
+                                            ${insights.media_preferences.map(pref => `<li>${pref}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-medium mb-1">商業文化</h5>
+                                        <ul class="list-disc list-inside space-y-1">
+                                            ${insights.business_culture.map(culture => `<li>${culture}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const primaryMarketField = document.getElementById('primaryMarket');
+            if (primaryMarketField) {
+                primaryMarketField.parentElement.insertAdjacentHTML('afterend', insightsHtml);
             }
         }
     </script>
