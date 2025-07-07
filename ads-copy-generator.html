@@ -21,9 +21,16 @@
             appId: "1:619527055783:web:2636704afb69595e752e82"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        let app, auth, db;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log('Firebase 初始化成功');
+        } catch (error) {
+            console.error('Firebase 初始化失敗:', error);
+        }
         
         let currentUser = null;
 
@@ -55,14 +62,24 @@
             searchHabits: null
         };
 
+        // 全域錯誤處理
+        window.addEventListener('error', function(event) {
+            console.error('全域錯誤:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('未處理的 Promise 拒絕:', event.reason);
+            event.preventDefault();
+        });
+
         // 頁面載入完成後初始化
         window.addEventListener('load', function() {
             console.log('Google Ads 文案產出工具載入完成');
-            initializeApp();
+            initializeApplication();
         });
 
         // 初始化應用程式
-        function initializeApp() {
+        function initializeApplication() {
             try {
                 // 檢查 URL 參數
                 checkUrlParameters();
@@ -463,7 +480,16 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 // 登出按鈕
                 const logoutBtn = document.getElementById('logout-button');
                 if (logoutBtn) {
-                    logoutBtn.addEventListener('click', () => signOut(auth));
+                    logoutBtn.addEventListener('click', () => {
+                        if (auth) {
+                            signOut(auth).catch(error => {
+                                console.error('登出失敗:', error);
+                                showAlert('登出失敗', error.message, 'error');
+                            });
+                        } else {
+                            console.warn('Firebase Auth 未初始化，無法登出');
+                        }
+                    });
                 }
 
                 // 生成文案按鈕
@@ -557,6 +583,10 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
         // Google 登入處理
         async function handleGoogleLogin() {
             try {
+                if (!auth) {
+                    throw new Error('Firebase Auth 未初始化');
+                }
+                
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider);
             } catch (error) {
@@ -566,31 +596,45 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
         }
 
         // 身份驗證狀態監聽
-        onAuthStateChanged(auth, (user) => {
-            console.log('身份驗證狀態變更:', user ? '已登入' : '未登入');
-            
-            if (user) {
-                currentUser = { uid: user.uid, name: user.displayName, email: user.email, avatar: user.photoURL };
-                state.isAuthenticated = true;
+        if (auth) {
+            onAuthStateChanged(auth, (user) => {
+                console.log('身份驗證狀態變更:', user ? '已登入' : '未登入');
                 
-                // 更新 UI
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('app-section').classList.remove('hidden');
-                document.getElementById('user-name').textContent = currentUser.name || '使用者';
-                document.getElementById('user-avatar').src = currentUser.avatar || '';
-                
-                console.log('使用者已登入:', currentUser);
-            } else {
-                currentUser = null;
-                state.isAuthenticated = false;
-                
-                // 更新 UI
-                document.getElementById('login-section').classList.remove('hidden');
-                document.getElementById('app-section').classList.add('hidden');
-                
-                console.log('使用者已登出');
-            }
-        });
+                if (user) {
+                    currentUser = { uid: user.uid, name: user.displayName, email: user.email, avatar: user.photoURL };
+                    state.isAuthenticated = true;
+                    
+                    // 更新 UI
+                    const loginSection = document.getElementById('login-section');
+                    const appSection = document.getElementById('app-section');
+                    const userName = document.getElementById('user-name');
+                    const userAvatar = document.getElementById('user-avatar');
+                    
+                    if (loginSection) loginSection.classList.add('hidden');
+                    if (appSection) appSection.classList.remove('hidden');
+                    if (userName) userName.textContent = currentUser.name || '使用者';
+                    if (userAvatar) userAvatar.src = currentUser.avatar || '';
+                    
+                    console.log('使用者已登入:', currentUser);
+                } else {
+                    currentUser = null;
+                    state.isAuthenticated = false;
+                    
+                    // 更新 UI
+                    const loginSection = document.getElementById('login-section');
+                    const appSection = document.getElementById('app-section');
+                    
+                    if (loginSection) loginSection.classList.remove('hidden');
+                    if (appSection) appSection.classList.add('hidden');
+                    
+                    console.log('使用者已登出');
+                }
+            }, (error) => {
+                console.error('身份驗證狀態監聽錯誤:', error);
+            });
+        } else {
+            console.warn('Firebase Auth 未初始化，跳過身份驗證');
+        }
 
         // 儲存文案到專案
         async function saveAdsCopyToProject() {
@@ -609,10 +653,17 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 return;
             }
 
+            if (!db) {
+                showAlert('資料庫連線失敗', '無法連接到 Firebase 資料庫', 'error');
+                return;
+            }
+
             try {
                 const saveBtn = document.getElementById('save-to-project-btn');
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<span class="btn-spinner"></span>儲存中...';
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<span class="btn-spinner"></span>儲存中...';
+                }
 
                 // 準備儲存的資料
                 const adsCopyData = {
@@ -647,8 +698,10 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 showAlert('儲存失敗', error.message, 'error');
             } finally {
                 const saveBtn = document.getElementById('save-to-project-btn');
-                saveBtn.disabled = false;
-                saveBtn.textContent = '儲存到專案';
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '儲存到專案';
+                }
             }
         }
 
@@ -1321,16 +1374,6 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
             }
             showAlert('已清除', '文案結果已清除', 'info');
         }
-
-        // 全域錯誤處理
-        window.addEventListener('error', function(event) {
-            console.error('全域錯誤:', event.error);
-        });
-
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('未處理的 Promise 拒絕:', event.reason);
-            event.preventDefault();
-        });
 
     </script>
     <style>
