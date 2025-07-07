@@ -126,7 +126,7 @@
                 <!-- Project ID 輸入 -->
                 <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <label for="projectIdInput" class="block text-sm font-medium text-blue-800 flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
                         專案 ID <span class="text-gray-500 ml-1">(可選)</span>
                     </label>
                     <input type="text" id="projectIdInput" class="mt-1 block w-full px-3 py-2 border border-blue-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="請輸入專案 ID (可選)">
@@ -197,6 +197,153 @@
                     </div>
                 </div>
 
+                <!-- 跨國市場策略設定 -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        跨國市場策略設定
+                    </h3>
+                    <div class="input-grid">
+                        <div>
+                            <label for="targetMarkets" class="block text-sm font-medium text-gray-700">目標市場 <span class="text-red-500">*</span></label>
+                            <select id="targetMarkets" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="single">單一市場 (台灣)</option>
+                                <option value="multi-asia">多國亞洲市場</option>
+                                <option value="global">全球市場</option>
+                                <option value="custom">自訂市場組合</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="primaryMarket" class="block text-sm font-medium text-gray-700">主要市場</label>
+                            <select id="primaryMarket" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="taiwan">台灣</option>
+                                <option value="japan">日本</option>
+                                <option value="korea">韓國</option>
+                                <option value="singapore">新加坡</option>
+                                <option value="hongkong">香港</option>
+                                <option value="malaysia">馬來西亞</option>
+                                <option value="thailand">泰國</option>
+                                <option value="vietnam">越南</option>
+                                <option value="philippines">菲律賓</option>
+                                <option value="indonesia">印尼</option>
+                                <option value="china">中國</option>
+                                <option value="usa">美國</option>
+                                <option value="europe">歐洲</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="secondaryMarkets" class="block text-sm font-medium text-gray-700">次要市場</label>
+                            <input type="text" id="secondaryMarkets" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：日本、新加坡、香港">
+                        </div>
+                        <div>
+                            <label for="marketEntryStrategy" class="block text-sm font-medium text-gray-700">市場進入策略</label>
+                            <select id="marketEntryStrategy" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="organic">有機成長</option>
+                                <option value="aggressive">積極擴張</option>
+                                <option value="partnership">策略聯盟</option>
+                                <option value="acquisition">併購進入</option>
+                                <option value="franchise">特許經營</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="localizationLevel" class="block text-sm font-medium text-gray-700">本地化程度</label>
+                            <select id="localizationLevel" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="minimal">最小本地化</option>
+                                <option value="moderate">中度本地化</option>
+                                <option value="high">高度本地化</option>
+                                <option value="full">完全本地化</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="culturalSensitivity" class="block text-sm font-medium text-gray-700">文化敏感度</label>
+                            <select id="culturalSensitivity" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="low">低 (標準化策略)</option>
+                                <option value="medium">中 (適度調整)</option>
+                                <option value="high">高 (深度文化適應)</option>
+                                <option value="critical">關鍵 (文化優先)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 跨國溝通策略設定 -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        跨國溝通策略設定
+                    </h3>
+                    <div class="input-grid">
+                        <div>
+                            <label for="communicationStrategy" class="block text-sm font-medium text-gray-700">溝通策略類型</label>
+                            <select id="communicationStrategy" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="global">全球統一策略</option>
+                                <option value="glocal">全球在地化</option>
+                                <option value="local">完全在地化</option>
+                                <option value="hybrid">混合策略</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="languageStrategy" class="block text-sm font-medium text-gray-700">語言策略</label>
+                            <select id="languageStrategy" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="english">英語為主</option>
+                                <option value="local">當地語言</option>
+                                <option value="multilingual">多語言並行</option>
+                                <option value="translation">翻譯策略</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="toneStrategy" class="block text-sm font-medium text-gray-700">語調策略</label>
+                            <select id="toneStrategy" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="formal">正式專業</option>
+                                <option value="casual">輕鬆親切</option>
+                                <option value="luxury">奢華高端</option>
+                                <option value="youthful">年輕活力</option>
+                                <option value="adaptive">適應性語調</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="channelStrategy" class="block text-sm font-medium text-gray-700">通路策略</label>
+                            <select id="channelStrategy" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="digital">數位優先</option>
+                                <option value="traditional">傳統媒體</option>
+                                <option value="omnichannel">全通路整合</option>
+                                <option value="social">社群媒體</option>
+                                <option value="influencer">網紅行銷</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="timingStrategy" class="block text-sm font-medium text-gray-700">時機策略</label>
+                            <select id="timingStrategy" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="simultaneous">同步發布</option>
+                                <option value="staggered">分階段發布</option>
+                                <option value="localized">當地時機</option>
+                                <option value="event-driven">事件驅動</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="crisisManagement" class="block text-sm font-medium text-gray-700">危機管理策略</label>
+                            <select id="crisisManagement" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="centralized">中央化處理</option>
+                                <option value="decentralized">分散化處理</option>
+                                <option value="hybrid">混合處理</option>
+                                <option value="localized">當地處理</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="culturalConsiderations" class="block text-sm font-medium text-gray-700">文化考量重點</label>
+                            <textarea id="culturalConsiderations" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="請描述需要特別注意的文化敏感議題，例如：宗教禁忌、顏色象徵、數字禁忌等"></textarea>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="regulatoryRequirements" class="block text-sm font-medium text-gray-700">法規要求</label>
+                            <textarea id="regulatoryRequirements" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="請描述各目標市場的廣告法規要求，例如：標示規定、內容限制、審查流程等"></textarea>
+                        </div>
+                    </div>
+                </div>
+
                 <button id="generateBtn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg flex items-center justify-center text-lg">
                     <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                     生成 AI 分析報告
@@ -231,11 +378,34 @@
         const statusContainer = document.getElementById('statusContainer');
         const proposalOutput = document.getElementById('proposalOutput');
 
+        // 跨國市場策略 UI 元素
+        const targetMarketsInput = document.getElementById('targetMarkets');
+        const primaryMarketInput = document.getElementById('primaryMarket');
+        const secondaryMarketsInput = document.getElementById('secondaryMarkets');
+        const marketEntryStrategyInput = document.getElementById('marketEntryStrategy');
+        const localizationLevelInput = document.getElementById('localizationLevel');
+        const culturalSensitivityInput = document.getElementById('culturalSensitivity');
+
+        // 跨國溝通策略 UI 元素
+        const communicationStrategyInput = document.getElementById('communicationStrategy');
+        const languageStrategyInput = document.getElementById('languageStrategy');
+        const toneStrategyInput = document.getElementById('toneStrategy');
+        const channelStrategyInput = document.getElementById('channelStrategy');
+        const timingStrategyInput = document.getElementById('timingStrategy');
+        const crisisManagementInput = document.getElementById('crisisManagement');
+        const culturalConsiderationsInput = document.getElementById('culturalConsiderations');
+        const regulatoryRequirementsInput = document.getElementById('regulatoryRequirements');
+
         // 檢查必要元素是否存在
         if (!apiKeyInput || !projectIdInput || !generateBtn || !targetBrandInput || 
             !competitorBrandInput || !industryInput || !businessModelInput || 
             !salesChannelsInput || !targetAudienceInput || !advertisingBudgetInput || 
-            !statusContainer || !proposalOutput) {
+            !statusContainer || !proposalOutput || !targetMarketsInput || 
+            !primaryMarketInput || !secondaryMarketsInput || !marketEntryStrategyInput ||
+            !localizationLevelInput || !culturalSensitivityInput || !communicationStrategyInput ||
+            !languageStrategyInput || !toneStrategyInput || !channelStrategyInput ||
+            !timingStrategyInput || !crisisManagementInput || !culturalConsiderationsInput ||
+            !regulatoryRequirementsInput) {
             console.error('某些必要的 UI 元素未找到，請檢查 HTML 結構');
             // 顯示錯誤訊息給用戶
             document.body.innerHTML = `
@@ -294,6 +464,66 @@
             generateBtn.addEventListener('click', handleGenerateClick);
         } else {
             console.error('生成按鈕未找到，無法綁定事件');
+        }
+
+        // 目標市場選擇的動態功能
+        if (targetMarketsInput) {
+            targetMarketsInput.addEventListener('change', function() {
+                const selectedMarket = this.value;
+                updateMarketFields(selectedMarket);
+            });
+        }
+
+        // 更新市場相關欄位的顯示和預設值
+        function updateMarketFields(selectedMarket) {
+            const secondaryMarketsField = document.getElementById('secondaryMarkets');
+            const primaryMarketField = document.getElementById('primaryMarket');
+            const localizationField = document.getElementById('localizationLevel');
+            const culturalSensitivityField = document.getElementById('culturalSensitivity');
+
+            if (selectedMarket === 'single') {
+                // 單一市場：隱藏次要市場，設定本地化為中度
+                if (secondaryMarketsField) {
+                    secondaryMarketsField.value = '';
+                    secondaryMarketsField.parentElement.style.display = 'none';
+                }
+                if (localizationField) {
+                    localizationField.value = 'moderate';
+                }
+                if (culturalSensitivityField) {
+                    culturalSensitivityField.value = 'medium';
+                }
+            } else if (selectedMarket === 'multi-asia') {
+                // 多國亞洲市場：顯示次要市場，設定本地化為高度
+                if (secondaryMarketsField) {
+                    secondaryMarketsField.parentElement.style.display = 'block';
+                    secondaryMarketsField.placeholder = '例如：日本、新加坡、香港、馬來西亞';
+                }
+                if (localizationField) {
+                    localizationField.value = 'high';
+                }
+                if (culturalSensitivityField) {
+                    culturalSensitivityField.value = 'high';
+                }
+            } else if (selectedMarket === 'global') {
+                // 全球市場：顯示次要市場，設定本地化為完全
+                if (secondaryMarketsField) {
+                    secondaryMarketsField.parentElement.style.display = 'block';
+                    secondaryMarketsField.placeholder = '例如：美國、歐洲、日本、東南亞';
+                }
+                if (localizationField) {
+                    localizationField.value = 'full';
+                }
+                if (culturalSensitivityField) {
+                    culturalSensitivityField.value = 'critical';
+                }
+            } else if (selectedMarket === 'custom') {
+                // 自訂市場：顯示次要市場，保持預設值
+                if (secondaryMarketsField) {
+                    secondaryMarketsField.parentElement.style.display = 'block';
+                    secondaryMarketsField.placeholder = '請輸入自訂的次要市場';
+                }
+            }
         }
 
         // --- Module 2: AI 任務協調與執行核心 ('融合中樞') ---
@@ -473,9 +703,74 @@
             return await callGeminiAPI(prompt, apiKey, true);
         }
 
+        // 跨國市場策略分析
+        async function analyzeInternationalMarketStrategy(context, apiKey) {
+            const prompt = `
+                你是一位資深的國際市場策略顧問，專精於跨國市場進入策略和本地化策略。
+                請根據以下品牌情境，分析跨國市場策略和溝通策略。
+
+                **品牌情境:**
+                - **目標品牌:** ${context.target}
+                - **競爭品牌:** ${context.competitor}
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **目標人群:** ${context.targetAudience}
+                - **目標市場:** ${context.targetMarkets}
+                - **主要市場:** ${context.primaryMarket}
+                - **次要市場:** ${context.secondaryMarkets}
+                - **市場進入策略:** ${context.marketEntryStrategy}
+                - **本地化程度:** ${context.localizationLevel}
+                - **文化敏感度:** ${context.culturalSensitivity}
+                - **溝通策略類型:** ${context.communicationStrategy}
+                - **語言策略:** ${context.languageStrategy}
+                - **語調策略:** ${context.toneStrategy}
+                - **通路策略:** ${context.channelStrategy}
+                - **時機策略:** ${context.timingStrategy}
+                - **危機管理策略:** ${context.crisisManagement}
+                - **文化考量重點:** ${context.culturalConsiderations}
+                - **法規要求:** ${context.regulatoryRequirements}
+
+                你的任務是產出一個 JSON 物件，包含以下 key：
+
+                1. **market_analysis:** 包含 "market_opportunities", "market_challenges", "competitive_landscape", "entry_timing"
+                2. **localization_strategy:** 包含 "product_adaptation", "communication_adaptation", "cultural_considerations", "regulatory_compliance"
+                3. **communication_framework:** 包含 "global_message", "local_messages", "channel_mix", "timing_strategy"
+                4. **risk_management:** 包含 "cultural_risks", "regulatory_risks", "competitive_risks", "mitigation_strategies"
+                5. **success_metrics:** 包含 "market_penetration", "brand_awareness", "cultural_acceptance", "regulatory_compliance"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // 跨國文化適應性分析
+        async function analyzeCulturalAdaptation(context, apiKey) {
+            const prompt = `
+                你是一位跨文化溝通專家，專精於亞洲市場的文化適應策略。
+                請根據以下情境，分析在不同目標市場的文化適應策略。
+
+                **分析情境:**
+                - **目標品牌:** ${context.target}
+                - **主要市場:** ${context.primaryMarket}
+                - **次要市場:** ${context.secondaryMarkets}
+                - **文化敏感度:** ${context.culturalSensitivity}
+                - **文化考量重點:** ${context.culturalConsiderations}
+
+                你的任務是產出一個 JSON 物件，包含以下 key：
+
+                1. **cultural_insights:** 包含 "primary_market_culture", "secondary_markets_culture", "cultural_differences", "shared_values"
+                2. **adaptation_strategies:** 包含 "visual_adaptation", "message_adaptation", "tone_adaptation", "timing_adaptation"
+                3. **cultural_taboos:** 包含 "visual_taboos", "language_taboos", "concept_taboos", "timing_taboos"
+                4. **localization_priorities:** 包含 "high_priority", "medium_priority", "low_priority", "not_required"
+                5. **success_indicators:** 包含 "cultural_acceptance", "local_relevance", "brand_authenticity", "market_resonance"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
 
         // --- Module 3: 提案生成引擎 ('合成引擎') ---
-        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, apiKey) {
+        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, apiKey) {
              const prompt = `
                 你是一位首席媒體策略總監，你的任務是將下屬分析師提交的所有 JSON 資料，整合成一份給客戶看的、專業且有說服力的「市場機會與初步策略建議」報告。報告需以 HTML 格式呈現。
 
@@ -483,11 +778,16 @@
                 - **目標品牌:** ${context.target}
                 - **核心目標人群:** ${context.targetAudience}
                 - **總預算 (TWD):** ${context.budget > 0 ? context.budget.toLocaleString() : '未提供'}
+                - **目標市場:** ${context.targetMarkets}
+                - **主要市場:** ${context.primaryMarket}
+                - **次要市場:** ${context.secondaryMarkets}
 
                 **分析師提交的資料:**
                 1.  **論壇輿情分析:** ${JSON.stringify(forumAnalysis, null, 2)}
                 2.  **SEO 與內容策略分析:** ${JSON.stringify(seoAnalysis, null, 2)}
                 3.  **預算與 KPI 預估:** ${JSON.stringify(kpiEstimation, null, 2)}
+                ${internationalData ? `4.  **跨國市場策略分析:** ${JSON.stringify(internationalData, null, 2)}` : ''}
+                ${culturalData ? `5.  **跨國文化適應分析:** ${JSON.stringify(culturalData, null, 2)}` : ''}
 
                 **你的任務:**
                 請根據以上所有資訊，撰寫一份包含以下章節的 HTML 報告，並在你的分析與建議中，**始終緊扣如何打動「${context.targetAudience}」這個核心目標人群**：
@@ -512,6 +812,24 @@
                     -   (此處使用 HTML table 呈現 kpiEstimation.kpi_estimations 的內容)
                     -   <h3>規劃說明</h3>
                     -   (此處用 <p> 呈現 kpiEstimation.rationale 的內容)
+                
+                ${internationalData ? `
+                5.  **<h2>跨國市場策略分析</h2>**
+                    -   <h3>市場機會與挑戰</h3>
+                    -   <h3>本地化策略建議</h3>
+                    -   <h3>溝通框架設計</h3>
+                    -   <h3>風險管理策略</h3>
+                    -   <h3>成功指標設定</h3>
+                ` : ''}
+                
+                ${culturalData ? `
+                6.  **<h2>跨國文化適應策略</h2>**
+                    -   <h3>文化洞察分析</h3>
+                    -   <h3>適應策略建議</h3>
+                    -   <h3>文化禁忌提醒</h3>
+                    -   <h3>本地化優先級</h3>
+                    -   <h3>成功指標</h3>
+                ` : ''}
                 
                 **格式要求:**
                 -   請嚴格使用 <h2> 和 <h3> 作為標題。
@@ -558,7 +876,23 @@
                     salesChannels: salesChannelsInput.value?.trim() || '未提供',
                     targetAudience: targetAudienceInput.value?.trim() || '未指定',
                     budget: parseInt(advertisingBudgetInput.value, 10) || 0,
-                    projectId: currentProjectId // 加入 project ID 到分析上下文
+                    projectId: currentProjectId, // 加入 project ID 到分析上下文
+                    // 跨國市場策略參數
+                    targetMarkets: targetMarketsInput.value || 'single',
+                    primaryMarket: primaryMarketInput.value || 'taiwan',
+                    secondaryMarkets: secondaryMarketsInput.value?.trim() || '',
+                    marketEntryStrategy: marketEntryStrategyInput.value || 'organic',
+                    localizationLevel: localizationLevelInput.value || 'moderate',
+                    culturalSensitivity: culturalSensitivityInput.value || 'medium',
+                    // 跨國溝通策略參數
+                    communicationStrategy: communicationStrategyInput.value || 'glocal',
+                    languageStrategy: languageStrategyInput.value || 'local',
+                    toneStrategy: toneStrategyInput.value || 'adaptive',
+                    channelStrategy: channelStrategyInput.value || 'digital',
+                    timingStrategy: timingStrategyInput.value || 'staggered',
+                    crisisManagement: crisisManagementInput.value || 'hybrid',
+                    culturalConsiderations: culturalConsiderationsInput.value?.trim() || '',
+                    regulatoryRequirements: regulatoryRequirementsInput.value?.trim() || ''
                 };
 
                 if (!analysisContext.target || !analysisContext.competitor) {
@@ -590,9 +924,23 @@
                     const kpiData = await estimateKpiAndBudget(analysisContext, opportunity, userApiKey);
                     markStatusDone(status3);
 
-                    const status4 = updateStatus(`綜合所有洞察，生成最終報告...`);
-                    const finalReportHtml = await synthesizeFinalReport(analysisContext, forumData, seoData, kpiData, userApiKey);
-                    markStatusDone(status4);
+                    // 跨國策略分析（僅在選擇多市場時執行）
+                    let internationalData = null;
+                    let culturalData = null;
+                    
+                    if (analysisContext.targetMarkets !== 'single') {
+                        const status4 = updateStatus(`分析跨國市場策略與進入策略...`);
+                        internationalData = await analyzeInternationalMarketStrategy(analysisContext, userApiKey);
+                        markStatusDone(status4);
+
+                        const status5 = updateStatus(`分析跨國文化適應策略...`);
+                        culturalData = await analyzeCulturalAdaptation(analysisContext, userApiKey);
+                        markStatusDone(status5);
+                    }
+
+                    const status6 = updateStatus(`綜合所有洞察，生成最終報告...`);
+                    const finalReportHtml = await synthesizeFinalReport(analysisContext, forumData, seoData, kpiData, internationalData, culturalData, userApiKey);
+                    markStatusDone(status6);
 
                     // 在報告開頭加入 project ID 資訊
                     const projectInfoHtml = `
