@@ -360,6 +360,18 @@
                     }
                 }
 
+                // 自動選擇關鍵字分類
+                if (state.seoAnalysis.businessModel) {
+                    const keywordCategorySelect = document.getElementById('ads-keyword-category');
+                    if (keywordCategorySelect) {
+                        // 根據商業模式和 Intelligence 分析自動選擇關鍵字分類
+                        const recommendedCategory = getRecommendedKeywordCategory(state.seoAnalysis);
+                        if (recommendedCategory) {
+                            keywordCategorySelect.value = recommendedCategory;
+                        }
+                    }
+                }
+
                 showAlert('套用成功', '已自動填入智能建議的關鍵字和設定', 'success');
 
             } catch (error) {
@@ -679,6 +691,7 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                     targetAudience: document.getElementById('ads-target-audience')?.value,
                     marketRegion: document.getElementById('ads-market-region')?.value,
                     charLimit: document.getElementById('ads-char-limit')?.value,
+                    keywordCategory: document.getElementById('ads-keyword-category')?.value,
                     officialLinks: document.getElementById('ads-official-links')?.value?.trim(),
                     copyVariations: state.generatedCopy
                 };
@@ -757,6 +770,7 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 const marketRegion = document.getElementById('ads-market-region')?.value;
                 const charLimit = document.getElementById('ads-char-limit')?.value;
                 const officialLinks = document.getElementById('ads-official-links')?.value?.trim();
+                const keywordCategory = document.getElementById('ads-keyword-category')?.value;
                 const projectId = document.getElementById('project-id')?.value?.trim() || state.projectId;
 
                 // 驗證必填欄位
@@ -780,6 +794,11 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                     return;
                 }
 
+                if (!keywordCategory) {
+                    showAlert('請選擇關鍵字分類', '關鍵字分類為必填項目', 'warning');
+                    return;
+                }
+
                 showAlert('生成中', '正在生成 Google Ads 關鍵字文案...', 'info');
 
                 // 解析關鍵字
@@ -794,7 +813,8 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                     targetAudience,
                     marketRegion,
                     parseInt(charLimit),
-                    officialLinks
+                    officialLinks,
+                    keywordCategory
                 );
 
                 // 儲存結果
@@ -812,7 +832,7 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
         }
 
         // 生成文案變體
-        function generateAdsCopyVariations(businessModel, productKeywords, purchaseKeywords, targetAudience, marketRegion, charLimit, officialLinks) {
+        function generateAdsCopyVariations(businessModel, productKeywords, purchaseKeywords, targetAudience, marketRegion, charLimit, officialLinks, keywordCategory) {
             const variations = [];
             const maxLength = charLimit;
 
@@ -825,15 +845,18 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
             const seoStrategy = getSEOStrategy();
             const searchIntent = getDominantSearchIntent();
 
+            // 根據關鍵字分類和商業模式生成建議
+            const categoryRecommendations = generateCategoryRecommendations(keywordCategory, businessModel, marketRegion);
+
             // 根據字元限制和 SEO 策略選擇不同的文案模板
             let templates = [];
             
             if (charLimit === 40) {
-                // 40字元標題文案模板 - 根據 SEO 策略調整
-                templates = generateTitleTemplates(seoStrategy, searchIntent);
+                // 40字元標題文案模板 - 根據關鍵字分類調整
+                templates = generateTitleTemplatesByCategory(seoStrategy, searchIntent, keywordCategory, businessModel);
             } else if (charLimit === 90) {
-                // 90字元描述文案模板 - 根據 SEO 策略調整
-                templates = generateDescriptionTemplates(seoStrategy, searchIntent, audience, region);
+                // 90字元描述文案模板 - 根據關鍵字分類調整
+                templates = generateDescriptionTemplatesByCategory(seoStrategy, searchIntent, audience, region, keywordCategory, businessModel);
             }
 
             // 生成文案變體
@@ -864,7 +887,9 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                     charLimit: charLimit,
                     officialLinks: officialLinks,
                     seoStrategy: seoStrategy,
-                    searchIntent: searchIntent
+                    searchIntent: searchIntent,
+                    keywordCategory: keywordCategory,
+                    categoryRecommendations: categoryRecommendations
                 });
             }
 
@@ -1189,6 +1214,28 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                         </div>
                     ` : ''}
                     
+                    ${copyVariations[0]?.keywordCategory ? `
+                        <div class="bg-purple-50 border-l-4 border-purple-400 p-4 mb-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-purple-800">關鍵字分類策略建議</h4>
+                                    <div class="mt-2 text-sm text-purple-700">
+                                        <p><strong>分類：</strong>${getKeywordCategoryText(copyVariations[0]?.keywordCategory)}</p>
+                                        <p><strong>策略：</strong>${copyVariations[0]?.categoryRecommendations?.strategy}</p>
+                                        <p><strong>出價建議：</strong>${copyVariations[0]?.categoryRecommendations?.bidding}</p>
+                                        <p><strong>目標受眾：</strong>${copyVariations[0]?.categoryRecommendations?.targeting}</p>
+                                        <p><strong>優化重點：</strong>${copyVariations[0]?.categoryRecommendations?.optimization}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
                     <div class="space-y-3">
             `;
 
@@ -1206,6 +1253,9 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                                     <span class="${charLimitClass} text-xs font-medium px-2 py-1 rounded">${variation.charLimit}字元限制</span>
                                     <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">${variation.businessModel}</span>
                                     <span class="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded">${variation.marketRegion}</span>
+                                    ${variation.keywordCategory ? `
+                                        <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">${getKeywordCategoryText(variation.keywordCategory)}</span>
+                                    ` : ''}
                                     ${variation.seoStrategy?.focus ? `
                                         <span class="${seoStrategyClass} text-xs font-medium px-2 py-1 rounded">${getSEOStrategyText(variation.seoStrategy.focus)}</span>
                                     ` : ''}
@@ -1237,6 +1287,9 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                             <li>目標受眾：${copyVariations[0]?.targetAudience || 'N/A'}</li>
                             <li>市場區域：${copyVariations[0]?.marketRegion || 'N/A'}</li>
                             <li>字元限制：${copyVariations[0]?.charLimit || 'N/A'} 字元</li>
+                            ${copyVariations[0]?.keywordCategory ? `
+                                <li>關鍵字分類：${getKeywordCategoryText(copyVariations[0].keywordCategory)}</li>
+                            ` : ''}
                             ${copyVariations[0]?.seoStrategy?.focus ? `
                                 <li>SEO 策略：${getSEOStrategyText(copyVariations[0].seoStrategy.focus)}</li>
                             ` : ''}
@@ -1389,6 +1442,18 @@ SEO 策略: ${getSEOStrategyText(state.generatedCopy[0]?.seoStrategy?.focus)}
                 }
             }
 
+            // 添加關鍵字分類策略資訊
+            if (state.generatedCopy[0]?.keywordCategory) {
+                content += `=== 關鍵字分類策略 ===
+分類: ${getKeywordCategoryText(state.generatedCopy[0].keywordCategory)}
+策略: ${state.generatedCopy[0].categoryRecommendations?.strategy}
+出價建議: ${state.generatedCopy[0].categoryRecommendations?.bidding}
+目標受眾: ${state.generatedCopy[0].categoryRecommendations?.targeting}
+優化重點: ${state.generatedCopy[0].categoryRecommendations?.optimization}
+
+`;
+            }
+
             content += `=== 生成文案 ===
 
 `;
@@ -1451,6 +1516,398 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
             showAlert('已清除', '文案結果已清除', 'info');
         }
 
+        // 根據關鍵字分類生成建議
+        function generateCategoryRecommendations(keywordCategory, businessModel, marketRegion) {
+            const recommendations = {
+                strategy: '',
+                bidding: '',
+                targeting: '',
+                optimization: '',
+                examples: []
+            };
+
+            switch (keywordCategory) {
+                case 'product':
+                    recommendations.strategy = '專注於具體產品特色和功能，突出產品優勢';
+                    recommendations.bidding = businessModel === 'B2C' ? '中等出價，廣泛匹配' : '高出價，精準匹配';
+                    recommendations.targeting = '針對有明確產品需求的用戶';
+                    recommendations.optimization = '強調產品規格、性能、特色';
+                    recommendations.examples = ['電動機車', '智慧電動車', '環保交通工具'];
+                    break;
+                    
+                case 'brand':
+                    recommendations.strategy = '建立品牌知名度和信任度，突出品牌價值';
+                    recommendations.bidding = businessModel === 'B2C' ? '高出價，精準匹配' : '最高出價，精準匹配';
+                    recommendations.targeting = '針對品牌認知用戶和忠實客戶';
+                    recommendations.optimization = '強調品牌歷史、品質、服務';
+                    recommendations.examples = ['Gogoro', 'Tesla', 'BMW'];
+                    break;
+                    
+                case 'generic':
+                    recommendations.strategy = '覆蓋廣泛的搜索需求，提高曝光機會';
+                    recommendations.bidding = businessModel === 'B2C' ? '低出價，廣泛匹配' : '中等出價，廣泛匹配';
+                    recommendations.targeting = '針對一般性搜索用戶';
+                    recommendations.optimization = '使用通用術語，提高相關性';
+                    recommendations.examples = ['交通工具', '電動車', '機車'];
+                    break;
+                    
+                case 'commercial':
+                    recommendations.strategy = '針對有購買意圖的用戶，促進轉換';
+                    recommendations.bidding = businessModel === 'B2C' ? '高出價，精準匹配' : '最高出價，精準匹配';
+                    recommendations.targeting = '針對有購買意圖的用戶';
+                    recommendations.optimization = '強調優惠、價格、購買便利性';
+                    recommendations.examples = ['電動機車價格', '電動車優惠', '機車分期'];
+                    break;
+                    
+                case 'informational':
+                    recommendations.strategy = '提供專業資訊，建立權威形象';
+                    recommendations.bidding = businessModel === 'B2C' ? '中等出價，廣泛匹配' : '中等出價，精準匹配';
+                    recommendations.targeting = '針對資訊查詢用戶';
+                    recommendations.optimization = '提供專業知識和解答';
+                    recommendations.examples = ['電動機車介紹', '電動車比較', '機車指南'];
+                    break;
+                    
+                case 'transactional':
+                    recommendations.strategy = '直接促進購買行為，最大化轉換率';
+                    recommendations.bidding = businessModel === 'B2C' ? '最高出價，精準匹配' : '最高出價，精準匹配';
+                    recommendations.targeting = '針對準備購買的用戶';
+                    recommendations.optimization = '強調立即行動和購買便利性';
+                    recommendations.examples = ['立即購買電動機車', '電動車下單', '機車訂購'];
+                    break;
+                    
+                case 'longtail':
+                    recommendations.strategy = '針對特定需求，降低競爭成本';
+                    recommendations.bidding = businessModel === 'B2C' ? '低出價，廣泛匹配' : '中等出價，廣泛匹配';
+                    recommendations.targeting = '針對有特定需求的用戶';
+                    recommendations.optimization = '使用長尾關鍵字，提高精準度';
+                    recommendations.examples = ['台北電動機車推薦', '電動車充電站地圖', '機車駕照考試'];
+                    break;
+                    
+                case 'mixed':
+                    recommendations.strategy = '綜合多種策略，平衡流量和轉換';
+                    recommendations.bidding = businessModel === 'B2C' ? '混合出價策略' : '混合出價策略';
+                    recommendations.targeting = '針對不同階段的用戶';
+                    recommendations.optimization = '根據用戶意圖調整文案風格';
+                    recommendations.examples = ['電動機車品牌推薦', '電動車價格比較', '機車購買指南'];
+                    break;
+                    
+                default:
+                    recommendations.strategy = '一般性策略，平衡各項指標';
+                    recommendations.bidding = '中等出價，廣泛匹配';
+                    recommendations.targeting = '一般用戶';
+                    recommendations.optimization = '標準優化';
+                    recommendations.examples = ['電動機車', '電動車', '機車'];
+            }
+
+            // 根據市場區域調整建議
+            if (marketRegion === '日本') {
+                recommendations.strategy += ' (注重禮貌和品質表達)';
+                recommendations.optimization += ' (使用敬語和品質詞彙)';
+            } else if (marketRegion === '美國') {
+                recommendations.strategy += ' (直接和行動導向)';
+                recommendations.optimization += ' (強調價值和便利性)';
+            }
+
+            return recommendations;
+        }
+
+        // 根據關鍵字分類生成標題文案模板
+        function generateTitleTemplatesByCategory(seoStrategy, searchIntent, keywordCategory, businessModel) {
+            const templates = [];
+
+            switch (keywordCategory) {
+                case 'product':
+                    // 產品字模板 - 突出產品特色
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 特色',
+                        '{product} {purchase} 功能',
+                        '{product} {purchase} 規格',
+                        '{product} {purchase} 性能',
+                        '{product} {purchase} 優勢',
+                        '{product} {purchase} 推薦',
+                        '{product} {purchase} 評價',
+                        '{product} {purchase} 比較',
+                        '{product} {purchase} 首選'
+                    );
+                    break;
+                    
+                case 'brand':
+                    // 品牌字模板 - 突出品牌價值
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 品牌',
+                        '{product} {purchase} 品質',
+                        '{product} {purchase} 保證',
+                        '{product} {purchase} 專業',
+                        '{product} {purchase} 信賴',
+                        '{product} {purchase} 首選',
+                        '{product} {purchase} 推薦',
+                        '{product} {purchase} 熱銷',
+                        '{product} {purchase} 權威'
+                    );
+                    break;
+                    
+                case 'generic':
+                    // 通用字模板 - 廣泛覆蓋
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 推薦',
+                        '{product} {purchase} 選擇',
+                        '{product} {purchase} 比較',
+                        '{product} {purchase} 評價',
+                        '{product} {purchase} 介紹',
+                        '{product} {purchase} 說明',
+                        '{product} {purchase} 指南',
+                        '{product} {purchase} 攻略',
+                        '{product} {purchase} 心得'
+                    );
+                    break;
+                    
+                case 'commercial':
+                    // 商業意圖模板 - 促進購買
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 優惠',
+                        '{product} {purchase} 特價',
+                        '{product} {purchase} 限時',
+                        '{product} {purchase} 折扣',
+                        '{product} {purchase} 價格',
+                        '{product} {purchase} 分期',
+                        '{product} {purchase} 免費',
+                        '{product} {purchase} 贈品',
+                        '{product} {purchase} 划算'
+                    );
+                    break;
+                    
+                case 'informational':
+                    // 資訊查詢模板 - 提供知識
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 介紹',
+                        '{product} {purchase} 說明',
+                        '{product} {purchase} 指南',
+                        '{product} {purchase} 教學',
+                        '{product} {purchase} 攻略',
+                        '{product} {purchase} 心得',
+                        '{product} {purchase} 評價',
+                        '{product} {purchase} 比較',
+                        '{product} {purchase} 分析'
+                    );
+                    break;
+                    
+                case 'transactional':
+                    // 交易意圖模板 - 直接行動
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 立即',
+                        '{product} {purchase} 馬上',
+                        '{product} {purchase} 現在',
+                        '{product} {purchase} 快速',
+                        '{product} {purchase} 便捷',
+                        '{product} {purchase} 簡單',
+                        '{product} {purchase} 輕鬆',
+                        '{product} {purchase} 安全',
+                        '{product} {purchase} 保障'
+                    );
+                    break;
+                    
+                case 'longtail':
+                    // 長尾關鍵字模板 - 特定需求
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 推薦',
+                        '{product} {purchase} 評價',
+                        '{product} {purchase} 比較',
+                        '{product} {purchase} 指南',
+                        '{product} {purchase} 介紹',
+                        '{product} {purchase} 說明',
+                        '{product} {purchase} 教學',
+                        '{product} {purchase} 攻略',
+                        '{product} {purchase} 心得'
+                    );
+                    break;
+                    
+                case 'mixed':
+                    // 混合策略模板 - 平衡多種需求
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 推薦',
+                        '{product} {purchase} 優惠',
+                        '{product} {purchase} 評價',
+                        '{product} {purchase} 比較',
+                        '{product} {purchase} 指南',
+                        '{product} {purchase} 特價',
+                        '{product} {purchase} 介紹',
+                        '{product} {purchase} 首選',
+                        '{product} {purchase} 熱銷'
+                    );
+                    break;
+                    
+                default:
+                    // 預設模板
+                    templates.push(
+                        '{product} {purchase}',
+                        '{product} {purchase} 推薦',
+                        '{product} {purchase} 優惠',
+                        '{product} {purchase} 評價',
+                        '{product} {purchase} 比較',
+                        '{product} {purchase} 指南',
+                        '{product} {purchase} 特價',
+                        '{product} {purchase} 介紹',
+                        '{product} {purchase} 首選',
+                        '{product} {purchase} 熱銷'
+                    );
+            }
+
+            return templates;
+        }
+
+        // 根據關鍵字分類生成描述文案模板
+        function generateDescriptionTemplatesByCategory(seoStrategy, searchIntent, audience, region, keywordCategory, businessModel) {
+            const templates = [];
+
+            switch (keywordCategory) {
+                case 'product':
+                    // 產品字描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}首選 | ${region}限定 | 專業品質保證`,
+                        `{product} {purchase} 特色功能 | 專業技術 | 優質服務 | 立即體驗`,
+                        `{product} {purchase} 性能優越 | 品質保證 | 專業團隊 | 滿意保證`,
+                        `{product} {purchase} 規格完整 | 技術領先 | 服務周到 | 值得信賴`,
+                        `{product} {purchase} 功能強大 | 品質優良 | 專業推薦 | 首選品牌`
+                    );
+                    break;
+                    
+                case 'brand':
+                    // 品牌字描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}信賴品牌 | ${region}權威推薦 | 品質保證`,
+                        `{product} {purchase} 品牌保證 | 專業服務 | 優質選擇 | 值得信賴`,
+                        `{product} {purchase} 權威品牌 | 品質優良 | 專業團隊 | 滿意保證`,
+                        `{product} {purchase} 知名品牌 | 服務周到 | 品質保證 | 首選推薦`,
+                        `{product} {purchase} 品牌價值 | 專業技術 | 優質服務 | 值得選擇`
+                    );
+                    break;
+                    
+                case 'generic':
+                    // 通用字描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}推薦 | ${region}選擇 | 專業服務`,
+                        `{product} {purchase} 優質選擇 | 專業推薦 | 服務周到 | 值得信賴`,
+                        `{product} {purchase} 專業服務 | 品質保證 | 優質選擇 | 滿意保證`,
+                        `{product} {purchase} 推薦選擇 | 專業團隊 | 服務優良 | 值得選擇`,
+                        `{product} {purchase} 優質推薦 | 專業服務 | 品質保證 | 首選品牌`
+                    );
+                    break;
+                    
+                case 'commercial':
+                    // 商業意圖描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}優惠 | ${region}限時特價 | 立即購買`,
+                        `{product} {purchase} 限時折扣 | 優惠價格 | 免費贈品 | 立即下單`,
+                        `{product} {purchase} 特價優惠 | 分期付款 | 免費配送 | 立即訂購`,
+                        `{product} {purchase} 優惠價格 | 限時特價 | 免費試用 | 立即購買`,
+                        `{product} {purchase} 特價折扣 | 優惠活動 | 免費服務 | 立即下單`
+                    );
+                    break;
+                    
+                case 'informational':
+                    // 資訊查詢描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}專業指南 | ${region}權威介紹 | 詳細說明`,
+                        `{product} {purchase} 專業介紹 | 詳細說明 | 權威評價 | 完整指南`,
+                        `{product} {purchase} 權威分析 | 專業比較 | 詳細介紹 | 完整攻略`,
+                        `{product} {purchase} 專業評價 | 詳細說明 | 權威推薦 | 完整教學`,
+                        `{product} {purchase} 權威指南 | 專業介紹 | 詳細分析 | 完整說明`
+                    );
+                    break;
+                    
+                case 'transactional':
+                    // 交易意圖描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}立即購買 | ${region}快速配送 | 安全支付`,
+                        `{product} {purchase} 立即下單 | 快速出貨 | 安全交易 | 便捷支付`,
+                        `{product} {purchase} 馬上購買 | 快速送達 | 安全保障 | 簡單支付`,
+                        `{product} {purchase} 立即訂購 | 快速配送 | 安全可靠 | 便捷交易`,
+                        `{product} {purchase} 馬上訂購 | 快速出貨 | 安全保障 | 簡單下單`
+                    );
+                    break;
+                    
+                case 'longtail':
+                    // 長尾關鍵字描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}專業推薦 | ${region}詳細評價 | 完整比較`,
+                        `{product} {purchase} 專業評價 | 詳細比較 | 完整指南 | 權威推薦`,
+                        `{product} {purchase} 權威推薦 | 專業比較 | 詳細介紹 | 完整攻略`,
+                        `{product} {purchase} 專業指南 | 詳細說明 | 完整評價 | 權威分析`,
+                        `{product} {purchase} 權威評價 | 專業介紹 | 詳細比較 | 完整推薦`
+                    );
+                    break;
+                    
+                case 'mixed':
+                    // 混合策略描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}首選推薦 | ${region}優惠特價 | 專業服務`,
+                        `{product} {purchase} 優質推薦 | 限時優惠 | 專業團隊 | 品質保證`,
+                        `{product} {purchase} 專業推薦 | 特價優惠 | 優質服務 | 滿意保證`,
+                        `{product} {purchase} 權威推薦 | 優惠價格 | 專業服務 | 值得信賴`,
+                        `{product} {purchase} 優質選擇 | 限時特價 | 專業推薦 | 品質保證`
+                    );
+                    break;
+                    
+                default:
+                    // 預設描述模板
+                    templates.push(
+                        `{product} {purchase} | ${audience}首選 | ${region}限定優惠 | 專業服務`,
+                        `{product} {purchase} 品質保證 | 限時特價 | 免費諮詢 | 立即體驗`,
+                        `{product} {purchase} 熱銷推薦 | 專業團隊 | 優質服務 | 滿意保證`,
+                        `{product} {purchase} 限時優惠 | 專家推薦 | 品質保證 | 立即購買`,
+                        `{product} {purchase} 專業服務 | 優質選擇 | 限時特價 | 免費試用`
+                    );
+            }
+
+            return templates;
+        }
+
+        // 獲取關鍵字分類文字
+        function getKeywordCategoryText(category) {
+            const categoryMap = {
+                'product': '產品字 (Product Keywords)',
+                'brand': '品牌字 (Brand Keywords)',
+                'generic': '通用字 (Generic Keywords)',
+                'commercial': '商業意圖字 (Commercial Intent)',
+                'informational': '資訊查詢字 (Informational)',
+                'transactional': '交易意圖字 (Transactional)',
+                'longtail': '長尾關鍵字 (Long-tail)',
+                'mixed': '混合策略 (Mixed Strategy)'
+            };
+            return categoryMap[category] || category;
+        }
+
+        // 根據 Intelligence 分析推薦關鍵字分類
+        function getRecommendedKeywordCategory(seoAnalysis) {
+            if (!seoAnalysis) return null;
+
+            // 根據關鍵字類型和商業模式推薦分類
+            const hasCommercialKeywords = seoAnalysis.commercialKeywords && seoAnalysis.commercialKeywords.length > 0;
+            const hasLongTailKeywords = seoAnalysis.longTailKeywords && seoAnalysis.longTailKeywords.length > 0;
+            const hasPrimaryKeywords = seoAnalysis.primaryKeywords && seoAnalysis.primaryKeywords.length > 0;
+            const businessModel = seoAnalysis.businessModel;
+
+            // 優先級順序：商業意圖 > 長尾關鍵字 > 產品字 > 混合策略
+            if (hasCommercialKeywords && businessModel === 'B2C') {
+                return 'commercial';
+            } else if (hasCommercialKeywords && businessModel === 'B2B') {
+                return 'transactional';
+            } else if (hasLongTailKeywords) {
+                return 'longtail';
+            } else if (hasPrimaryKeywords) {
+                return 'product';
+            } else {
+                return 'mixed';
+            }
+        }
     </script>
     <style>
         .btn-spinner {
@@ -1601,6 +2058,36 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
                             推薦購買關鍵字 <span class="text-red-500">*</span>
                         </label>
                         <textarea id="ads-purchase-keywords" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入購買相關關鍵字，每行一個&#10;例如：&#10;立即購買&#10;限時優惠&#10;免費試駕&#10;分期付款"></textarea>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="ads-keyword-category" class="block text-sm font-medium text-gray-700 mb-2">
+                            預定使用關鍵字分類 <span class="text-red-500">*</span>
+                        </label>
+                        <select id="ads-keyword-category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">請選擇關鍵字分類</option>
+                            <option value="product">產品字 (Product Keywords)</option>
+                            <option value="brand">品牌字 (Brand Keywords)</option>
+                            <option value="generic">通用字 (Generic Keywords)</option>
+                            <option value="commercial">商業意圖字 (Commercial Intent)</option>
+                            <option value="informational">資訊查詢字 (Informational)</option>
+                            <option value="transactional">交易意圖字 (Transactional)</option>
+                            <option value="longtail">長尾關鍵字 (Long-tail)</option>
+                            <option value="mixed">混合策略 (Mixed Strategy)</option>
+                        </select>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p><strong>分類說明：</strong></p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>產品字：</strong>具體產品名稱、型號、功能特色</li>
+                                <li><strong>品牌字：</strong>品牌名稱、商標、品牌相關詞彙</li>
+                                <li><strong>通用字：</strong>行業通用術語、一般性描述</li>
+                                <li><strong>商業意圖：</strong>包含購買、價格、優惠等詞彙</li>
+                                <li><strong>資訊查詢：</strong>包含介紹、說明、指南等詞彙</li>
+                                <li><strong>交易意圖：</strong>包含購買、下單、訂購等詞彙</li>
+                                <li><strong>長尾關鍵字：</strong>3-4個詞的特定查詢</li>
+                                <li><strong>混合策略：</strong>結合多種分類的綜合策略</li>
+                            </ul>
+                        </div>
                     </div>
                     
                     <div class="md:col-span-2">
