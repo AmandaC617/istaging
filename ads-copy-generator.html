@@ -59,7 +59,13 @@
             isAuthenticated: false,
             intelligenceData: null,
             seoAnalysis: null,
-            searchHabits: null
+            searchHabits: null,
+            googleDriveEnabled: false,
+            driveFolderStructure: {
+                central: null,
+                project: null,
+                adsCopy: null
+            }
         };
 
         // 全域錯誤處理
@@ -89,6 +95,9 @@
                 
                 // 檢查 intelligence 資料
                 checkIntelligenceData();
+                
+                // 初始化 Google Drive
+                initializeGoogleDrive();
                 
                 console.log('應用程式初始化完成');
             } catch (error) {
@@ -538,6 +547,22 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 const charLimitSelect = document.getElementById('ads-char-limit');
                 if (charLimitSelect) {
                     charLimitSelect.addEventListener('change', updateCharLimitInfo);
+                }
+
+                // Google Drive 相關按鈕
+                const saveToDriveBtn = document.getElementById('save-to-drive-btn');
+                if (saveToDriveBtn) {
+                    saveToDriveBtn.addEventListener('click', saveToGoogleDrive);
+                }
+
+                const loadFromDriveBtn = document.getElementById('load-from-drive-btn');
+                if (loadFromDriveBtn) {
+                    loadFromDriveBtn.addEventListener('click', loadFromGoogleDrive);
+                }
+
+                const manageDriveBtn = document.getElementById('manage-drive-btn');
+                if (manageDriveBtn) {
+                    manageDriveBtn.addEventListener('click', manageDriveFiles);
                 }
 
                 console.log('事件監聽器設定完成');
@@ -1405,6 +1430,77 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 return;
             }
 
+            // 顯示下載選項對話框
+            showDownloadOptionsDialog();
+        }
+
+        // 顯示下載選項對話框
+        function showDownloadOptionsDialog() {
+            const dialogHtml = `
+                <div id="download-options-dialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 class="text-lg font-bold mb-4">選擇下載方式</h3>
+                        <div class="space-y-3">
+                            <button onclick="downloadToLocal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                下載到本機
+                            </button>
+                            <button onclick="downloadToGoogleDrive()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                儲存到 Google Drive
+                            </button>
+                            <button onclick="downloadBoth()" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                同時下載和儲存
+                            </button>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="closeDownloadOptionsDialog()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                                取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', dialogHtml);
+        }
+
+        // 關閉下載選項對話框
+        function closeDownloadOptionsDialog() {
+            const dialog = document.getElementById('download-options-dialog');
+            if (dialog) {
+                dialog.remove();
+            }
+        }
+
+        // 下載到本機
+        function downloadToLocal() {
+            closeDownloadOptionsDialog();
+            downloadAdsCopyToLocal();
+        }
+
+        // 下載到 Google Drive
+        async function downloadToGoogleDrive() {
+            closeDownloadOptionsDialog();
+            await saveToGoogleDrive();
+        }
+
+        // 同時下載和儲存
+        async function downloadBoth() {
+            closeDownloadOptionsDialog();
+            downloadAdsCopyToLocal();
+            await saveToGoogleDrive();
+        }
+
+        // 下載文案到本機
+        function downloadAdsCopyToLocal() {
             const projectId = state.projectId || 'unknown';
             const timestamp = new Date().toISOString().slice(0, 10);
             const charLimit = state.generatedCopy[0]?.charLimit || 'unknown';
@@ -1908,6 +2004,540 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
                 return 'mixed';
             }
         }
+
+        // ===== Google Drive 統一管理系統 =====
+
+        // 初始化 Google Drive API
+        async function initializeGoogleDrive() {
+            try {
+                if (!state.isAuthenticated) {
+                    console.warn('用戶未登入，無法初始化 Google Drive API');
+                    return;
+                }
+
+                // 載入 Google Drive API
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://apis.google.com/js/api.js';
+                    script.onload = () => {
+                        gapi.load('client', async () => {
+                            try {
+                                await gapi.client.init({
+                                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+                                });
+                                await gapi.client.load('drive', 'v3');
+                                resolve();
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
+                    };
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+
+                // 建立資料夾結構
+                await setupDriveFolderStructure();
+                state.googleDriveEnabled = true;
+                
+                console.log('Google Drive 初始化成功');
+                showAlert('Google Drive 已準備就緒', '可以開始使用統一檔案管理功能', 'success');
+                
+            } catch (error) {
+                console.error('Google Drive 初始化失敗:', error);
+                showAlert('Google Drive 初始化失敗', '請檢查網路連線或重新登入', 'error');
+            }
+        }
+
+        // 建立 Google Drive 資料夾結構
+        async function setupDriveFolderStructure() {
+            try {
+                // 1. 建立或找到主要專案資料夾
+                const centralFolderId = await findOrCreateFolder('iStaging_專案管理', null);
+                state.driveFolderStructure.central = centralFolderId;
+                
+                // 2. 建立或找到專案子資料夾
+                if (state.projectId) {
+                    const projectFolderName = `[${state.projectId}]_專案資料`;
+                    const projectFolderId = await findOrCreateFolder(projectFolderName, centralFolderId);
+                    state.driveFolderStructure.project = projectFolderId;
+                    
+                    // 3. 建立或找到 Google Ads 文案子資料夾
+                    const adsCopyFolderId = await findOrCreateFolder('03_Google_Ads_文案', projectFolderId);
+                    state.driveFolderStructure.adsCopy = adsCopyFolderId;
+                    
+                    console.log('Google Drive 資料夾結構建立完成:', state.driveFolderStructure);
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('建立 Google Drive 資料夾結構失敗:', error);
+                throw error;
+            }
+        }
+
+        // 尋找或建立資料夾
+        async function findOrCreateFolder(folderName, parentId) {
+            try {
+                let query = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+                if (parentId) {
+                    query += ` and '${parentId}' in parents`;
+                }
+                
+                const response = await gapi.client.drive.files.list({ 
+                    q: query, 
+                    fields: 'files(id,name)' 
+                });
+                
+                if (response.result.files && response.result.files.length > 0) {
+                    return response.result.files[0].id;
+                } else {
+                    const folderMetadata = {
+                        name: folderName,
+                        mimeType: 'application/vnd.google-apps.folder'
+                    };
+                    
+                    if (parentId) {
+                        folderMetadata.parents = [parentId];
+                    }
+                    
+                    const createResponse = await gapi.client.drive.files.create({ 
+                        resource: folderMetadata, 
+                        fields: 'id,name' 
+                    });
+                    
+                    console.log(`建立資料夾: ${folderName} (ID: ${createResponse.result.id})`);
+                    return createResponse.result.id;
+                }
+            } catch (error) {
+                console.error(`建立資料夾 ${folderName} 失敗:`, error);
+                throw error;
+            }
+        }
+
+        // 儲存文案到 Google Drive
+        async function saveToGoogleDrive() {
+            try {
+                if (!state.isAuthenticated) {
+                    showAlert('需要登入', '請先登入 Google 帳戶才能儲存到 Drive', 'warning');
+                    return;
+                }
+
+                if (!state.googleDriveEnabled) {
+                    await initializeGoogleDrive();
+                    if (!state.googleDriveEnabled) {
+                        showAlert('Google Drive 未啟用', '無法初始化 Google Drive，請稍後再試', 'error');
+                        return;
+                    }
+                }
+
+                if (!state.generatedCopy || state.generatedCopy.length === 0) {
+                    showAlert('沒有文案可儲存', '請先生成文案', 'warning');
+                    return;
+                }
+
+                showAlert('儲存中', '正在將文案儲存到 Google Drive...', 'info');
+
+                // 確保資料夾結構已建立
+                if (!state.driveFolderStructure.adsCopy) {
+                    await setupDriveFolderStructure();
+                }
+
+                // 生成檔案內容
+                const fileContent = generateDriveFileContent();
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const fileName = `Google_Ads_文案_${state.projectId}_${timestamp}.json`;
+
+                // 上傳到 Google Drive
+                await uploadFileToDrive(fileName, fileContent, 'application/json');
+                
+                showAlert('儲存成功', `文案已儲存到 Google Drive: ${fileName}`, 'success');
+
+            } catch (error) {
+                console.error('儲存到 Google Drive 失敗:', error);
+                showAlert('儲存失敗', `無法儲存到 Google Drive: ${error.message}`, 'error');
+            }
+        }
+
+        // 生成 Google Drive 檔案內容
+        function generateDriveFileContent() {
+            const fileData = {
+                metadata: {
+                    projectId: state.projectId,
+                    tool: 'Google_Ads_Copy_Generator',
+                    version: '1.0',
+                    generatedAt: new Date().toISOString(),
+                    generatedBy: currentUser ? {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        name: currentUser.name
+                    } : null
+                },
+                settings: {
+                    businessModel: document.getElementById('ads-business-model')?.value,
+                    productKeywords: document.getElementById('ads-product-keywords')?.value,
+                    purchaseKeywords: document.getElementById('ads-purchase-keywords')?.value,
+                    targetAudience: document.getElementById('ads-target-audience')?.value,
+                    marketRegion: document.getElementById('ads-market-region')?.value,
+                    charLimit: document.getElementById('ads-char-limit')?.value,
+                    keywordCategory: document.getElementById('ads-keyword-category')?.value,
+                    officialLinks: document.getElementById('ads-official-links')?.value?.trim()
+                },
+                intelligence: {
+                    seoAnalysis: state.seoAnalysis,
+                    searchHabits: state.searchHabits,
+                    intelligenceData: state.intelligenceData
+                },
+                results: {
+                    copyVariations: state.generatedCopy,
+                    totalCount: state.generatedCopy.length,
+                    charLimit: state.generatedCopy[0]?.charLimit,
+                    keywordCategory: state.generatedCopy[0]?.keywordCategory
+                },
+                analytics: {
+                    averageLength: state.generatedCopy.reduce((sum, copy) => sum + copy.length, 0) / state.generatedCopy.length,
+                    seoStrategy: state.generatedCopy[0]?.seoStrategy?.focus,
+                    searchIntent: state.generatedCopy[0]?.searchIntent,
+                    categoryRecommendations: state.generatedCopy[0]?.categoryRecommendations
+                }
+            };
+
+            return JSON.stringify(fileData, null, 2);
+        }
+
+        // 上傳檔案到 Google Drive
+        async function uploadFileToDrive(fileName, content, mimeType = 'text/plain') {
+            try {
+                const fileMetadata = {
+                    name: fileName,
+                    mimeType: mimeType,
+                    parents: [state.driveFolderStructure.adsCopy]
+                };
+
+                const blob = new Blob([content], { type: mimeType });
+                
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(fileMetadata)], { type: 'application/json' }));
+                form.append('file', blob);
+
+                const response = await gapi.client.drive.files.create({
+                    resource: fileMetadata,
+                    media: {
+                        mimeType: mimeType,
+                        body: blob
+                    },
+                    fields: 'id,name,webViewLink'
+                });
+
+                console.log('檔案上傳成功:', response.result);
+                return response.result;
+
+            } catch (error) {
+                console.error('上傳檔案到 Google Drive 失敗:', error);
+                throw error;
+            }
+        }
+
+        // 從 Google Drive 載入文案
+        async function loadFromGoogleDrive() {
+            try {
+                if (!state.isAuthenticated) {
+                    showAlert('需要登入', '請先登入 Google 帳戶才能從 Drive 載入', 'warning');
+                    return;
+                }
+
+                if (!state.googleDriveEnabled) {
+                    await initializeGoogleDrive();
+                    if (!state.googleDriveEnabled) {
+                        showAlert('Google Drive 未啟用', '無法初始化 Google Drive，請稍後再試', 'error');
+                        return;
+                    }
+                }
+
+                // 查詢專案相關的文案檔案
+                const query = `'${state.driveFolderStructure.adsCopy}' in parents and mimeType='application/json' and trashed=false`;
+                const response = await gapi.client.drive.files.list({
+                    q: query,
+                    fields: 'files(id,name,createdTime,modifiedTime)',
+                    orderBy: 'modifiedTime desc'
+                });
+
+                if (!response.result.files || response.result.files.length === 0) {
+                    showAlert('沒有找到文案檔案', '在 Google Drive 中沒有找到此專案的文案檔案', 'info');
+                    return;
+                }
+
+                // 顯示檔案選擇對話框
+                showFileSelectionDialog(response.result.files);
+
+            } catch (error) {
+                console.error('從 Google Drive 載入失敗:', error);
+                showAlert('載入失敗', `無法從 Google Drive 載入: ${error.message}`, 'error');
+            }
+        }
+
+        // 顯示檔案選擇對話框
+        function showFileSelectionDialog(files) {
+            const dialogHtml = `
+                <div id="file-selection-dialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+                        <h3 class="text-lg font-bold mb-4">選擇要載入的文案檔案</h3>
+                        <div class="space-y-2">
+                            ${files.map(file => `
+                                <div class="border border-gray-200 rounded p-3 hover:bg-gray-50 cursor-pointer" 
+                                     onclick="loadFileFromDrive('${file.id}', '${file.name}')">
+                                    <div class="font-medium">${file.name}</div>
+                                    <div class="text-sm text-gray-500">
+                                        建立時間: ${new Date(file.createdTime).toLocaleString('zh-TW')}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        修改時間: ${new Date(file.modifiedTime).toLocaleString('zh-TW')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="closeFileSelectionDialog()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                                取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', dialogHtml);
+        }
+
+        // 關閉檔案選擇對話框
+        function closeFileSelectionDialog() {
+            const dialog = document.getElementById('file-selection-dialog');
+            if (dialog) {
+                dialog.remove();
+            }
+        }
+
+        // 從 Google Drive 載入特定檔案
+        async function loadFileFromDrive(fileId, fileName) {
+            try {
+                showAlert('載入中', `正在載入 ${fileName}...`, 'info');
+
+                const response = await gapi.client.drive.files.get({
+                    fileId: fileId,
+                    alt: 'media'
+                });
+
+                const fileData = JSON.parse(response.body);
+                
+                // 恢復設定
+                if (fileData.settings) {
+                    const settings = fileData.settings;
+                    if (settings.businessModel) document.getElementById('ads-business-model').value = settings.businessModel;
+                    if (settings.productKeywords) document.getElementById('ads-product-keywords').value = settings.productKeywords;
+                    if (settings.purchaseKeywords) document.getElementById('ads-purchase-keywords').value = settings.purchaseKeywords;
+                    if (settings.targetAudience) document.getElementById('ads-target-audience').value = settings.targetAudience;
+                    if (settings.marketRegion) document.getElementById('ads-market-region').value = settings.marketRegion;
+                    if (settings.charLimit) document.getElementById('ads-char-limit').value = settings.charLimit;
+                    if (settings.keywordCategory) document.getElementById('ads-keyword-category').value = settings.keywordCategory;
+                    if (settings.officialLinks) document.getElementById('ads-official-links').value = settings.officialLinks;
+                }
+
+                // 恢復 Intelligence 資料
+                if (fileData.intelligence) {
+                    state.seoAnalysis = fileData.intelligence.seoAnalysis;
+                    state.searchHabits = fileData.intelligence.searchHabits;
+                    state.intelligenceData = fileData.intelligence.intelligenceData;
+                }
+
+                // 恢復文案結果
+                if (fileData.results && fileData.results.copyVariations) {
+                    state.generatedCopy = fileData.results.copyVariations;
+                    displayAdsCopyResults(state.generatedCopy, state.projectId);
+                }
+
+                closeFileSelectionDialog();
+                showAlert('載入成功', `${fileName} 已成功載入`, 'success');
+
+            } catch (error) {
+                console.error('載入檔案失敗:', error);
+                showAlert('載入失敗', `無法載入檔案: ${error.message}`, 'error');
+            }
+        }
+
+        // 管理 Google Drive 檔案
+        async function manageDriveFiles() {
+            try {
+                if (!state.isAuthenticated) {
+                    showAlert('需要登入', '請先登入 Google 帳戶才能管理 Drive 檔案', 'warning');
+                    return;
+                }
+
+                if (!state.googleDriveEnabled) {
+                    await initializeGoogleDrive();
+                    if (!state.googleDriveEnabled) {
+                        showAlert('Google Drive 未啟用', '無法初始化 Google Drive，請稍後再試', 'error');
+                        return;
+                    }
+                }
+
+                // 查詢所有專案相關檔案
+                const query = `'${state.driveFolderStructure.project}' in parents and trashed=false`;
+                const response = await gapi.client.drive.files.list({
+                    q: query,
+                    fields: 'files(id,name,mimeType,createdTime,modifiedTime,size)',
+                    orderBy: 'modifiedTime desc'
+                });
+
+                if (!response.result.files || response.result.files.length === 0) {
+                    showAlert('沒有找到檔案', '在 Google Drive 中沒有找到此專案的檔案', 'info');
+                    return;
+                }
+
+                // 顯示檔案管理對話框
+                showFileManagementDialog(response.result.files);
+
+            } catch (error) {
+                console.error('管理 Drive 檔案失敗:', error);
+                showAlert('管理失敗', `無法管理 Drive 檔案: ${error.message}`, 'error');
+            }
+        }
+
+        // 顯示檔案管理對話框
+        function showFileManagementDialog(files) {
+            const dialogHtml = `
+                <div id="file-management-dialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+                        <h3 class="text-lg font-bold mb-4">Google Drive 檔案管理</h3>
+                        <div class="space-y-2">
+                            ${files.map(file => `
+                                <div class="border border-gray-200 rounded p-3 hover:bg-gray-50">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <div class="font-medium">${file.name}</div>
+                                            <div class="text-sm text-gray-500">
+                                                類型: ${getFileTypeName(file.mimeType)} | 
+                                                大小: ${formatFileSize(file.size)} | 
+                                                修改時間: ${new Date(file.modifiedTime).toLocaleString('zh-TW')}
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button onclick="openFileInDrive('${file.id}')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                                                開啟
+                                            </button>
+                                            <button onclick="downloadFileFromDrive('${file.id}', '${file.name}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">
+                                                下載
+                                            </button>
+                                            <button onclick="deleteFileFromDrive('${file.id}', '${file.name}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                                刪除
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="closeFileManagementDialog()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                                關閉
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', dialogHtml);
+        }
+
+        // 關閉檔案管理對話框
+        function closeFileManagementDialog() {
+            const dialog = document.getElementById('file-management-dialog');
+            if (dialog) {
+                dialog.remove();
+            }
+        }
+
+        // 取得檔案類型名稱
+        function getFileTypeName(mimeType) {
+            const typeMap = {
+                'application/json': 'JSON 資料',
+                'text/plain': '文字檔案',
+                'application/vnd.google-apps.folder': '資料夾',
+                'application/pdf': 'PDF 檔案'
+            };
+            return typeMap[mimeType] || mimeType;
+        }
+
+        // 格式化檔案大小
+        function formatFileSize(bytes) {
+            if (!bytes) return '未知';
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // 在 Google Drive 中開啟檔案
+        async function openFileInDrive(fileId) {
+            try {
+                const response = await gapi.client.drive.files.get({
+                    fileId: fileId,
+                    fields: 'webViewLink'
+                });
+                
+                if (response.result.webViewLink) {
+                    window.open(response.result.webViewLink, '_blank');
+                }
+            } catch (error) {
+                console.error('開啟檔案失敗:', error);
+                showAlert('開啟失敗', '無法在 Google Drive 中開啟檔案', 'error');
+            }
+        }
+
+        // 從 Google Drive 下載檔案
+        async function downloadFileFromDrive(fileId, fileName) {
+            try {
+                const response = await gapi.client.drive.files.get({
+                    fileId: fileId,
+                    alt: 'media'
+                });
+
+                const blob = new Blob([response.body], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showAlert('下載成功', `${fileName} 已下載到您的裝置`, 'success');
+            } catch (error) {
+                console.error('下載檔案失敗:', error);
+                showAlert('下載失敗', '無法下載檔案', 'error');
+            }
+        }
+
+        // 從 Google Drive 刪除檔案
+        async function deleteFileFromDrive(fileId, fileName) {
+            if (!confirm(`確定要刪除檔案 "${fileName}" 嗎？此操作無法復原。`)) {
+                return;
+            }
+
+            try {
+                await gapi.client.drive.files.delete({
+                    fileId: fileId
+                });
+
+                showAlert('刪除成功', `${fileName} 已從 Google Drive 中刪除`, 'success');
+                
+                // 重新整理檔案管理對話框
+                closeFileManagementDialog();
+                setTimeout(() => manageDriveFiles(), 500);
+
+            } catch (error) {
+                console.error('刪除檔案失敗:', error);
+                showAlert('刪除失敗', '無法刪除檔案', 'error');
+            }
+        }
     </script>
     <style>
         .btn-spinner {
@@ -1985,8 +2615,41 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
                         <label class="block text-sm font-medium text-gray-700 mb-2">專案 ID</label>
                         <input type="text" id="project-id" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
                     </div>
-                    <div class="flex items-end">
+                    <div class="flex items-end space-x-2">
                         <a href="workflow.html" class="text-blue-600 hover:text-blue-800 text-sm">返回專案管理系統</a>
+                    </div>
+                </div>
+                
+                <!-- Google Drive 管理區塊 -->
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-3">Google Drive 統一管理</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button id="save-to-drive-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            儲存到 Drive
+                        </button>
+                        <button id="load-from-drive-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            從 Drive 載入
+                        </button>
+                        <button id="manage-drive-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            管理 Drive 檔案
+                        </button>
+                    </div>
+                    <div class="mt-3 text-sm text-blue-700">
+                        <p><strong>功能說明：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>儲存到 Drive：</strong>將當前文案、設定和 Intelligence 分析儲存到 Google Drive</li>
+                            <li><strong>從 Drive 載入：</strong>從 Google Drive 載入之前儲存的文案和設定</li>
+                            <li><strong>管理 Drive 檔案：</strong>查看、下載、刪除專案相關的所有檔案</li>
+                        </ul>
                     </div>
                 </div>
             </div>
