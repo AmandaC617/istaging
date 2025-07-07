@@ -197,6 +197,77 @@
                     </div>
                 </div>
 
+                <!-- B2B 專業市場分析設定 -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        B2B 專業市場分析設定
+                    </h3>
+                    <div class="input-grid">
+                        <div>
+                            <label for="targetCompanySize" class="block text-sm font-medium text-gray-700">目標企業規模</label>
+                            <select id="targetCompanySize" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="startup">新創企業 (1-50人)</option>
+                                <option value="sme">中小企業 (51-500人)</option>
+                                <option value="mid-market">中型企業 (501-2000人)</option>
+                                <option value="enterprise">大型企業 (2000+人)</option>
+                                <option value="mixed">混合型企業</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="decisionMakerRole" class="block text-sm font-medium text-gray-700">主要決策者角色</label>
+                            <select id="decisionMakerRole" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="ceo">CEO/總經理</option>
+                                <option value="cto">CTO/技術長</option>
+                                <option value="cfo">CFO/財務長</option>
+                                <option value="cmo">CMO/行銷長</option>
+                                <option value="cio">CIO/資訊長</option>
+                                <option value="procurement">採購經理</option>
+                                <option value="department-head">部門主管</option>
+                                <option value="influencer">影響者/推薦者</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="purchaseCycle" class="block text-sm font-medium text-gray-700">採購週期</label>
+                            <select id="purchaseCycle" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="immediate">立即採購 (1-30天)</option>
+                                <option value="short">短期採購 (1-3個月)</option>
+                                <option value="medium">中期採購 (3-6個月)</option>
+                                <option value="long">長期採購 (6-12個月)</option>
+                                <option value="strategic">策略性採購 (1年以上)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="budgetRange" class="block text-sm font-medium text-gray-700">預算範圍</label>
+                            <select id="budgetRange" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="low">低預算 (10萬以下)</option>
+                                <option value="medium">中等預算 (10-50萬)</option>
+                                <option value="high">高預算 (50-200萬)</option>
+                                <option value="enterprise">企業級預算 (200萬以上)</option>
+                                <option value="unlimited">無限制預算</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="painPoints" class="block text-sm font-medium text-gray-700">主要痛點</label>
+                            <input type="text" id="painPoints" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：效率低下、成本過高、技術落後">
+                        </div>
+                        <div>
+                            <label for="successMetrics" class="block text-sm font-medium text-gray-700">成功指標</label>
+                            <input type="text" id="successMetrics" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：ROI、效率提升、成本節省">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="competitiveAdvantage" class="block text-sm font-medium text-gray-700">競爭優勢</label>
+                            <textarea id="competitiveAdvantage" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="請描述相對於競爭對手的核心優勢，例如：技術領先、服務品質、價格優勢、本地化支援等"></textarea>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="industryChallenges" class="block text-sm font-medium text-gray-700">產業挑戰</label>
+                            <textarea id="industryChallenges" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="請描述目標產業面臨的主要挑戰，例如：數位轉型壓力、人才短缺、法規變更、市場競爭等"></textarea>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 跨國市場策略設定 -->
                 <div class="border-t border-gray-200 pt-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -396,6 +467,16 @@
         const culturalConsiderationsInput = document.getElementById('culturalConsiderations');
         const regulatoryRequirementsInput = document.getElementById('regulatoryRequirements');
 
+        // B2B 專業市場分析 UI 元素
+        const targetCompanySizeInput = document.getElementById('targetCompanySize');
+        const decisionMakerRoleInput = document.getElementById('decisionMakerRole');
+        const purchaseCycleInput = document.getElementById('purchaseCycle');
+        const budgetRangeInput = document.getElementById('budgetRange');
+        const painPointsInput = document.getElementById('painPoints');
+        const successMetricsInput = document.getElementById('successMetrics');
+        const competitiveAdvantageInput = document.getElementById('competitiveAdvantage');
+        const industryChallengesInput = document.getElementById('industryChallenges');
+
         // 檢查必要元素是否存在
         if (!apiKeyInput || !projectIdInput || !generateBtn || !targetBrandInput || 
             !competitorBrandInput || !industryInput || !businessModelInput || 
@@ -405,7 +486,9 @@
             !localizationLevelInput || !culturalSensitivityInput || !communicationStrategyInput ||
             !languageStrategyInput || !toneStrategyInput || !channelStrategyInput ||
             !timingStrategyInput || !crisisManagementInput || !culturalConsiderationsInput ||
-            !regulatoryRequirementsInput) {
+            !regulatoryRequirementsInput || !targetCompanySizeInput || !decisionMakerRoleInput ||
+            !purchaseCycleInput || !budgetRangeInput || !painPointsInput || !successMetricsInput ||
+            !competitiveAdvantageInput || !industryChallengesInput) {
             console.error('某些必要的 UI 元素未找到，請檢查 HTML 結構');
             // 顯示錯誤訊息給用戶
             document.body.innerHTML = `
@@ -769,8 +852,72 @@
             return await callGeminiAPI(prompt, apiKey, true);
         }
 
+        // B2B 專業市場分析
+        async function analyzeB2BMarketStrategy(context, apiKey) {
+            const prompt = `
+                你是一位資深的 B2B 市場策略顧問，專精於企業級市場分析和銷售策略。
+                請根據以下 B2B 情境，進行專業的市場分析。
+
+                **B2B 情境分析:**
+                - **目標品牌:** ${context.target}
+                - **競爭品牌:** ${context.competitor}
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **目標企業規模:** ${context.targetCompanySize}
+                - **主要決策者角色:** ${context.decisionMakerRole}
+                - **採購週期:** ${context.purchaseCycle}
+                - **預算範圍:** ${context.budgetRange}
+                - **主要痛點:** ${context.painPoints}
+                - **成功指標:** ${context.successMetrics}
+                - **競爭優勢:** ${context.competitiveAdvantage}
+                - **產業挑戰:** ${context.industryChallenges}
+
+                你的任務是產出一個 JSON 物件，包含以下 key：
+
+                1. **buyer_persona_analysis:** 包含 "decision_maker_profile", "influencer_network", "pain_points_analysis", "success_criteria"
+                2. **sales_funnel_strategy:** 包含 "awareness_stage", "consideration_stage", "decision_stage", "conversion_tactics"
+                3. **competitive_positioning:** 包含 "differentiation_strategy", "value_proposition", "competitive_advantages", "market_positioning"
+                4. **content_marketing_strategy:** 包含 "thought_leadership", "educational_content", "case_studies", "technical_documentation"
+                5. **lead_generation_tactics:** 包含 "inbound_strategies", "outbound_strategies", "partnership_opportunities", "referral_programs"
+                6. **account_based_marketing:** 包含 "target_account_selection", "personalization_strategy", "multi_touch_campaigns", "success_metrics"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // B2B 當地市場深度分析
+        async function analyzeLocalB2BMarket(context, apiKey) {
+            const prompt = `
+                你是一位專精台灣 B2B 市場的資深分析師，對台灣企業生態、採購習慣、決策流程有深入理解。
+                請根據以下情境，分析台灣 B2B 市場的特殊性和機會。
+
+                **台灣 B2B 市場分析情境:**
+                - **目標品牌:** ${context.target}
+                - **產業:** ${context.industry}
+                - **目標企業規模:** ${context.targetCompanySize}
+                - **主要決策者角色:** ${context.decisionMakerRole}
+                - **採購週期:** ${context.purchaseCycle}
+                - **預算範圍:** ${context.budgetRange}
+                - **主要痛點:** ${context.painPoints}
+                - **競爭優勢:** ${context.competitiveAdvantage}
+
+                你的任務是產出一個 JSON 物件，包含以下 key：
+
+                1. **taiwan_b2b_landscape:** 包含 "market_characteristics", "industry_clusters", "regional_distribution", "business_culture"
+                2. **decision_making_process:** 包含 "decision_hierarchy", "approval_process", "evaluation_criteria", "timeline_factors"
+                3. **local_competition_analysis:** 包含 "domestic_competitors", "international_players", "competitive_dynamics", "market_gaps"
+                4. **relationship_building:** 包含 "guanxi_importance", "trust_building", "long_term_relationships", "local_partnerships"
+                5. **regulatory_environment:** 包含 "compliance_requirements", "industry_regulations", "tax_considerations", "legal_framework"
+                6. **success_factors:** 包含 "local_adaptation", "service_quality", "price_positioning", "after_sales_support"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
         // --- Module 3: 提案生成引擎 ('合成引擎') ---
-        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, apiKey) {
+        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, b2bData, localB2bData, apiKey) {
              const prompt = `
                 你是一位首席媒體策略總監，你的任務是將下屬分析師提交的所有 JSON 資料，整合成一份給客戶看的、專業且有說服力的「市場機會與初步策略建議」報告。報告需以 HTML 格式呈現。
 
@@ -778,66 +925,83 @@
                 - **目標品牌:** ${context.target}
                 - **核心目標人群:** ${context.targetAudience}
                 - **總預算 (TWD):** ${context.budget > 0 ? context.budget.toLocaleString() : '未提供'}
+                - **商業模式:** ${context.businessModel}
                 - **目標市場:** ${context.targetMarkets}
                 - **主要市場:** ${context.primaryMarket}
                 - **次要市場:** ${context.secondaryMarkets}
+                ${context.businessModel === 'B2B' ? `
+                - **目標企業規模:** ${context.targetCompanySize}
+                - **主要決策者角色:** ${context.decisionMakerRole}
+                - **採購週期:** ${context.purchaseCycle}
+                - **預算範圍:** ${context.budgetRange}
+                - **主要痛點:** ${context.painPoints}
+                - **成功指標:** ${context.successMetrics}
+                ` : ''}
 
                 **分析師提交的資料:**
                 1.  **論壇輿情分析:** ${JSON.stringify(forumAnalysis, null, 2)}
                 2.  **SEO 與內容策略分析:** ${JSON.stringify(seoAnalysis, null, 2)}
-                3.  **預算與 KPI 預估:** ${JSON.stringify(kpiEstimation, null, 2)}
-                ${internationalData ? `4.  **跨國市場策略分析:** ${JSON.stringify(internationalData, null, 2)}` : ''}
-                ${culturalData ? `5.  **跨國文化適應分析:** ${JSON.stringify(culturalData, null, 2)}` : ''}
-
-                **你的任務:**
-                請根據以上所有資訊，撰寫一份包含以下章節的 HTML 報告，並在你的分析與建議中，**始終緊扣如何打動「${context.targetAudience}」這個核心目標人群**：
-
-                1.  **<h2>市場總體印象</h2>**
-                    - 一段簡短總結，點出 ${context.target} 目前在「${context.targetAudience}」心中的形象與挑戰。
-
-                2.  **<h2>核心洞察與機會點</h2>**
-                    -   <h3>洞察一：目標人群的真實心聲</h3>
-                    -   <h3>洞察二：搜尋戰場的內容缺口</h3>
-                    -   <h3>策略機會點：我們該從何處切入？</h3>
-
-                3.  **<h2>初步策略建議</h2>**
-                    -   <h3>建議一：內容策略方向</h3>
-                    -   <h3>建議二：溝通訊息切角</h3>
-                
-                4.  **<h2>預算規劃與預期效益</h2>**
-                    -   <p>基於台幣 **${context.budget > 0 ? context.budget.toLocaleString() : '未提供'}** 的預算，我們建議初步的資源分配與效益預估如下：</p>
-                    -   <h3>預算分配建議</h3>
-                    -   (此處使用 HTML table 呈現 kpiEstimation.budget_allocation 的內容)
-                    -   <h3>預期效益 (KPI) 估算</h3>
-                    -   (此處使用 HTML table 呈現 kpiEstimation.kpi_estimations 的內容)
-                    -   <h3>規劃說明</h3>
-                    -   (此處用 <p> 呈現 kpiEstimation.rationale 的內容)
-                
-                ${internationalData ? `
-                5.  **<h2>跨國市場策略分析</h2>**
-                    -   <h3>市場機會與挑戰</h3>
-                    -   <h3>本地化策略建議</h3>
-                    -   <h3>溝通框架設計</h3>
-                    -   <h3>風險管理策略</h3>
-                    -   <h3>成功指標設定</h3>
+                3.  **預算規劃與 KPI 估算:** ${JSON.stringify(kpiEstimation, null, 2)}
+                4.  **跨國市場策略分析:** ${JSON.stringify(internationalData, null, 2)}
+                5.  **跨國文化適應性分析:** ${JSON.stringify(culturalData, null, 2)}
+                ${context.businessModel === 'B2B' ? `
+                6.  **B2B 專業市場分析:** ${JSON.stringify(b2bData, null, 2)}
+                ${context.primaryMarket === 'taiwan' ? `
+                7.  **台灣 B2B 市場深度分析:** ${JSON.stringify(localB2bData, null, 2)}
                 ` : ''}
-                
-                ${culturalData ? `
-                6.  **<h2>跨國文化適應策略</h2>**
-                    -   <h3>文化洞察分析</h3>
-                    -   <h3>適應策略建議</h3>
-                    -   <h3>文化禁忌提醒</h3>
-                    -   <h3>本地化優先級</h3>
-                    -   <h3>成功指標</h3>
                 ` : ''}
-                
-                **格式要求:**
-                -   請嚴格使用 <h2> 和 <h3> 作為標題。
-                -   段落使用 <p>，列表使用 <ul> 和 <li>。表格使用 <table>, <th>, <tr>, <td>。
-                -   對於品牌名稱或關鍵字詞，使用 <strong> 標籤強調。
-                -   回應內容**僅包含 HTML**，不要包含 \`\`\`html, \`\`\`, <html>, <body> 等標籤。
+
+                請產出一份結構化的 HTML 報告，包含以下章節：
+
+                ## 1. 執行摘要
+                - 市場機會概述
+                - 核心策略建議
+                - 預期成效
+
+                ## 2. 市場分析
+                - 目標市場概況
+                - 競爭環境分析
+                - 消費者洞察
+                ${context.businessModel === 'B2B' ? `
+                - B2B 買家角色分析
+                - 決策流程分析
+                - 採購行為洞察
+                ` : ''}
+
+                ## 3. 策略建議
+                - 品牌定位策略
+                - 內容行銷策略
+                - 通路策略
+                ${context.businessModel === 'B2B' ? `
+                - 銷售漏斗策略
+                - 潛在客戶開發策略
+                - 帳戶基礎行銷策略
+                ` : ''}
+
+                ## 4. 跨國策略
+                - 市場進入策略
+                - 本地化策略
+                - 文化適應策略
+                - 溝通策略
+
+                ## 5. 預算分配與 KPI
+                - 預算分配建議
+                - KPI 設定
+                - 成效追蹤方法
+
+                ## 6. 執行時程
+                - 短期行動計畫 (1-3個月)
+                - 中期發展計畫 (3-6個月)
+                - 長期策略規劃 (6-12個月)
+
+                ## 7. 風險管理
+                - 潛在風險識別
+                - 風險緩解策略
+                - 危機管理計畫
+
+                請使用專業的 HTML 格式，包含適當的標題、段落、列表和強調元素。報告應該具有說服力且易於閱讀。
             `;
-             return await callGeminiAPI(prompt, apiKey, false);
+            return await callGeminiAPI(prompt, apiKey, false);
         }
 
         // --- 主執行流程 ---
@@ -882,17 +1046,26 @@
                     primaryMarket: primaryMarketInput.value || 'taiwan',
                     secondaryMarkets: secondaryMarketsInput.value?.trim() || '',
                     marketEntryStrategy: marketEntryStrategyInput.value || 'organic',
-                    localizationLevel: localizationLevelInput.value || 'moderate',
+                    localizationLevel: localizationLevelInput.value || 'medium',
                     culturalSensitivity: culturalSensitivityInput.value || 'medium',
                     // 跨國溝通策略參數
-                    communicationStrategy: communicationStrategyInput.value || 'glocal',
-                    languageStrategy: languageStrategyInput.value || 'local',
-                    toneStrategy: toneStrategyInput.value || 'adaptive',
-                    channelStrategy: channelStrategyInput.value || 'digital',
-                    timingStrategy: timingStrategyInput.value || 'staggered',
-                    crisisManagement: crisisManagementInput.value || 'hybrid',
+                    communicationStrategy: communicationStrategyInput.value || 'global_local',
+                    languageStrategy: languageStrategyInput.value || 'local_language',
+                    toneStrategy: toneStrategyInput.value || 'professional',
+                    channelStrategy: channelStrategyInput.value || 'digital_first',
+                    timingStrategy: timingStrategyInput.value || 'phased',
+                    crisisManagement: crisisManagementInput.value || 'centralized',
                     culturalConsiderations: culturalConsiderationsInput.value?.trim() || '',
-                    regulatoryRequirements: regulatoryRequirementsInput.value?.trim() || ''
+                    regulatoryRequirements: regulatoryRequirementsInput.value?.trim() || '',
+                    // B2B 專業市場分析參數
+                    targetCompanySize: targetCompanySizeInput.value || 'sme',
+                    decisionMakerRole: decisionMakerRoleInput.value || 'ceo',
+                    purchaseCycle: purchaseCycleInput.value || 'medium',
+                    budgetRange: budgetRangeInput.value || 'medium',
+                    painPoints: painPointsInput.value?.trim() || '',
+                    successMetrics: successMetricsInput.value?.trim() || '',
+                    competitiveAdvantage: competitiveAdvantageInput.value?.trim() || '',
+                    industryChallenges: industryChallengesInput.value?.trim() || ''
                 };
 
                 if (!analysisContext.target || !analysisContext.competitor) {
@@ -938,9 +1111,37 @@
                         markStatusDone(status5);
                     }
 
-                    const status6 = updateStatus(`綜合所有洞察，生成最終報告...`);
-                    const finalReportHtml = await synthesizeFinalReport(analysisContext, forumData, seoData, kpiData, internationalData, culturalData, userApiKey);
-                    markStatusDone(status6);
+                    // B2B 專業分析（僅在 B2B 模式下執行）
+                    let b2bData = null;
+                    let localB2bData = null;
+                    
+                    if (analysisContext.businessModel === 'B2B') {
+                        const status6 = updateStatus(`進行 B2B 專業市場分析...`);
+                        b2bData = await analyzeB2BMarketStrategy(analysisContext, userApiKey);
+                        markStatusDone(status6);
+
+                        // 當地 B2B 市場分析（僅在台灣市場時執行）
+                        if (analysisContext.primaryMarket === 'taiwan') {
+                            const status7 = updateStatus(`分析台灣 B2B 市場特殊性...`);
+                            localB2bData = await analyzeLocalB2BMarket(analysisContext, userApiKey);
+                            markStatusDone(status7);
+                        }
+                    }
+
+                    // 生成最終報告
+                    const status7 = updateStatus(`整合分析結果，生成專業報告...`);
+                    const finalReport = await synthesizeFinalReport(
+                        analysisContext, 
+                        forumData, 
+                        seoData, 
+                        kpiData, 
+                        internationalData, 
+                        culturalData, 
+                        b2bData, 
+                        localB2bData, 
+                        userApiKey
+                    );
+                    markStatusDone(status7);
 
                     // 在報告開頭加入 project ID 資訊
                     const projectInfoHtml = `
@@ -951,7 +1152,7 @@
                         </div>
                     `;
                     
-                    proposalOutput.innerHTML = projectInfoHtml + finalReportHtml;
+                    proposalOutput.innerHTML = projectInfoHtml + finalReport;
 
                 } catch (error) {
                     console.error('生成提案時發生錯誤:', error);
@@ -1140,6 +1341,71 @@
             } catch (error) {
                 console.error('儲存到 Google Drive 失敗:', error);
                 return false;
+            }
+        }
+
+        // B2B 商業模式的動態功能
+        if (businessModelInput) {
+            businessModelInput.addEventListener('change', function() {
+                const selectedModel = this.value;
+                updateB2BFields(selectedModel);
+            });
+        }
+
+        // 更新 B2B 相關欄位的顯示
+        function updateB2BFields(selectedModel) {
+            const b2bSection = document.querySelector('.border-t.border-gray-200.pt-6');
+            if (!b2bSection) return;
+
+            if (selectedModel === 'B2B') {
+                b2bSection.style.display = 'block';
+                // 添加專業提示
+                showB2BProfessionalTips();
+            } else {
+                b2bSection.style.display = 'none';
+                // 隱藏專業提示
+                hideB2BProfessionalTips();
+            }
+        }
+
+        // 顯示 B2B 專業提示
+        function showB2BProfessionalTips() {
+            const tipsHtml = `
+                <div id="b2b-tips" class="mt-4 p-4 bg-purple-50 border-l-4 border-purple-400 rounded-lg">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-purple-800">B2B 專業分析提示</h4>
+                            <div class="mt-2 text-sm text-purple-700">
+                                <p><strong>企業規模：</strong>不同規模企業的採購流程和決策週期差異很大</p>
+                                <p><strong>決策者角色：</strong>了解誰是最終決策者，誰是影響者</p>
+                                <p><strong>採購週期：</strong>B2B 採購通常需要 3-12 個月的決策週期</p>
+                                <p><strong>痛點分析：</strong>精準識別企業面臨的具體業務挑戰</p>
+                                <p><strong>成功指標：</strong>企業客戶更關注 ROI、效率提升、成本節省</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const existingTips = document.getElementById('b2b-tips');
+            if (!existingTips) {
+                const b2bSection = document.querySelector('.border-t.border-gray-200.pt-6');
+                if (b2bSection) {
+                    b2bSection.insertAdjacentHTML('afterend', tipsHtml);
+                }
+            }
+        }
+
+        // 隱藏 B2B 專業提示
+        function hideB2BProfessionalTips() {
+            const tips = document.getElementById('b2b-tips');
+            if (tips) {
+                tips.remove();
             }
         }
     </script>
