@@ -847,7 +847,7 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                     .replace('{purchase}', purchaseKeyword);
 
                 // 根據 intelligence 分析優化文案
-                copy = optimizeCopyWithIntelligence(copy, seoStrategy, searchIntent);
+                copy = optimizeCopyWithIntelligence(copy, seoStrategy, searchIntent, marketRegion);
 
                 // 確保不超過字元限制
                 if (copy.length > maxLength) {
@@ -1028,8 +1028,15 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
         }
 
         // 使用 intelligence 分析優化文案
-        function optimizeCopyWithIntelligence(copy, seoStrategy, searchIntent) {
+        function optimizeCopyWithIntelligence(copy, seoStrategy, searchIntent, marketRegion) {
             let optimizedCopy = copy;
+
+            // 根據市場區域調整文案風格
+            if (marketRegion === '日本') {
+                optimizedCopy = optimizeForJapaneseMarket(optimizedCopy);
+            } else if (marketRegion === '美國') {
+                optimizedCopy = optimizeForUSMarket(optimizedCopy);
+            }
 
             // 根據 SEO 策略優化關鍵字
             if (seoStrategy.focus === 'commercial' && seoStrategy.commercialKeywords.length > 0) {
@@ -1062,6 +1069,74 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 if (!optimizedCopy.includes('立即') && !optimizedCopy.includes('馬上')) {
                     optimizedCopy = optimizedCopy.replace('推薦', '立即推薦');
                 }
+            }
+
+            return optimizedCopy;
+        }
+
+        // 針對日本市場的文案優化
+        function optimizeForJapaneseMarket(copy) {
+            let optimizedCopy = copy;
+            
+            // 日本市場偏好：禮貌、品質、信賴
+            const japaneseKeywords = {
+                '優惠': 'お得',
+                '特價': 'セール',
+                '品質': '高品質',
+                '保證': '保証',
+                '專業': '専門',
+                '推薦': 'おすすめ',
+                '立即': '今すぐ',
+                '免費': '無料',
+                '限時': '期間限定',
+                '熱銷': '人気',
+                '首選': 'ベストチョイス'
+            };
+
+            // 替換關鍵字
+            Object.entries(japaneseKeywords).forEach(([chinese, japanese]) => {
+                if (optimizedCopy.includes(chinese)) {
+                    optimizedCopy = optimizedCopy.replace(chinese, `${chinese}(${japanese})`);
+                }
+            });
+
+            // 添加日本市場特有的表達方式
+            if (!optimizedCopy.includes('安心') && !optimizedCopy.includes('信頼')) {
+                optimizedCopy = optimizedCopy.replace('品質', '安心品質');
+            }
+
+            return optimizedCopy;
+        }
+
+        // 針對美國市場的文案優化
+        function optimizeForUSMarket(copy) {
+            let optimizedCopy = copy;
+            
+            // 美國市場偏好：直接、行動導向、價值導向
+            const usKeywords = {
+                '優惠': 'Deal',
+                '特價': 'Sale',
+                '品質': 'Quality',
+                '保證': 'Guarantee',
+                '專業': 'Professional',
+                '推薦': 'Recommended',
+                '立即': 'Now',
+                '免費': 'Free',
+                '限時': 'Limited Time',
+                '熱銷': 'Popular',
+                '首選': 'Best Choice'
+            };
+
+            // 替換關鍵字
+            Object.entries(usKeywords).forEach(([chinese, english]) => {
+                if (optimizedCopy.includes(chinese)) {
+                    optimizedCopy = optimizedCopy.replace(chinese, `${chinese}(${english})`);
+                }
+            });
+
+            // 添加美國市場特有的表達方式
+            if (!optimizedCopy.includes('Best') && !optimizedCopy.includes('Top')) {
+                optimizedCopy = optimizedCopy.replace('推薦', 'Top推薦');
             }
 
             return optimizedCopy;
@@ -1130,6 +1205,7 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                                     <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded">${variation.length} 字元</span>
                                     <span class="${charLimitClass} text-xs font-medium px-2 py-1 rounded">${variation.charLimit}字元限制</span>
                                     <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">${variation.businessModel}</span>
+                                    <span class="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded">${variation.marketRegion}</span>
                                     ${variation.seoStrategy?.focus ? `
                                         <span class="${seoStrategyClass} text-xs font-medium px-2 py-1 rounded">${getSEOStrategyText(variation.seoStrategy.focus)}</span>
                                     ` : ''}
@@ -1501,6 +1577,8 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
                         </label>
                         <select id="ads-market-region" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="台灣">台灣</option>
+                            <option value="日本">日本</option>
+                            <option value="美國">美國</option>
                             <option value="香港">香港</option>
                             <option value="新加坡">新加坡</option>
                             <option value="馬來西亞">馬來西亞</option>
