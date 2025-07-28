@@ -154,6 +154,84 @@
                     <div><label class="block text-gray-700 mb-2" for="budget-input">預算金額 (NT$)</label><input type="number" id="budget-input" class="w-full px-4 py-2 border rounded-md" placeholder="請輸入預算金額" min="0" step="1000"></div>
                     <div><label class="block text-gray-700 mb-2" for="project-uid-input">專案編號</label><input type="text" id="project-uid-input" class="w-full px-4 py-2 border rounded-md bg-gray-100" readonly placeholder="系統自動產生"></div>
                 </div>
+                
+                <!-- B2B 預算範圍分析設定 -->
+                <div class="border-t border-gray-200 pt-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        B2B 預算範圍分析設定
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="b2b-budget-range" class="block text-sm font-medium text-gray-700 mb-2">預算範圍分類</label>
+                            <select id="b2b-budget-range" class="w-full px-4 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">請選擇預算範圍</option>
+                                <option value="low">低預算 (10萬以下)</option>
+                                <option value="medium">中等預算 (10-50萬)</option>
+                                <option value="high">高預算 (50-200萬)</option>
+                                <option value="enterprise">企業級預算 (200萬以上)</option>
+                                <option value="unlimited">無限制預算</option>
+                            </select>
+                            <div class="mt-2 text-xs text-gray-600">
+                                <p><strong>預算範圍說明：</strong></p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>低預算：</strong>小型企業或新創公司，精準投放策略</li>
+                                    <li><strong>中等預算：</strong>中小型企業，可進行較廣泛的市場測試</li>
+                                    <li><strong>高預算：</strong>中大型企業，全面的媒體策略</li>
+                                    <li><strong>企業級：</strong>大型企業或跨國公司，大規模品牌行銷</li>
+                                    <li><strong>無限制：</strong>頂級企業或特殊專案，策略效果優先</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="b2b-business-size" class="block text-sm font-medium text-gray-700 mb-2">目標企業規模</label>
+                            <select id="b2b-business-size" class="w-full px-4 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">請選擇企業規模</option>
+                                <option value="startup">新創公司 (1-10人)</option>
+                                <option value="small">小型企業 (11-50人)</option>
+                                <option value="medium">中型企業 (51-200人)</option>
+                                <option value="large">大型企業 (201-1000人)</option>
+                                <option value="enterprise">企業級 (1000人以上)</option>
+                                <option value="mixed">混合規模</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="b2b-decision-maker" class="block text-sm font-medium text-gray-700 mb-2">決策者角色</label>
+                            <select id="b2b-decision-maker" class="w-full px-4 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">請選擇決策者角色</option>
+                                <option value="owner">企業主/創辦人</option>
+                                <option value="ceo">執行長/總經理</option>
+                                <option value="cto">技術長/技術主管</option>
+                                <option value="cmo">行銷長/行銷主管</option>
+                                <option value="procurement">採購主管</option>
+                                <option value="department">部門主管</option>
+                                <option value="influencer">影響者/顧問</option>
+                                <option value="multiple">多重決策者</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="b2b-purchase-cycle" class="block text-sm font-medium text-gray-700 mb-2">採購週期</label>
+                            <select id="b2b-purchase-cycle" class="w-full px-4 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">請選擇採購週期</option>
+                                <option value="immediate">立即採購 (1-30天)</option>
+                                <option value="short">短期採購 (1-3個月)</option>
+                                <option value="medium">中期採購 (3-6個月)</option>
+                                <option value="long">長期採購 (6-12個月)</option>
+                                <option value="strategic">策略性採購 (1年以上)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="b2b-pain-points" class="block text-sm font-medium text-gray-700 mb-2">主要痛點</label>
+                            <textarea id="b2b-pain-points" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請描述目標企業的主要痛點，例如：效率低下、成本過高、技術落後、人才短缺等"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="b2b-success-metrics" class="block text-sm font-medium text-gray-700 mb-2">成功指標</label>
+                            <textarea id="b2b-success-metrics" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請描述衡量成功的關鍵指標，例如：ROI、效率提升、成本節省、客戶滿意度等"></textarea>
+                        </div>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div><label class="block text-gray-700 mb-2" for="dashboard-internal-link-input">內部用 Dashboard 連結</label><input type="url" id="dashboard-internal-link-input" class="w-full px-4 py-2 border rounded-md" placeholder="https://lookerstudio.google.com/internal..."></div>
                     <div><label class="block text-gray-700 mb-2" for="dashboard-client-link-input">客戶版 Dashboard 連結</label><input type="url" id="dashboard-client-link-input" class="w-full px-4 py-2 border rounded-md" placeholder="https://lookerstudio.google.com/client..."></div>
