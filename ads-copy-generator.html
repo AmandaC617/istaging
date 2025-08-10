@@ -1088,6 +1088,8 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 optimizedCopy = optimizeForUSMarket(optimizedCopy);
             } else if (marketRegion === '印度') {
                 optimizedCopy = optimizeForIndianMarket(optimizedCopy);
+            } else if (marketRegion === '德國') {
+                optimizedCopy = optimizeForGermanMarket(optimizedCopy);
             }
 
             // 根據 SEO 策略優化關鍵字
@@ -1232,6 +1234,47 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
 
             return optimizedCopy;
         }
+
+        // 針對德國市場的文案優化
+        function optimizeForGermanMarket(copy) {
+            let optimizedCopy = copy;
+            
+            // 德國市場偏好：專業、品質、技術導向、環保
+            const germanKeywords = {
+                '優惠': 'Angebot',
+                '特價': 'Sonderpreis',
+                '品質': 'Qualität',
+                '保證': 'Garantie',
+                '專業': 'Professionell',
+                '推薦': 'Empfohlen',
+                '立即': 'Sofort',
+                '免費': 'Kostenlos',
+                '限時': 'Zeitlich begrenzt',
+                '熱銷': 'Bestseller',
+                '首選': 'Erste Wahl'
+            };
+
+            // 替換關鍵字
+            Object.entries(germanKeywords).forEach(([chinese, german]) => {
+                if (optimizedCopy.includes(chinese)) {
+                    optimizedCopy = optimizedCopy.replace(chinese, `${chinese}(${german})`);
+                }
+            });
+
+            // 添加德國市場特有的表達方式
+            if (!optimizedCopy.includes('專業') && !optimizedCopy.includes('技術')) {
+                optimizedCopy = optimizedCopy.replace('品質', '專業品質');
+            }
+
+            // 強調技術標準和環保
+            if (!optimizedCopy.includes('技術') && !optimizedCopy.includes('環保')) {
+                optimizedCopy = optimizedCopy.replace('推薦', '技術推薦');
+            }
+
+            return optimizedCopy;
+        }
+
+
 
         // 顯示文案結果
         function displayAdsCopyResults(copyVariations, projectId) {
@@ -1746,6 +1789,9 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
             } else if (marketRegion === '印度') {
                 recommendations.strategy += ' (重視價值和家庭導向)';
                 recommendations.optimization += ' (強調信任和社區價值)';
+            } else if (marketRegion === '德國') {
+                recommendations.strategy += ' (重視專業性和技術標準)';
+                recommendations.optimization += ' (強調品質、環保和技術優勢)';
             }
 
             return recommendations;
@@ -2744,6 +2790,7 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
                             <option value="日本">日本</option>
                             <option value="美國">美國</option>
                             <option value="印度">印度</option>
+                            <option value="德國">德國</option>
                             <option value="香港">香港</option>
                             <option value="新加坡">新加坡</option>
                             <option value="馬來西亞">馬來西亞</option>
