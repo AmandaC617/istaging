@@ -120,8 +120,34 @@
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 8a6 6 0 11-12 0 6 6 0 0112 0zM7 8a1 1 0 11-2 0 1 1 0 012 0zm5 0a1 1 0 11-2 0 1 1 0 012 0zm5 0a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path></svg>
                         Google Gemini API 金鑰 <span class="text-red-500 ml-1">*</span>
                     </label>
-                    <input type="password" id="apiKeyInput" class="mt-1 block w-full px-3 py-2 border border-yellow-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="請在此貼上您的 API 金鑰">
-                    <p class="mt-2 text-xs text-yellow-700">此金鑰僅存於您目前的瀏覽器分頁，關閉後即消失，不會被儲存。</p>
+                    <input type="password" id="apiKeyInput" class="mt-1 block w-full px-3 py-2 border border-yellow-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="AIzaSy...（應以AIzaSy開頭）">
+                    
+                    <!-- API金鑰驗證按鈕 -->
+                    <div class="mt-2 flex items-center gap-2">
+                        <button type="button" id="validateApiBtn" onclick="validateApiKey()" 
+                                class="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors">
+                            🔍 驗證金鑰
+                        </button>
+                        <div id="apiValidationResult" class="text-xs flex-1"></div>
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                        <p class="text-xs text-blue-800 font-medium mb-2">🔧 如何獲取API金鑰：</p>
+                        <ol class="text-xs text-blue-700 list-decimal list-inside space-y-1">
+                            <li>訪問 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-medium hover:text-blue-900">Google AI Studio</a></li>
+                            <li>登入您的Google帳戶</li>
+                            <li>點擊「Create API Key」建立新金鑰</li>
+                            <li>複製金鑰並貼上到上方欄位</li>
+                        </ol>
+                        <div class="mt-2 p-2 bg-green-100 border border-green-200 rounded text-xs">
+                            <p class="text-green-800"><strong>✅ 正確格式：</strong> 以「AIzaSy」開頭，總長度約39個字符</p>
+                            <p class="text-green-700 mt-1"><strong>❌ 常見錯誤：</strong> 包含空格、換行符或不完整複製</p>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-2 text-xs text-yellow-700">
+                        🔒 此金鑰僅存於您目前的瀏覽器分頁，關閉後即消失，不會被儲存。
+                    </p>
                 </div>
                 
                 <!-- Project ID 輸入 -->
@@ -1336,15 +1362,28 @@
                             </ul>
                             <p class="text-yellow-700 text-sm"><strong>建議:</strong> 請重新嘗試生成報告。如果問題持續發生，請檢查API金鑰或聯繫技術支援。</p>
                         </div>`;
-                    } else if (error.message.includes('API') || error.message.includes('401') || error.message.includes('403')) {
-                        errorMessage += `<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
-                            <h4 class="text-blue-800 font-medium mb-2">🔑 API存取問題</h4>
-                            <p class="text-blue-700 mb-2">請檢查您的 Google Gemini API 設置：</p>
-                            <ul class="text-blue-700 list-disc list-inside mb-2 text-sm">
-                                <li>確認API金鑰格式正確</li>
-                                <li>檢查API使用配額</li>
-                                <li>確認API權限設置</li>
-                            </ul>
+                    } else if (error.message.includes('API') || error.message.includes('401') || error.message.includes('403') || error.message.includes('400')) {
+                        errorMessage += `<div class="bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+                            <h4 class="text-red-800 font-medium mb-3">🔑 API金鑰問題</h4>
+                            <div class="mb-3">
+                                <p class="text-red-700 text-sm font-medium">您的API金鑰可能有以下問題：</p>
+                                <ul class="text-red-600 list-disc list-inside mt-2 text-sm space-y-1">
+                                    <li>API金鑰格式不正確（應以AIzaSy開頭）</li>
+                                    <li>API金鑰已過期或被撤銷</li>
+                                    <li>未啟用Gemini API服務</li>
+                                    <li>複製時包含多餘空格或字符</li>
+                                </ul>
+                            </div>
+                            <div class="bg-blue-50 border border-blue-200 rounded p-3">
+                                <p class="text-blue-800 font-medium mb-2">💡 立即解決方案：</p>
+                                <ol class="text-blue-700 list-decimal list-inside text-sm space-y-1">
+                                    <li>清除當前API金鑰欄位</li>
+                                    <li>訪問 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-medium">Google AI Studio</a></li>
+                                    <li>建立新的API金鑰</li>
+                                    <li>完整複製新金鑰並重新貼上</li>
+                                    <li>使用「🔍 驗證金鑰」按鈕測試</li>
+                                </ol>
+                            </div>
                         </div>`;
                     } else {
                         errorMessage += `<div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-3">
@@ -2810,6 +2849,48 @@
                 fixButton.onclick = forceRefresh;
                 document.body.appendChild(fixButton);
             }
+        }
+
+        // API金鑰驗證函數
+        async function validateApiKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const result = document.getElementById('apiValidationResult');
+            const btn = document.getElementById('validateApiBtn');
+            
+            if (!apiKey) {
+                result.innerHTML = '<span class="text-red-600">⚠️ 請先輸入API金鑰</span>';
+                return;
+            }
+            
+            // 檢查基本格式
+            if (!apiKey.startsWith('AIzaSy') || apiKey.length < 35) {
+                result.innerHTML = '<span class="text-red-600">❌ API金鑰格式不正確</span>';
+                return;
+            }
+            
+            btn.innerHTML = '⏳ 驗證中...';
+            btn.disabled = true;
+            
+            try {
+                // 嘗試進行一個簡單的API調用來驗證金鑰
+                const testResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                
+                if (testResponse.ok) {
+                    result.innerHTML = '<span class="text-green-600">✅ API金鑰有效！</span>';
+                } else if (testResponse.status === 400) {
+                    result.innerHTML = '<span class="text-red-600">❌ API金鑰無效</span>';
+                } else if (testResponse.status === 403) {
+                    result.innerHTML = '<span class="text-orange-600">⚠️ API金鑰權限不足</span>';
+                } else {
+                    result.innerHTML = '<span class="text-yellow-600">⚠️ 無法驗證（網路問題）</span>';
+                }
+            } catch (error) {
+                result.innerHTML = '<span class="text-yellow-600">⚠️ 驗證失敗（網路錯誤）</span>';
+                console.error('API金鑰驗證錯誤:', error);
+            }
+            
+            btn.innerHTML = '🔍 驗證金鑰';
+            btn.disabled = false;
         }
 
         // 頁面載入完成後執行
