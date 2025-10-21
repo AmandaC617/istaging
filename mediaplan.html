@@ -108,7 +108,8 @@
         <div class="card p-8">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">自動化媒體提案引擎</h1>
-                <p class="mt-2 text-gray-600">v2.5 安全金鑰版 (MVP)</p>
+                <p class="mt-2 text-gray-600">v2.5.1 強化JSON解析版 (MVP) 
+                <br><small class="text-xs text-gray-500">最後更新: 2024-10-21 - 如遇問題請強制重新整理 (Ctrl+F5)</small></p>
             </div>
 
             <!-- Module 1: 使用者與配置介面 ('駕駛艙') -->
@@ -656,21 +657,47 @@
                             cleanedText = cleanedText.substring(jsonStart, jsonEnd + 1);
                         }
                         
-                        // 修復常見的JSON格式問題
+                        // 強化的JSON修復機制
                         try {
-                            // 處理可能的尾隨逗號
+                            // 1. 處理可能的尾隨逗號
                             cleanedText = cleanedText.replace(/,(\s*[}\]])/g, '$1');
                             
-                            // 處理可能的換行符在字符串中
-                            cleanedText = cleanedText.replace(/"\s*\n\s*"/g, '" "');
+                            // 2. 處理缺少逗號的問題 (常見於位置168錯誤)
+                            cleanedText = cleanedText.replace(/"\s*"([^,}\]])/g, '", "$1');
+                            cleanedText = cleanedText.replace(/}(\s*)"/g, '}, $1"');
+                            cleanedText = cleanedText.replace(/](\s*)"/g, '], $1"');
                             
-                            // 處理可能的單引號
+                            // 3. 修復可能缺少的右括號
+                            const openBraces = (cleanedText.match(/{/g) || []).length;
+                            const closeBraces = (cleanedText.match(/}/g) || []).length;
+                            if (openBraces > closeBraces) {
+                                cleanedText += '}'.repeat(openBraces - closeBraces);
+                            }
+                            
+                            // 4. 修復可能缺少的右方括號
+                            const openBrackets = (cleanedText.match(/\[/g) || []).length;
+                            const closeBrackets = (cleanedText.match(/\]/g) || []).length;
+                            if (openBrackets > closeBrackets) {
+                                cleanedText += ']'.repeat(openBrackets - closeBrackets);
+                            }
+                            
+                            // 5. 處理換行符在字符串中的問題
+                            cleanedText = cleanedText.replace(/"\s*\n\s*"/g, '" "');
+                            cleanedText = cleanedText.replace(/:\s*\n\s*/g, ': ');
+                            
+                            // 6. 處理單引號
                             cleanedText = cleanedText.replace(/'/g, '"');
                             
-                            // 移除可能的控制字符
-                            cleanedText = cleanedText.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+                            // 7. 移除控制字符
+                            cleanedText = cleanedText.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
                             
-                            console.log('清理後的JSON文字:', cleanedText);
+                            // 8. 處理重複的逗號
+                            cleanedText = cleanedText.replace(/,+/g, ',');
+                            
+                            // 9. 移除key之前或之後的多餘空格和特殊字符
+                            cleanedText = cleanedText.replace(/,(\s*)}/g, '$1}');
+                            
+                            console.log('強化清理後的JSON文字:', cleanedText.substring(0, 500) + '...');
                             return JSON.parse(cleanedText);
                         } catch (secondError) {
                             console.error('清理後的 JSON 解析仍然失敗:', secondError);
@@ -2735,6 +2762,61 @@
             `);
             printWindow.document.close();
             printWindow.print();
+        }
+
+        // 強制清除快取並檢查版本的功能
+        function forceRefresh() {
+            const timestamp = new Date().getTime();
+            window.location.href = window.location.href.split('?')[0] + '?_refresh=' + timestamp;
+        }
+
+        // 檢查版本並提供快取清除提示
+        function checkVersionAndCache() {
+            const currentVersion = '2.5.1';
+            const lastVersion = localStorage.getItem('mediaplan_version');
+            
+            if (!lastVersion || lastVersion !== currentVersion) {
+                localStorage.setItem('mediaplan_version', currentVersion);
+                console.log('版本更新到:', currentVersion);
+                
+                if (lastVersion) {
+                    // 顯示版本更新成功提示
+                    setTimeout(() => {
+                        const alert = document.createElement('div');
+                        alert.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform';
+                        alert.innerHTML = '✅ v2.5.1 JSON解析已修復';
+                        document.body.appendChild(alert);
+                        
+                        setTimeout(() => alert.classList.remove('translate-x-full'), 100);
+                        setTimeout(() => {
+                            alert.classList.add('translate-x-full');
+                            setTimeout(() => alert.remove(), 300);
+                        }, 4000);
+                    }, 1000);
+                }
+            }
+        }
+
+        // 初始化函數
+        function initializeApp() {
+            checkVersionAndCache();
+            
+            // 如果頁面URL包含錯誤參數，提供快速修復選項
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('error') || document.referrer.includes('error')) {
+                const fixButton = document.createElement('div');
+                fixButton.className = 'fixed top-4 left-4 bg-yellow-500 text-white px-3 py-2 rounded cursor-pointer z-50';
+                fixButton.innerHTML = '🔧 點擊強制重新載入';
+                fixButton.onclick = forceRefresh;
+                document.body.appendChild(fixButton);
+            }
+        }
+
+        // 頁面載入完成後執行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
         }
     </script>
 </body>
