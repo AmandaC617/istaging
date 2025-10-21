@@ -635,12 +635,18 @@
                         return JSON.parse(rawText);
                     } catch (parseError) {
                         console.warn('直接 JSON 解析失敗，嘗試清理文字:', parseError);
+                        console.log('原始回應文字:', rawText);
                         
-                        // 清理文字，移除可能的 markdown 標記和額外文字
+                        // 改進的文字清理邏輯
                         let cleanedText = rawText.trim();
                         
-                        // 移除可能的 ```json 和 ``` 標記
+                        // 移除可能的 markdown 標記
                         cleanedText = cleanedText.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '');
+                        cleanedText = cleanedText.replace(/```\s*/gi, '');
+                        
+                        // 移除可能的前綴文字（如"以下是分析結果："等）
+                        cleanedText = cleanedText.replace(/^[^{]*/, '');
+                        cleanedText = cleanedText.replace(/[^}]*$/, '}');
                         
                         // 尋找 JSON 物件開始和結束的位置
                         const jsonStart = cleanedText.indexOf('{');
@@ -650,13 +656,34 @@
                             cleanedText = cleanedText.substring(jsonStart, jsonEnd + 1);
                         }
                         
+                        // 修復常見的JSON格式問題
                         try {
+                            // 處理可能的尾隨逗號
+                            cleanedText = cleanedText.replace(/,(\s*[}\]])/g, '$1');
+                            
+                            // 處理可能的換行符在字符串中
+                            cleanedText = cleanedText.replace(/"\s*\n\s*"/g, '" "');
+                            
+                            // 處理可能的單引號
+                            cleanedText = cleanedText.replace(/'/g, '"');
+                            
+                            // 移除可能的控制字符
+                            cleanedText = cleanedText.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+                            
+                            console.log('清理後的JSON文字:', cleanedText);
                             return JSON.parse(cleanedText);
                         } catch (secondError) {
                             console.error('清理後的 JSON 解析仍然失敗:', secondError);
                             console.error('原始文字:', rawText);
                             console.error('清理後文字:', cleanedText);
-                            throw new Error(`JSON 解析失敗: ${secondError.message}。請檢查主控台查看詳細資訊。`);
+                            console.error('錯誤位置資訊:', {
+                                message: secondError.message,
+                                position: cleanedText.substring(Math.max(0, secondError.toString().match(/\d+/)?.[0] - 50 || 0), (secondError.toString().match(/\d+/)?.[0] || 0) + 50)
+                            });
+                            
+                            // 嘗試回退到非JSON模式，直接返回原始文字
+                            console.warn('JSON解析完全失敗，回退到文字模式');
+                            return rawText;
                         }
                     }
                 } else {
@@ -1270,16 +1297,44 @@
                     
                     // 如果是 JSON 解析錯誤，提供特別的建議
                     if (error.message.includes('JSON') || error.message.includes('SyntaxError')) {
-                        errorMessage += `<p class="text-red-700 mb-2"><strong>可能原因:</strong> AI 回應格式不正確，可能是因為：</p>
-                        <ul class="text-red-700 list-disc list-inside mb-2">
-                            <li>API 金鑰無效或已過期</li>
-                            <li>網路連線問題</li>
-                            <li>AI 服務暫時不可用</li>
-                        </ul>
-                        <p class="text-red-700"><strong>建議:</strong> 請檢查您的 API 金鑰是否正確，或稍後再試。</p>`;
+                        errorMessage += `<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+                            <h4 class="text-yellow-800 font-medium mb-2">🔧 JSON解析問題</h4>
+                            <p class="text-yellow-700 mb-2">系統已檢測到JSON格式問題。最新版本已改善此類問題的處理機制。</p>
+                            <p class="text-yellow-700 mb-2"><strong>可能原因:</strong></p>
+                            <ul class="text-yellow-700 list-disc list-inside mb-2 text-sm">
+                                <li>AI 模型回應包含格式化字符</li>
+                                <li>API 回應格式異常</li>
+                                <li>網路傳輸干擾</li>
+                                <li>API 金鑰權限問題</li>
+                            </ul>
+                            <p class="text-yellow-700 text-sm"><strong>建議:</strong> 請重新嘗試生成報告。如果問題持續發生，請檢查API金鑰或聯繫技術支援。</p>
+                        </div>`;
+                    } else if (error.message.includes('API') || error.message.includes('401') || error.message.includes('403')) {
+                        errorMessage += `<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                            <h4 class="text-blue-800 font-medium mb-2">🔑 API存取問題</h4>
+                            <p class="text-blue-700 mb-2">請檢查您的 Google Gemini API 設置：</p>
+                            <ul class="text-blue-700 list-disc list-inside mb-2 text-sm">
+                                <li>確認API金鑰格式正確</li>
+                                <li>檢查API使用配額</li>
+                                <li>確認API權限設置</li>
+                            </ul>
+                        </div>`;
                     } else {
-                        errorMessage += `<p class="text-red-700"><strong>建議:</strong> 請檢查瀏覽器的主控台以獲取詳細技術資訊，然後再試一次。</p>`;
+                        errorMessage += `<div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-3">
+                            <h4 class="text-gray-800 font-medium mb-2">🛠️ 一般錯誤</h4>
+                            <p class="text-gray-700 mb-2">建議嘗試以下解決方法：</p>
+                            <ul class="text-gray-700 list-disc list-inside mb-2 text-sm">
+                                <li>重新整理頁面</li>
+                                <li>檢查網路連線</li>
+                                <li>確認所有欄位正確填寫</li>
+                                <li>查看瀏覽器主控台的詳細錯誤</li>
+                            </ul>
+                        </div>`;
                     }
+                    
+                    errorMessage += `<div class="mt-3 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                        <strong>偵錯資訊:</strong> 按F12打開開發者工具查看詳細日誌
+                    </div>`;
                     
                     errorMessage += `</div>`;
                     proposalOutput.innerHTML = errorMessage;
