@@ -1090,6 +1090,8 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 optimizedCopy = optimizeForIndianMarket(optimizedCopy);
             } else if (marketRegion === '德國') {
                 optimizedCopy = optimizeForGermanMarket(optimizedCopy);
+            } else if (marketRegion === '菲律賓') {
+                optimizedCopy = optimizeForPhilippinesMarket(optimizedCopy);
             }
 
             // 根據 SEO 策略優化關鍵字
@@ -1269,6 +1271,54 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
             // 強調技術標準和環保
             if (!optimizedCopy.includes('技術') && !optimizedCopy.includes('環保')) {
                 optimizedCopy = optimizedCopy.replace('推薦', '技術推薦');
+            }
+
+            return optimizedCopy;
+        }
+
+        // 針對菲律賓市場的文案優化
+        function optimizeForPhilippinesMarket(copy) {
+            let optimizedCopy = copy;
+            
+            // 菲律賓市場偏好：家庭導向、社群導向、價值取向、英文與地方語言混用
+            const philippinesKeywords = {
+                '優惠': 'Special Offer',
+                '特價': 'Sale Price',
+                '品質': 'Quality',
+                '保證': 'Guaranteed',
+                '專業': 'Professional',
+                '推薦': 'Recommended',
+                '立即': 'Now',
+                '免費': 'Free',
+                '限時': 'Limited Time',
+                '熱銷': 'Bestseller',
+                '首選': 'Top Choice',
+                '家庭': 'Pamilya',
+                '信任': 'Trust'
+            };
+
+            // 替換關鍵字
+            Object.entries(philippinesKeywords).forEach(([chinese, philippines]) => {
+                if (optimizedCopy.includes(chinese)) {
+                    optimizedCopy = optimizedCopy.replace(chinese, `${chinese}(${philippines})`);
+                }
+            });
+
+            // 添加菲律賓市場特有的表達方式
+            if (!optimizedCopy.includes('家庭') && !optimizedCopy.includes('社群')) {
+                optimizedCopy = optimizedCopy.replace('品質', '家庭品質');
+            }
+
+            // 強調社群和信任
+            if (!optimizedCopy.includes('信任') && !optimizedCopy.includes('推薦')) {
+                optimizedCopy = optimizedCopy.replace('專業', '信任專業');
+            }
+
+            // 添加菲律賓常見的親切用語
+            if (!optimizedCopy.includes('Kuya') && !optimizedCopy.includes('Ate')) {
+                if (Math.random() > 0.5) {
+                    optimizedCopy = optimizedCopy.replace('推薦', 'Kuya推薦');
+                }
             }
 
             return optimizedCopy;
@@ -1792,6 +1842,9 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
             } else if (marketRegion === '德國') {
                 recommendations.strategy += ' (重視專業性和技術標準)';
                 recommendations.optimization += ' (強調品質、環保和技術優勢)';
+            } else if (marketRegion === '菲律賓') {
+                recommendations.strategy += ' (重視家庭和社群價值)';
+                recommendations.optimization += ' (強調信任、社群連結和親切感)';
             }
 
             return recommendations;
@@ -2791,12 +2844,12 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
                             <option value="美國">美國</option>
                             <option value="印度">印度</option>
                             <option value="德國">德國</option>
+                            <option value="菲律賓">菲律賓</option>
                             <option value="香港">香港</option>
                             <option value="新加坡">新加坡</option>
                             <option value="馬來西亞">馬來西亞</option>
                             <option value="泰國">泰國</option>
                             <option value="越南">越南</option>
-                            <option value="菲律賓">菲律賓</option>
                             <option value="印尼">印尼</option>
                         </select>
                     </div>
