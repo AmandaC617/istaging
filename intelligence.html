@@ -81,6 +81,109 @@
             event.preventDefault(); // 防止預設的錯誤處理
         });
 
+        // --- 越南市場深度專區渲染 ---
+        function renderVietnamDeepInsights() {
+            try {
+                const marketKey = (state.analysisData?.marketPositioning?.targetMarket || 'tw').toLowerCase();
+                const container = document.getElementById('vietnam-deep-insights');
+                if (!container) return;
+
+                if (marketKey !== 'vn') {
+                    container.classList.add('hidden');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                const insights = {
+                    b2b: [
+                        '與在地系統整合商/代理商建立合作',
+                        '提供具體落地 PoC 和成功案例',
+                        '彈性的付款與維運方案',
+                        '針對製造與供應鏈場景提出解決方案',
+                        '參與當地產業展會與商務社群'
+                    ],
+                    localization: [
+                        '網站與銷售材料提供越語版本',
+                        '善用 Facebook、Zalo、TikTok 在地玩法',
+                        '整合 Shopee、Lazada 等電商與支付',
+                        '價格分層與入門款產品策略',
+                        '建立在地客服與售後流程'
+                    ],
+                    compliance: [
+                        '遵守越南網路安全法與數據本地化要求',
+                        '進出口與稅務合規（VAT、企業稅）',
+                        '支付與電商平台合規對接',
+                        '勞動法與合約用工規範',
+                        '資料隱私與個資保護'
+                    ],
+                    successCases: [
+                        '電商（Shopee/Lazada）品牌成長案例',
+                        '本地銀行/金融在行動支付的轉型',
+                        '製造業導入數位化與自動化案例',
+                        '快消品透過 KOL 帶貨破圈'
+                    ],
+                    roi: {
+                        short: '6-12 個月，預期 ROI: 18-30%',
+                        mid: '1-2 年，預期 ROI: 35-55%',
+                        long: '3-5 年，預期 ROI: 55-90%',
+                        factors: [
+                            '渠道與電商整合深度',
+                            '在地化與服務交付能力',
+                            '價格策略與產品階梯',
+                            '社群口碑與 KOL 合作'
+                        ]
+                    }
+                };
+
+                container.innerHTML = `
+                    <div class="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
+                        <h3 class="text-xl font-semibold text-techaccent mb-4">🇻🇳 越南市場深度分析</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-green-300 mb-2">🎯 B2B 策略建議</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.b2b.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-blue-300 mb-2">🌿 本地化建議</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.localization.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-yellow-300 mb-2">⚖️ 法規合規</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.compliance.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-purple-300 mb-2">🏆 成功案例</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.successCases.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-4 bg-gray-900 rounded border border-gray-700">
+                            <h4 class="font-semibold text-indigo-300 mb-2">📊 ROI 預測模型</h4>
+                            <ul class="list-disc list-inside text-gray-300 text-sm space-y-1 mb-2">
+                                <li><strong>短期:</strong> ${insights.roi.short}</li>
+                                <li><strong>中期:</strong> ${insights.roi.mid}</li>
+                                <li><strong>長期:</strong> ${insights.roi.long}</li>
+                            </ul>
+                            <div class="text-gray-400 text-xs">關鍵因素：${insights.roi.factors.join('、')}</div>
+                        </div>
+                    </div>
+                `;
+                container.classList.remove('hidden');
+            } catch (e) {
+                console.warn('渲染越南深度專區失敗:', e);
+            }
+        }
+
+        // 監聽市場變更並渲染（簡易輪詢，避免找不到事件來源）
+        setInterval(renderVietnamDeepInsights, 2000);
+
         // 顯示警告訊息
         function showAlert(title, message, type = 'info') {
             try {
@@ -6022,6 +6125,7 @@ function getTypeDisplayName(type) {
 </head>
 <body>
     <div id="app-container" class="p-6 bg-techbg text-white min-h-screen">
+        <div id="vietnam-deep-insights" class="hidden"></div>
         <h1 class="text-2xl font-semibold mb-6">市場情資與競品分析平台 (V6 - 進階分析版)</h1>
 
         <div id="alert-container"></div>
