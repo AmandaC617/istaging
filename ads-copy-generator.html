@@ -1092,6 +1092,8 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 optimizedCopy = optimizeForGermanMarket(optimizedCopy);
             } else if (marketRegion === '菲律賓') {
                 optimizedCopy = optimizeForPhilippinesMarket(optimizedCopy);
+            } else if (marketRegion === '越南') {
+                optimizedCopy = optimizeForVietnamMarket(optimizedCopy);
             }
 
             // 根據 SEO 策略優化關鍵字
@@ -1319,6 +1321,43 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 if (Math.random() > 0.5) {
                     optimizedCopy = optimizedCopy.replace('推薦', 'Kuya推薦');
                 }
+            }
+
+            return optimizedCopy;
+        }
+
+        // 針對越南市場的文案優化
+        function optimizeForVietnamMarket(copy) {
+            let optimizedCopy = copy;
+            
+            // 越南市場偏好：高CP值、社群背書、行動優先
+            const vietnameseKeywords = {
+                '優惠': 'Ưu đãi',
+                '特價': 'Giá tốt',
+                '品質': 'Chất lượng',
+                '保證': 'Bảo hành',
+                '專業': 'Chuyên nghiệp',
+                '推薦': 'Khuyến nghị',
+                '立即': 'Ngay',
+                '免費': 'Miễn phí',
+                '限時': 'Giới hạn',
+                '熱銷': 'Bán chạy',
+                '首選': 'Lựa chọn hàng đầu',
+                '信任': 'Uy tín'
+            };
+
+            Object.entries(vietnameseKeywords).forEach(([chinese, vi]) => {
+                if (optimizedCopy.includes(chinese)) {
+                    optimizedCopy = optimizedCopy.replace(chinese, `${chinese}(${vi})`);
+                }
+            });
+
+            // 強調 CP 值與社群口碑
+            if (!optimizedCopy.includes('CP') && optimizedCopy.includes('價格')) {
+                optimizedCopy = optimizedCopy.replace('價格', '價格/CP 值');
+            }
+            if (!optimizedCopy.includes('社群') && optimizedCopy.includes('推薦')) {
+                optimizedCopy = optimizedCopy.replace('推薦', '社群推薦');
             }
 
             return optimizedCopy;
