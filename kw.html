@@ -171,7 +171,7 @@
                                     </div>
                                     <div>
                                         <label for="language" class="block text-sm font-medium text-gray-300">語言</label>
-                                        <select id="language" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20 focus:outline-none focus:ring-2 focus:ring-techprimary text-gray-100"><option value="zh-TW">繁體中文</option><option value="zh-CN">簡體中文</option><option value="en">英文</option><option value="ja">日文</option><option value="ko">韓文</option><option value="de">德文</option><option value="fr">法文</option></select>
+                                        <select id="language" class="mt-1 w-full px-4 py-2 rounded-lg bg-techbg border border-techprimary/20 focus:outline-none focus:ring-2 focus:ring-techprimary text-gray-100"><option value="zh-TW">繁體中文</option><option value="zh-CN">簡體中文</option><option value="en">英文</option><option value="ja">日文</option><option value="ko">韓文</option><option value="de">德文</option><option value="fr">法文</option><option value="es">西班牙文</option></select>
                                     </div>
                                 </div>
                                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -647,7 +647,78 @@ async function searchGoogle(query) {
 }
 
 async function getAiKeywordSuggestions(context) {
-    const prompt = `You are a world-class SEO expert. Based on the following criteria, generate as many relevant SEO keywords as possible, aiming for 40-50, in the specified language. Critically, tailor keywords to the "businessModel". Also provide estimated search volume (高/中/低), type, and bidding competition (高/中/低). Output MUST be a valid JSON array of objects, with NO other text. Criteria: ${JSON.stringify(context)}. Format: [{"keyword": "...", "volume": "...", "type": "...", "biddingCompetition": "..."}, ...].`;
+    // 根據國家自動設定語言
+    const countryLanguageMap = {
+        'MX': 'es', // 墨西哥 -> 西班牙文
+        'ES': 'es', // 西班牙 -> 西班牙文
+        'AR': 'es', // 阿根廷 -> 西班牙文
+        'CO': 'es', // 哥倫比亞 -> 西班牙文
+        'CL': 'es', // 智利 -> 西班牙文
+        'PE': 'es', // 秘魯 -> 西班牙文
+        'VN': 'vi', // 越南 -> 越南文
+        'PH': 'en', // 菲律賓 -> 英文（主要）
+        'DE': 'de', // 德國 -> 德文
+        'FR': 'fr', // 法國 -> 法文
+        'JP': 'ja', // 日本 -> 日文
+        'KR': 'ko', // 韓國 -> 韓文
+        'CN': 'zh-CN', // 中國 -> 簡體中文
+        'TW': 'zh-TW', // 台灣 -> 繁體中文
+        'HK': 'zh-TW', // 香港 -> 繁體中文
+        'US': 'en', // 美國 -> 英文
+        'GB': 'en', // 英國 -> 英文
+        'IN': 'en', // 印度 -> 英文
+        'SG': 'en'  // 新加坡 -> 英文
+    };
+    
+    // 如果選擇了墨西哥但語言不是西班牙文，自動切換
+    const targetLanguage = countryLanguageMap[context.country] || context.language;
+    const languageNames = {
+        'es': '西班牙文 (Español)',
+        'vi': '越南文 (Tiếng Việt)',
+        'de': '德文 (Deutsch)',
+        'fr': '法文 (Français)',
+        'ja': '日文 (日本語)',
+        'ko': '韓文 (한국어)',
+        'zh-CN': '簡體中文',
+        'zh-TW': '繁體中文',
+        'en': '英文 (English)'
+    };
+    
+    const languageName = languageNames[targetLanguage] || targetLanguage;
+    const countryNames = {
+        'MX': '墨西哥',
+        'VN': '越南',
+        'PH': '菲律賓',
+        'DE': '德國',
+        'FR': '法國',
+        'JP': '日本',
+        'KR': '韓國',
+        'CN': '中國',
+        'TW': '台灣',
+        'US': '美國',
+        'GB': '英國',
+        'IN': '印度',
+        'SG': '新加坡'
+    };
+    const countryName = countryNames[context.country] || context.country;
+    
+    const prompt = `You are a world-class SEO expert specializing in ${countryName} market. Based on the following criteria, generate as many relevant SEO keywords as possible, aiming for 40-50 keywords, in ${languageName}. 
+
+IMPORTANT: 
+- If country is Mexico (MX), ALL keywords MUST be in Spanish (Español)
+- If country is Vietnam (VN), keywords should be in Vietnamese (Tiếng Việt)
+- If country is Germany (DE), keywords should be in German (Deutsch)
+- If country is France (FR), keywords should be in French (Français)
+- If country is Japan (JP), keywords should be in Japanese (日本語)
+- If country is Korea (KR), keywords should be in Korean (한국어)
+- Tailor keywords to the "businessModel" and local market culture
+- Use local terminology and expressions that resonate with ${countryName} consumers
+- Provide estimated search volume (高/中/低 or Alto/Medio/Bajo for Spanish), type, and bidding competition (高/中/低 or Alto/Medio/Bajo for Spanish)
+
+Output MUST be a valid JSON array of objects, with NO other text. 
+Criteria: ${JSON.stringify({...context, targetLanguage, countryName})}. 
+Format: [{"keyword": "...", "volume": "...", "type": "...", "biddingCompetition": "..."}, ...].`;
+    
     return callGemini(prompt);
 }
 
