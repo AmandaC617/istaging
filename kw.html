@@ -531,8 +531,25 @@ function getSearchContext() {
     return {
         topic: document.getElementById('topic')?.value.trim(),
         businessModel: document.querySelector('input[name="business-model"]:checked').value,
-        country: document.getElementById('country').value,
-        language: document.getElementById('language').value,
+        country: (() => {
+            const country = document.getElementById('country').value;
+            // 如果選擇墨西哥或其他西班牙語國家，自動將語言設為西班牙文
+            const countryLanguageMap = {
+                'MX': 'es', 'ES': 'es', 'AR': 'es', 'CO': 'es', 'CL': 'es', 'PE': 'es'
+            };
+            if (countryLanguageMap[country]) {
+                const langSelect = document.getElementById('language');
+                if (langSelect) langSelect.value = 'es';
+            }
+            return country;
+        })(),
+        language: (() => {
+            const country = document.getElementById('country').value;
+            const countryLanguageMap = {
+                'MX': 'es', 'ES': 'es', 'AR': 'es', 'CO': 'es', 'CL': 'es', 'PE': 'es'
+            };
+            return countryLanguageMap[country] || document.getElementById('language').value;
+        })(),
         industry: document.getElementById('industry').value.trim(),
         sector: document.getElementById('sector').value.trim(),
         product: document.getElementById('product').value.trim(),
