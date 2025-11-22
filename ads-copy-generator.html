@@ -1094,6 +1094,8 @@ ${analysis.informationalKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
                 optimizedCopy = optimizeForPhilippinesMarket(optimizedCopy);
             } else if (marketRegion === '越南') {
                 optimizedCopy = optimizeForVietnamMarket(optimizedCopy);
+            } else if (marketRegion === '墨西哥') {
+                optimizedCopy = optimizeForMexicoMarket(optimizedCopy);
             }
 
             // 根據 SEO 策略優化關鍵字
@@ -1884,6 +1886,9 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
             } else if (marketRegion === '菲律賓') {
                 recommendations.strategy += ' (重視家庭和社群價值)';
                 recommendations.optimization += ' (強調信任、社群連結和親切感)';
+            } else if (marketRegion === '墨西哥') {
+                recommendations.strategy += ' (重視家庭和信任文化)';
+                recommendations.optimization += ' (強調 Confianza、社群連結和西班牙文本地化)';
             }
 
             return recommendations;
@@ -2889,6 +2894,7 @@ SEO 優化: ${getSEOOptimizationDetails(v)}
                             <option value="馬來西亞">馬來西亞</option>
                             <option value="泰國">泰國</option>
                             <option value="越南">越南</option>
+                            <option value="墨西哥">墨西哥</option>
                             <option value="印尼">印尼</option>
                         </select>
                     </div>

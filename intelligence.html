@@ -181,8 +181,111 @@
             }
         }
 
+        // --- 墨西哥市場深度專區渲染 ---
+        function renderMexicoDeepInsights() {
+            try {
+                const marketKey = (state.analysisData?.marketPositioning?.targetMarket || 'tw').toLowerCase();
+                const container = document.getElementById('mexico-deep-insights');
+                if (!container) return;
+
+                if (marketKey !== 'mx') {
+                    container.classList.add('hidden');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                const insights = {
+                    b2b: [
+                        '建立個人關係和信任（Confianza），投資時間在關係經營上',
+                        '尊重階級結構，從高層開始建立關係',
+                        '提供本地化的解決方案和支援服務',
+                        '重視長期合作關係，避免短期交易思維',
+                        '考慮當地合作夥伴或代理商的重要性'
+                    ],
+                    localization: [
+                        '使用墨西哥西班牙語和當地俚語表達',
+                        '適應墨西哥的節假日和宗教慶典',
+                        '考慮區域差異（城市 vs 鄉村）',
+                        '適應當地的支付習慣（現金、信用卡、分期付款）',
+                        '建立本地客服和技術支援團隊'
+                    ],
+                    compliance: [
+                        '遵守墨西哥數據保護法 (LFPDPPP)',
+                        '符合墨西哥稅務要求（IVA、ISR）',
+                        '遵守墨西哥勞動法和最低工資規定',
+                        '符合墨西哥進出口法規和關稅要求',
+                        '遵守墨西哥消費者保護法 (PROFECO)'
+                    ],
+                    successCases: [
+                        'Mercado Libre 在電商市場的領導地位',
+                        'Oxxo 便利商店的成功擴張',
+                        'Banorte 在數位銀行的轉型',
+                        'Grupo Bimbo 在食品業的國際化'
+                    ],
+                    roi: {
+                        short: '6-12 個月，預期 ROI: 22-35%',
+                        mid: '1-2 年，預期 ROI: 40-60%',
+                        long: '3-5 年，預期 ROI: 60-95%',
+                        factors: [
+                            '本地化策略和文化適應程度',
+                            '通路建立和市場滲透速度',
+                            '品牌信任度建立和口碑傳播',
+                            '價格策略和市場接受度'
+                        ]
+                    }
+                };
+
+                container.innerHTML = `
+                    <div class="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
+                        <h3 class="text-xl font-semibold text-techaccent mb-4">🇲🇽 墨西哥市場深度分析</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-green-300 mb-2">🎯 B2B 策略建議</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.b2b.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-blue-300 mb-2">🌮 本地化建議</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.localization.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-yellow-300 mb-2">⚖️ 法規合規</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.compliance.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-gray-900 rounded border border-gray-700">
+                                <h4 class="font-semibold text-purple-300 mb-2">🏆 成功案例</h4>
+                                <ul class="list-disc list-inside text-gray-300 text-sm space-y-1">
+                                    ${insights.successCases.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-4 bg-gray-900 rounded border border-gray-700">
+                            <h4 class="font-semibold text-indigo-300 mb-2">📊 ROI 預測模型</h4>
+                            <ul class="list-disc list-inside text-gray-300 text-sm space-y-1 mb-2">
+                                <li><strong>短期:</strong> ${insights.roi.short}</li>
+                                <li><strong>中期:</strong> ${insights.roi.mid}</li>
+                                <li><strong>長期:</strong> ${insights.roi.long}</li>
+                            </ul>
+                            <div class="text-gray-400 text-xs">關鍵因素：${insights.roi.factors.join('、')}</div>
+                        </div>
+                    </div>
+                `;
+                container.classList.remove('hidden');
+            } catch (e) {
+                console.warn('渲染墨西哥深度專區失敗:', e);
+            }
+        }
+
         // 監聽市場變更並渲染（簡易輪詢，避免找不到事件來源）
-        setInterval(renderVietnamDeepInsights, 2000);
+        setInterval(() => {
+            renderVietnamDeepInsights();
+            renderMexicoDeepInsights();
+        }, 2000);
 
         // 顯示警告訊息
         function showAlert(title, message, type = 'info') {
@@ -6126,6 +6229,7 @@ function getTypeDisplayName(type) {
 <body>
     <div id="app-container" class="p-6 bg-techbg text-white min-h-screen">
         <div id="vietnam-deep-insights" class="hidden"></div>
+        <div id="mexico-deep-insights" class="hidden"></div>
         <h1 class="text-2xl font-semibold mb-6">市場情資與競品分析平台 (V6 - 進階分析版)</h1>
 
         <div id="alert-container"></div>
