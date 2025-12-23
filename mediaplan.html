@@ -108,8 +108,8 @@
         <div class="card p-8">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">自動化媒體提案引擎</h1>
-                <p class="mt-2 text-gray-600">v2.7.0 深度洞察與創意策略版 (MVP) 
-                <br><small class="text-xs text-gray-500">最後更新: 2024-12-01 - 新增市場洞察、媒體組合與創意策略模組</small></p>
+                <p class="mt-2 text-gray-600">v2.8.0 完整客戶資料洞察版 (MVP) 
+                <br><small class="text-xs text-gray-500">最後更新: 2024-12-02 - 全面強化客戶資料收集與個人化分析</small></p>
             </div>
 
             <!-- Module 1: 使用者與配置介面 ('駕駛艙') -->
@@ -242,6 +242,221 @@
                          <div class="md:col-span-3">
                             <label for="advertisingBudget" class="block text-sm font-medium text-gray-700">預計廣告預算 (台幣)</label>
                             <input type="number" id="advertisingBudget" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：300000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 品牌現狀與定位深度資料 -->
+                <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                    <h3 class="text-lg font-medium text-indigo-800 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm8 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V8z" clip-rule="evenodd"></path>
+                        </svg>
+                        品牌現狀與市場定位
+                    </h3>
+                    <div class="input-grid">
+                        <div class="md:col-span-3">
+                            <label for="brandStage" class="block text-sm font-medium text-gray-700">品牌發展階段</label>
+                            <select id="brandStage" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="startup">新創品牌 (成立<2年)</option>
+                                <option value="growth">成長期品牌 (2-5年)</option>
+                                <option value="mature">成熟品牌 (5-10年)</option>
+                                <option value="established">知名品牌 (10年以上)</option>
+                                <option value="legacy">傳統老牌 (20年以上)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="marketShare" class="block text-sm font-medium text-gray-700">市場佔有率</label>
+                            <select id="marketShare" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="unknown">不清楚</option>
+                                <option value="leader">市場領導者 (>30%)</option>
+                                <option value="major">主要品牌 (15-30%)</option>
+                                <option value="challenger">挑戰者 (5-15%)</option>
+                                <option value="niche">利基品牌 (<5%)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="brandAwareness" class="block text-sm font-medium text-gray-700">品牌知名度</label>
+                            <select id="brandAwareness" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="high">高知名度 (>70%)</option>
+                                <option value="medium">中等知名度 (30-70%)</option>
+                                <option value="low">低知名度 (10-30%)</option>
+                                <option value="minimal">極低知名度 (<10%)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="pricePosition" class="block text-sm font-medium text-gray-700">價格定位</label>
+                            <select id="pricePosition" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="premium">高端定位 (比競品貴20%+)</option>
+                                <option value="mid-high">中高端 (比競品貴5-20%)</option>
+                                <option value="competitive">競爭定價 (與競品相近)</option>
+                                <option value="value">性價比 (比競品便宜5-20%)</option>
+                                <option value="budget">低價策略 (比競品便宜20%+)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="brandValues" class="block text-sm font-medium text-gray-700">品牌核心價值與定位</label>
+                            <textarea id="brandValues" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：創新科技、環保永續、品質保證、在地服務、性價比之王等"></textarea>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="brandChallenges" class="block text-sm font-medium text-gray-700">目前品牌面臨的主要挑戰</label>
+                            <textarea id="brandChallenges" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：知名度不足、價格競爭激烈、產品差異化不明顯、客戶忠誠度低、新競爭者入市等"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 客戶洞察與行為分析 -->
+                <div class="p-4 bg-teal-50 border border-teal-200 rounded-lg">
+                    <h3 class="text-lg font-medium text-teal-800 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        客戶洞察與消費行為
+                    </h3>
+                    <div class="input-grid">
+                        <div>
+                            <label for="customerLifecycle" class="block text-sm font-medium text-gray-700">主要客戶生命週期階段</label>
+                            <select id="customerLifecycle" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="awareness">認知階段 (剛了解品牌)</option>
+                                <option value="consideration">考慮階段 (比較評估中)</option>
+                                <option value="trial">試用階段 (首次購買)</option>
+                                <option value="repeat">重複購買 (忠誠客戶)</option>
+                                <option value="advocate">推薦者 (品牌倡導)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="purchaseFrequency" class="block text-sm font-medium text-gray-700">購買頻率</label>
+                            <select id="purchaseFrequency" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="daily">每日購買</option>
+                                <option value="weekly">每週購買</option>
+                                <option value="monthly">每月購買</option>
+                                <option value="quarterly">每季購買</option>
+                                <option value="yearly">每年購買</option>
+                                <option value="occasional">偶爾購買</option>
+                                <option value="one-time">一次性購買</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="seasonality" class="block text-sm font-medium text-gray-700">季節性特徵</label>
+                            <select id="seasonality" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="none">無明顯季節性</option>
+                                <option value="spring">春季旺季</option>
+                                <option value="summer">夏季旺季</option>
+                                <option value="autumn">秋季旺季</option>
+                                <option value="winter">冬季旺季</option>
+                                <option value="holiday">節慶期旺季</option>
+                                <option value="back-to-school">開學季旺季</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="customerMotivations" class="block text-sm font-medium text-gray-700">客戶主要購買動機</label>
+                            <textarea id="customerMotivations" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：實用需求、身份象徵、嚐鮮體驗、解決問題、情感滿足、社群認同等"></textarea>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="customerBarriers" class="block text-sm font-medium text-gray-700">客戶購買障礙或顧慮</label>
+                            <textarea id="customerBarriers" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：價格過高、品質疑慮、品牌不熟悉、使用複雜、售後服務、配送問題等"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 行銷背景與歷史 -->
+                <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <h3 class="text-lg font-medium text-orange-800 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"></path>
+                        </svg>
+                        行銷背景與歷史績效
+                    </h3>
+                    <div class="input-grid">
+                        <div>
+                            <label for="previousCampaignType" class="block text-sm font-medium text-gray-700">過往主要行銷方式</label>
+                            <select id="previousCampaignType" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="none">沒有正式行銷活動</option>
+                                <option value="digital">主要為數位行銷</option>
+                                <option value="traditional">主要為傳統行銷</option>
+                                <option value="mixed">數位+傳統混合</option>
+                                <option value="word-of-mouth">口碑行銷</option>
+                                <option value="partnership">合作夥伴推薦</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="mostEffectiveChannel" class="block text-sm font-medium text-gray-700">過去最有效的行銷渠道</label>
+                            <select id="mostEffectiveChannel" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="unknown">不確定</option>
+                                <option value="google-ads">Google廣告</option>
+                                <option value="facebook">Facebook/Meta</option>
+                                <option value="line">LINE</option>
+                                <option value="influencer">網紅/KOL</option>
+                                <option value="seo">SEO自然流量</option>
+                                <option value="email">Email行銷</option>
+                                <option value="pr">公關媒體</option>
+                                <option value="events">活動展覽</option>
+                                <option value="referral">推薦計畫</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="budgetHistory" class="block text-sm font-medium text-gray-700">過往年度行銷預算</label>
+                            <select id="budgetHistory" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="none">沒有固定預算</option>
+                                <option value="under-100k">10萬以下</option>
+                                <option value="100k-500k">10-50萬</option>
+                                <option value="500k-1m">50-100萬</option>
+                                <option value="1m-5m">100-500萬</option>
+                                <option value="over-5m">500萬以上</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="campaignLearnings" class="block text-sm font-medium text-gray-700">過往行銷經驗與學習</label>
+                            <textarea id="campaignLearnings" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：哪些策略有效、哪些無效、學到的經驗、避免的錯誤等"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 績效指標與目標設定 -->
+                <div class="p-4 bg-rose-50 border border-rose-200 rounded-lg">
+                    <h3 class="text-lg font-medium text-rose-800 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        行銷目標與成效指標
+                    </h3>
+                    <div class="input-grid">
+                        <div>
+                            <label for="primaryGoal" class="block text-sm font-medium text-gray-700">主要行銷目標</label>
+                            <select id="primaryGoal" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="awareness">提升品牌知名度</option>
+                                <option value="consideration">增加品牌考慮度</option>
+                                <option value="conversion">提高轉換率</option>
+                                <option value="sales">增加銷售業績</option>
+                                <option value="retention">提升客戶忠誠度</option>
+                                <option value="expansion">市場擴展</option>
+                                <option value="engagement">增強客戶互動</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="timeframe" class="block text-sm font-medium text-gray-700">期望達成時間</label>
+                            <select id="timeframe" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="1-month">1個月內</option>
+                                <option value="3-months">3個月內</option>
+                                <option value="6-months">6個月內</option>
+                                <option value="12-months">1年內</option>
+                                <option value="long-term">長期目標</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="expectedROI" class="block text-sm font-medium text-gray-700">期望投資回報率</label>
+                            <select id="expectedROI" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="break-even">保本即可</option>
+                                <option value="1.5x">1.5倍回報</option>
+                                <option value="2x">2倍回報</option>
+                                <option value="3x">3倍回報</option>
+                                <option value="5x">5倍以上回報</option>
+                                <option value="uncertain">不確定</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="successDefinition" class="block text-sm font-medium text-gray-700">成功的具體定義與衡量標準</label>
+                            <textarea id="successDefinition" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：每月新增1000個會員、官網流量成長50%、銷售額增加30%、品牌提及度提升等"></textarea>
                         </div>
                     </div>
                 </div>
@@ -1353,6 +1568,29 @@
                     targetAudience: targetAudienceInput.value?.trim() || '未指定',
                     budget: parseInt(advertisingBudgetInput.value, 10) || 0,
                     projectId: currentProjectId, // 加入 project ID 到分析上下文
+                    // 品牌現狀與定位資料
+                    brandStage: document.getElementById('brandStage')?.value || 'mature',
+                    marketShare: document.getElementById('marketShare')?.value || 'unknown',
+                    brandAwareness: document.getElementById('brandAwareness')?.value || 'medium',
+                    pricePosition: document.getElementById('pricePosition')?.value || 'competitive',
+                    brandValues: document.getElementById('brandValues')?.value?.trim() || '',
+                    brandChallenges: document.getElementById('brandChallenges')?.value?.trim() || '',
+                    // 客戶洞察與行為資料
+                    customerLifecycle: document.getElementById('customerLifecycle')?.value || 'consideration',
+                    purchaseFrequency: document.getElementById('purchaseFrequency')?.value || 'monthly',
+                    seasonality: document.getElementById('seasonality')?.value || 'none',
+                    customerMotivations: document.getElementById('customerMotivations')?.value?.trim() || '',
+                    customerBarriers: document.getElementById('customerBarriers')?.value?.trim() || '',
+                    // 行銷背景與歷史資料
+                    previousCampaignType: document.getElementById('previousCampaignType')?.value || 'none',
+                    mostEffectiveChannel: document.getElementById('mostEffectiveChannel')?.value || 'unknown',
+                    budgetHistory: document.getElementById('budgetHistory')?.value || 'none',
+                    campaignLearnings: document.getElementById('campaignLearnings')?.value?.trim() || '',
+                    // 績效指標與目標設定
+                    primaryGoal: document.getElementById('primaryGoal')?.value || 'awareness',
+                    timeframe: document.getElementById('timeframe')?.value || '6-months',
+                    expectedROI: document.getElementById('expectedROI')?.value || '2x',
+                    successDefinition: document.getElementById('successDefinition')?.value?.trim() || '',
                     // 跨國市場策略參數
                     targetMarkets: targetMarketsInput.value || 'single',
                     primaryMarket: primaryMarketInput.value || 'taiwan',
@@ -3421,7 +3659,7 @@
 
         // 檢查版本並提供快取清除提示
         function checkVersionAndCache() {
-            const currentVersion = '2.7.0';
+            const currentVersion = '2.8.0';
             const lastVersion = localStorage.getItem('mediaplan_version');
             
             if (!lastVersion || lastVersion !== currentVersion) {
@@ -3432,8 +3670,8 @@
                     // 顯示版本更新成功提示
                     setTimeout(() => {
                         const alert = document.createElement('div');
-                        alert.className = 'fixed top-4 right-4 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform';
-                        alert.innerHTML = '🧠 v2.7.0 新增深度洞察與創意策略!';
+                        alert.className = 'fixed top-4 right-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform';
+                        alert.innerHTML = '📊 v2.8.0 完整客戶資料洞察升級!';
                         document.body.appendChild(alert);
                         
                         setTimeout(() => alert.classList.remove('translate-x-full'), 100);
