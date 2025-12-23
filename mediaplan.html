@@ -108,8 +108,8 @@
         <div class="card p-8">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">自動化媒體提案引擎</h1>
-                <p class="mt-2 text-gray-600">v2.6.0 Gemini 2.0 Flash 版 (MVP) 
-                <br><small class="text-xs text-gray-500">最後更新: 2024-11-30 - 升級至最新 Gemini 2.0 Flash 模型</small></p>
+                <p class="mt-2 text-gray-600">v2.7.0 深度洞察與創意策略版 (MVP) 
+                <br><small class="text-xs text-gray-500">最後更新: 2024-12-01 - 新增市場洞察、媒體組合與創意策略模組</small></p>
             </div>
 
             <!-- Module 1: 使用者與配置介面 ('駕駛艙') -->
@@ -146,13 +146,25 @@
                     </div>
                     
                     <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded">
-                        <p class="text-xs text-emerald-800 font-medium mb-1">🚀 新功能亮點 - Gemini 2.0 Flash</p>
-                        <ul class="text-xs text-emerald-700 list-disc list-inside space-y-1">
-                            <li>更快的回應速度，平均快2倍</li>
-                            <li>更強的多模態理解能力</li>
-                            <li>更準確的JSON格式輸出</li>
-                            <li>更好的中文語言處理</li>
-                        </ul>
+                        <p class="text-xs text-emerald-800 font-medium mb-1">🚀 v2.7.0 功能亮點</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                            <div>
+                                <p class="text-xs text-emerald-700 font-medium">🤖 AI能力升級</p>
+                                <ul class="text-xs text-emerald-600 list-disc list-inside space-y-1">
+                                    <li>Gemini 2.0 Flash 最新模型</li>
+                                    <li>2倍更快回應速度</li>
+                                    <li>更準確的分析結果</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-xs text-emerald-700 font-medium">🎯 新增分析模組</p>
+                                <ul class="text-xs text-emerald-600 list-disc list-inside space-y-1">
+                                    <li>深度市場洞察分析</li>
+                                    <li>最佳媒體組合策略</li>
+                                    <li>創意策略與執行方案</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     
                     <p class="mt-2 text-xs text-yellow-700">
@@ -1090,8 +1102,97 @@
             return await callGeminiAPI(prompt, apiKey, true);
         }
 
+        // --- 新增：深度市場洞察分析 ---
+        async function analyzeDeepMarketInsights(context, apiKey) {
+            const prompt = `
+                你是一位資深的市場情報分析師，專精於競爭對手分析、市場趨勢預測和商業機會識別。
+                請根據以下品牌情境進行深度市場洞察分析。
+
+                **品牌情境:**
+                - **目標品牌:** ${context.target}
+                - **主要競爭對手:** ${context.competitor}
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **目標市場:** ${context.primaryMarket}
+                - **目標受眾:** ${context.targetAudience}
+                - **預算:** ${context.budget}
+
+                請產出一個 JSON 物件，包含以下 key：
+
+                1. **competitive_landscape:** 包含 "direct_competitors", "indirect_competitors", "market_leaders", "emerging_players", "competitive_gaps"
+                2. **market_trends:** 包含 "current_trends", "emerging_trends", "declining_trends", "future_predictions", "technology_disruptions"
+                3. **opportunity_analysis:** 包含 "market_gaps", "unmet_needs", "growth_opportunities", "acquisition_targets", "partnership_opportunities"
+                4. **threat_assessment:** 包含 "market_threats", "regulatory_risks", "technology_risks", "competitive_threats", "economic_factors"
+                5. **consumer_evolution:** 包含 "changing_preferences", "new_behaviors", "value_shifts", "generational_differences", "lifestyle_changes"
+                6. **innovation_opportunities:** 包含 "product_innovation", "service_innovation", "business_model_innovation", "technology_adoption", "market_creation"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // --- 新增：媒體組合策略分析 ---
+        async function analyzeMediaMixStrategy(context, apiKey) {
+            const prompt = `
+                你是一位頂尖的媒體規劃專家，專精於跨媒體整合策略、預算最佳化和ROI最大化。
+                請根據以下品牌情境設計最佳媒體組合策略。
+
+                **品牌情境:**
+                - **目標品牌:** ${context.target}
+                - **產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **目標市場:** ${context.primaryMarket}
+                - **目標受眾:** ${context.targetAudience}
+                - **廣告預算:** ${context.budget > 0 ? context.budget.toLocaleString() + ' TWD' : '未提供'}
+                - **銷售通路:** ${context.salesChannels}
+
+                請產出一個 JSON 物件，包含以下 key：
+
+                1. **media_strategy:** 包含 "primary_channels", "secondary_channels", "channel_synergies", "timing_strategy", "frequency_strategy"
+                2. **budget_allocation:** 包含 "digital_percentage", "traditional_percentage", "channel_breakdown", "reserve_budget", "testing_budget"
+                3. **channel_recommendations:** 包含 "social_media", "search_marketing", "display_advertising", "content_marketing", "influencer_marketing", "traditional_media"
+                4. **targeting_strategy:** 包含 "primary_targeting", "lookalike_audiences", "retargeting_strategy", "geographic_targeting", "behavioral_targeting"
+                5. **performance_metrics:** 包含 "awareness_kpis", "engagement_kpis", "conversion_kpis", "roi_targets", "attribution_model"
+                6. **optimization_plan:** 包含 "testing_methodology", "budget_reallocation", "seasonal_adjustments", "performance_monitoring", "scaling_strategy"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // --- 新增：創意策略分析 ---
+        async function analyzeCreativeStrategy(context, forumData, localAudienceData, apiKey) {
+            const prompt = `
+                你是一位創意總監，專精於品牌策略、創意概念發展和跨媒體創意執行。
+                請根據品牌情境和消費者洞察，設計全面的創意策略和具體創意建議。
+
+                **品牌情境:**
+                - **目標品牌:** ${context.target}
+                - **主要競爭對手:** ${context.competitor}
+                - **產業:** ${context.industry}
+                - **目標受眾:** ${context.targetAudience}
+                - **目標市場:** ${context.primaryMarket}
+
+                **消費者洞察:**
+                - **論壇輿情:** ${JSON.stringify(forumData)}
+                - **人群分析:** ${JSON.stringify(localAudienceData)}
+
+                請產出一個 JSON 物件，包含以下 key：
+
+                1. **creative_positioning:** 包含 "brand_promise", "unique_value_proposition", "brand_personality", "brand_voice", "emotional_connection"
+                2. **creative_concepts:** 包含 "campaign_themes", "key_messages", "creative_pillars", "storytelling_approach", "visual_direction"
+                3. **content_strategy:** 包含 "content_themes", "content_formats", "content_calendar", "user_generated_content", "influencer_content"
+                4. **visual_identity:** 包含 "color_palette", "typography", "imagery_style", "logo_usage", "brand_elements"
+                5. **campaign_executions:** 包含 "social_media_concepts", "video_concepts", "print_concepts", "digital_banners", "experiential_ideas"
+                6. **localization_guidelines:** 包含 "cultural_adaptations", "language_considerations", "local_references", "seasonal_relevance", "platform_specific_adjustments"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
         // --- Module 3: 提案生成引擎 ('合成引擎') ---
-        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, b2bData, localB2bData, localBusinessData, localMediaData, localAudienceData, apiKey) {
+        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, b2bData, localB2bData, localBusinessData, localMediaData, localAudienceData, marketInsightsData, mediaMixData, creativeStrategyData, apiKey) {
              const prompt = `
                 你是一位首席媒體策略總監，你的任務是將下屬分析師提交的所有 JSON 資料，整合成一份給客戶看的、專業且有說服力的「市場機會與初步策略建議」報告。報告需以 HTML 格式呈現。
 
@@ -1121,10 +1222,13 @@
                 6.  **當地市場商業模式分析:** ${JSON.stringify(localBusinessData, null, 2)}
                 7.  **當地媒體偏好分析:** ${JSON.stringify(localMediaData, null, 2)}
                 8.  **當地人群深度分析:** ${JSON.stringify(localAudienceData, null, 2)}
+                9.  **深度市場洞察分析:** ${JSON.stringify(marketInsightsData, null, 2)}
+                10. **媒體組合策略分析:** ${JSON.stringify(mediaMixData, null, 2)}
+                11. **創意策略與執行方案:** ${JSON.stringify(creativeStrategyData, null, 2)}
                 ${context.businessModel === 'B2B' ? `
-                9.  **B2B 專業市場分析:** ${JSON.stringify(b2bData, null, 2)}
+                12. **B2B 專業市場分析:** ${JSON.stringify(b2bData, null, 2)}
                 ${context.primaryMarket === 'taiwan' ? `
-                10. **台灣 B2B 市場深度分析:** ${JSON.stringify(localB2bData, null, 2)}
+                13. **台灣 B2B 市場深度分析:** ${JSON.stringify(localB2bData, null, 2)}
                 ` : ''}
                 ` : ''}
 
@@ -1133,56 +1237,81 @@
                 ## 1. 執行摘要
                 - 市場機會概述
                 - 核心策略建議
-                - 預期成效
+                - 預期投資回報
+                - 關鍵成功因素
 
-                ## 2. 當地市場分析
-                - 目標市場概況
-                - 當地商業生態分析
+                ## 2. 深度市場洞察
+                - 競爭格局分析
+                - 市場趨勢與機會
+                - 威脅評估與應對
+                - 消費者行為演變
+                - 創新機會識別
+
+                ## 3. 目標受眾深度分析
+                - 人群特徵與洞察
+                - 消費行為模式
+                - 媒體使用習慣
+                - 決策影響因素
+                - 溝通偏好分析
+
+                ## 4. 整合媒體策略
+                - 最佳媒體組合建議
+                - 預算分配策略
+                - 渠道協同效應
+                - 觸及與頻次規劃
+                - 效果測量體系
+
+                ## 5. 創意策略與執行
+                - 品牌定位與核心訊息
+                - 創意概念與主題
+                - 跨媒體創意執行
+                - 內容策略規劃
+                - 視覺識別指導
+
+                ## 6. 當地市場適應策略
+                - 當地商業模式分析
+                - 文化適應與本地化
                 - 競爭環境分析
-                - 當地人群洞察
+                - 媒體生態特色
                 ${context.businessModel === 'B2B' ? `
                 - B2B 買家角色分析
-                - 決策流程分析
+                - 決策流程與影響因子
                 - 採購行為洞察
                 ` : ''}
 
-                ## 3. 當地媒體策略
-                - 媒體生態分析
-                - 當地媒體偏好
-                - 廣告效果評估
-                - 媒體選擇建議
-                - 內容策略建議
-
-                ## 4. 商業模式適應策略
-                - 當地商業模式分析
-                - 消費者行為洞察
-                - 市場細分策略
-                - 競爭優勢分析
-                - 成長機會識別
-
-                ## 5. 跨國策略
+                ## 7. 跨國擴展策略
                 - 市場進入策略
-                - 本地化策略
-                - 文化適應策略
-                - 溝通策略
+                - 本地化執行計畫
+                - 文化溝通策略
+                - 區域協調機制
 
-                ## 6. 預算分配與 KPI
-                - 預算分配建議
-                - KPI 設定
-                - 成效追蹤方法
+                ## 8. 績效管理系統
+                - KPI 設定與追蹤
+                - ROI 評估模型
+                - 成效優化機制
+                - 數據分析儀表板
 
-                ## 7. 執行時程
+                ## 9. 執行路徑規劃
                 - 短期行動計畫 (1-3個月)
-                - 中期發展計畫 (3-6個月)
-                - 長期策略規劃 (6-12個月)
+                - 中期發展策略 (3-6個月)  
+                - 長期成長藍圖 (6-12個月)
+                - 里程碑與檢核點
 
-                ## 8. 風險管理
-                - 潛在風險識別
+                ## 10. 風險管理與應變
+                - 風險識別與評估
                 - 風險緩解策略
-                - 危機管理計畫
+                - 危機應變計畫
+                - 持續優化機制
 
                 請使用專業的 HTML 格式，包含適當的標題、段落、列表和強調元素。報告應該具有說服力且易於閱讀。
-                特別注意整合當地市場的商業模式判斷、人群分析，以及當地媒體偏好考量。
+
+                **特別重要的整合要求：**
+                1. **深度整合市場洞察**：充分運用競爭分析、趨勢預測和機會識別資料
+                2. **媒體組合最佳化**：基於預算分配和渠道建議提供具體執行方案
+                3. **創意策略落地**：將創意概念與媒體策略緊密結合，提供可執行的創意指導
+                4. **數據驅動決策**：所有建議都要有數據支撐和明確的成效預期
+                5. **本地化深度融合**：將全球策略與當地市場特性完美結合
+                6. **跨媒體協同效應**：展現各媒體渠道間的協同作用和整體效果
             `;
             return await callGeminiAPI(prompt, apiKey, false);
         }
@@ -1324,8 +1453,21 @@
                     const localAudienceData = await analyzeLocalAudienceInsights(analysisContext, userApiKey);
                     markStatusDone(status10);
 
+                    // 新增的深度分析模組
+                    const status11 = updateStatus(`進行深度市場洞察分析...`);
+                    const marketInsightsData = await analyzeDeepMarketInsights(analysisContext, userApiKey);
+                    markStatusDone(status11);
+
+                    const status12 = updateStatus(`設計最佳媒體組合策略...`);
+                    const mediaMixData = await analyzeMediaMixStrategy(analysisContext, userApiKey);
+                    markStatusDone(status12);
+
+                    const status13 = updateStatus(`開發創意策略與執行方案...`);
+                    const creativeStrategyData = await analyzeCreativeStrategy(analysisContext, forumData, localAudienceData, userApiKey);
+                    markStatusDone(status13);
+
                     // 生成最終報告
-                    const status11 = updateStatus(`整合分析結果，生成專業報告...`);
+                    const status14 = updateStatus(`整合分析結果，生成專業報告...`);
                     const finalReport = await synthesizeFinalReport(
                         analysisContext, 
                         forumData, 
@@ -1338,6 +1480,9 @@
                         localBusinessData,
                         localMediaData,
                         localAudienceData,
+                        marketInsightsData,
+                        mediaMixData,
+                        creativeStrategyData,
                         userApiKey
                     );
                     markStatusDone(status11);
@@ -3276,7 +3421,7 @@
 
         // 檢查版本並提供快取清除提示
         function checkVersionAndCache() {
-            const currentVersion = '2.6.0';
+            const currentVersion = '2.7.0';
             const lastVersion = localStorage.getItem('mediaplan_version');
             
             if (!lastVersion || lastVersion !== currentVersion) {
@@ -3287,15 +3432,15 @@
                     // 顯示版本更新成功提示
                     setTimeout(() => {
                         const alert = document.createElement('div');
-                        alert.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform';
-                        alert.innerHTML = '🚀 v2.6.0 升級至 Gemini 2.0 Flash!';
+                        alert.className = 'fixed top-4 right-4 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform';
+                        alert.innerHTML = '🧠 v2.7.0 新增深度洞察與創意策略!';
                         document.body.appendChild(alert);
                         
                         setTimeout(() => alert.classList.remove('translate-x-full'), 100);
                         setTimeout(() => {
                             alert.classList.add('translate-x-full');
                             setTimeout(() => alert.remove(), 300);
-                        }, 5000);
+                        }, 6000);
                     }, 1000);
                 }
             }
