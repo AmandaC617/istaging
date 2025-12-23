@@ -108,8 +108,8 @@
         <div class="card p-8">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">自動化媒體提案引擎</h1>
-                <p class="mt-2 text-gray-600">v2.11.0 深度產品洞察與輿情分析版 (MVP) 
-                <br><small class="text-xs text-gray-500">最後更新: 2024-12-23 - 新增產品市場適合度、客戶畫像、輿情洞察與市場機會深度分析</small></p>
+                <p class="mt-2 text-gray-600">v3.0.0 深度洞察與輿情分析專業版 (MVP) 
+                <br><small class="text-xs text-gray-500">最後更新: 2024-12-23 - 新增產品市場適配、客戶畫像與社群輿情深度分析</small></p>
             </div>
 
             <!-- Module 1: 使用者與配置介面 ('駕駛艙') -->
@@ -146,39 +146,44 @@
                     </div>
                     
                     <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded">
-                        <p class="text-xs text-emerald-800 font-medium mb-1">🚀 v2.11.0 深度洞察版功能亮點</p>
+                        <p class="text-xs text-emerald-800 font-medium mb-1">🚀 v3.0.0 深度洞察專業版</p>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                             <div>
-                                <p class="text-xs text-emerald-700 font-medium">🤖 AI核心引擎</p>
+                                <p class="text-xs text-emerald-700 font-medium">🎯 產品市場分析</p>
                                 <ul class="text-xs text-emerald-600 list-disc list-inside space-y-1">
-                                    <li>Gemini 2.0 Flash 最新模型</li>
-                                    <li>16個深度分析模組</li>
-                                    <li>2倍更快回應速度</li>
-                                    <li>更準確JSON格式輸出</li>
+                                    <li>產品市場適配性評估</li>
+                                    <li>市場需求深度分析</li>
+                                    <li>PMF評分與優化建議</li>
+                                    <li>市場機會量化評估</li>
                                 </ul>
                             </div>
                             <div>
-                                <p class="text-xs text-emerald-700 font-medium">🧠 深度洞察分析</p>
+                                <p class="text-xs text-emerald-700 font-medium">👥 客戶洞察分析</p>
                                 <ul class="text-xs text-emerald-600 list-disc list-inside space-y-1">
-                                    <li>產品市場適合度分析</li>
                                     <li>潛在客戶深度畫像</li>
-                                    <li>輿情洞察與討論分析</li>
-                                    <li>市場機會深度挖掘</li>
+                                    <li>購買動機心理學分析</li>
+                                    <li>客戶旅程完整地圖</li>
+                                    <li>決策影響因素識別</li>
                                 </ul>
                             </div>
                             <div>
-                                <p class="text-xs text-emerald-700 font-medium">🏢 專業B2B支援</p>
+                                <p class="text-xs text-emerald-700 font-medium">💬 社群輿情洞察</p>
                                 <ul class="text-xs text-emerald-600 list-disc list-inside space-y-1">
-                                    <li>18個B2B產業類別</li>
-                                    <li>複雜產品分析引擎</li>
-                                    <li>多競爭對手矩陣</li>
-                                    <li>37個客戶資料欄位</li>
+                                    <li>品牌輿情深度分析</li>
+                                    <li>競爭對手輿情對比</li>
+                                    <li>社群討論模式分析</li>
+                                    <li>意見領袖影響地圖</li>
                                 </ul>
                             </div>
                         </div>
                         
-                        <div class="mt-3 p-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded text-center">
-                            <p class="text-xs text-blue-800 font-medium">🧠 16個深度分析模組 | 📊 產品市場適合度 | 💬 輿情洞察分析 | 🎯 客戶畫像深度挖掘</p>
+                        <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="p-2 bg-blue-100 rounded text-center">
+                                <p class="text-xs text-blue-800 font-medium">🤖 15個AI分析模組 | 📊 40+資料欄位</p>
+                            </div>
+                            <div class="p-2 bg-purple-100 rounded text-center">
+                                <p class="text-xs text-purple-800 font-medium">🎯 PMF評估 | 👥 深度客戶洞察 | 💬 輿情分析</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -1499,131 +1504,6 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
             return await callGeminiAPI(prompt, apiKey, true);
         }
 
-        // --- 新增：產品市場適合度深度分析 ---
-        async function analyzeProductMarketFit(context, apiKey) {
-            const prompt = `
-                你是一位專精產品市場適合度（Product-Market Fit）的資深產品策略顧問，擅長深度分析產品與市場需求的匹配程度。
-                請根據以下情境進行全面的產品市場適合度分析。
-
-                **產品情境:**
-                - **目標品牌:** ${context.target}
-                - **產品描述:** ${context.productDescription}
-                - **產品子分類:** ${context.productSubcategories}
-                - **產品階段:** ${context.productStage}
-                - **目標市場:** ${context.primaryMarket}
-                - **目標受眾:** ${context.targetAudience}
-                - **主要競爭對手:** ${context.competitor}
-                - **行業認證:** ${context.industryStandards}
-                - **品牌挑戰:** ${context.brandChallenges}
-                - **客戶購買動機:** ${context.customerMotivations}
-                - **客戶購買障礙:** ${context.customerBarriers}
-
-                請產出一個 JSON 物件，包含以下 key：
-
-                1. **market_demand_analysis:** 包含 "demand_intensity", "market_size_estimation", "demand_growth_trends", "seasonality_impact", "unmet_demand_areas"
-                2. **product_market_match:** 包含 "fit_score", "key_value_propositions", "product_advantages", "market_gaps_filled", "differentiation_factors"
-                3. **target_customer_validation:** 包含 "ideal_customer_profile", "customer_pain_points", "solution_relevance", "willingness_to_pay", "adoption_barriers"
-                4. **market_timing_analysis:** 包含 "market_readiness", "competitive_timing", "technology_adoption_curve", "regulatory_environment", "economic_factors"
-                5. **scalability_assessment:** 包含 "growth_potential", "market_expansion_opportunities", "resource_requirements", "scalability_challenges", "success_indicators"
-                6. **optimization_recommendations:** 包含 "product_improvements", "market_positioning_adjustments", "go_to_market_strategy", "pricing_optimization", "distribution_enhancements"
-
-                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
-            `;
-            return await callGeminiAPI(prompt, apiKey, true);
-        }
-
-        // --- 新增：潛在客戶深度畫像分析 ---
-        async function analyzeTargetCustomerProfiles(context, apiKey) {
-            const prompt = `
-                你是一位客戶洞察專家，專精於構建詳細的客戶畫像和行為分析。
-                請根據以下情境進行深度的潛在客戶分析。
-
-                **分析情境:**
-                - **目標品牌:** ${context.target}
-                - **產品描述:** ${context.productDescription}
-                - **產業:** ${context.industry}
-                - **目標受眾:** ${context.targetAudience}
-                - **商業模式:** ${context.businessModel}
-                - **客戶生命週期:** ${context.customerLifecycle}
-                - **購買頻率:** ${context.purchaseFrequency}
-                - **購買動機:** ${context.customerMotivations}
-                - **購買障礙:** ${context.customerBarriers}
-                - **主要目標:** ${context.primaryGoal}
-
-                請產出一個 JSON 物件，包含以下 key：
-
-                1. **primary_persona:** 包含 "demographic_profile", "professional_background", "lifestyle_characteristics", "digital_behavior", "communication_preferences"
-                2. **secondary_personas:** 包含 "persona_variations", "niche_segments", "emerging_segments", "geographic_variations", "behavioral_clusters"
-                3. **customer_journey_mapping:** 包含 "awareness_stage", "consideration_triggers", "evaluation_process", "decision_factors", "post_purchase_behavior"
-                4. **pain_point_analysis:** 包含 "functional_pain_points", "emotional_pain_points", "process_inefficiencies", "cost_concerns", "risk_aversions"
-                5. **value_perception:** 包含 "perceived_benefits", "value_drivers", "price_sensitivity", "quality_expectations", "service_requirements"
-                6. **engagement_strategy:** 包含 "preferred_touchpoints", "content_preferences", "communication_timing", "influence_networks", "trust_building_factors"
-
-                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
-            `;
-            return await callGeminiAPI(prompt, apiKey, true);
-        }
-
-        // --- 新增：輿情洞察與討論深度分析 ---
-        async function analyzeSentimentInsights(context, apiKey) {
-            const prompt = `
-                你是一位輿情分析專家，專精於深度挖掘網路討論、社群媒體輿情和消費者真實聲音。
-                請針對以下品牌進行全方位的輿情洞察分析。
-
-                **品牌情境:**
-                - **目標品牌:** ${context.target}
-                - **競爭品牌:** ${context.competitor}
-                - **產業:** ${context.industry}
-                - **產品描述:** ${context.productDescription}
-                - **目標受眾:** ${context.targetAudience}
-                - **主要市場:** ${context.primaryMarket}
-                - **關鍵字:** ${context.productKeywords}
-
-                請產出一個 JSON 物件，包含以下 key：
-
-                1. **brand_sentiment_overview:** 包含 "overall_sentiment_score", "positive_sentiment_themes", "negative_sentiment_themes", "neutral_discussion_areas", "sentiment_trend_analysis"
-                2. **discussion_hotspots:** 包含 "trending_topics", "viral_content_analysis", "user_generated_content", "influencer_mentions", "media_coverage_tone"
-                3. **customer_voice_insights:** 包含 "authentic_reviews", "common_complaints", "praise_patterns", "feature_requests", "usage_scenarios"
-                4. **competitive_sentiment_comparison:** 包含 "competitor_sentiment_scores", "competitive_advantages_perceived", "market_perception_gaps", "switching_intentions", "loyalty_indicators"
-                5. **emerging_conversation_themes:** 包含 "new_discussion_topics", "changing_consumer_concerns", "industry_developments", "technology_impacts", "cultural_shifts"
-                6. **actionable_insights:** 包含 "reputation_management_opportunities", "content_strategy_directions", "pr_strategy_recommendations", "crisis_prevention_alerts", "engagement_optimization"
-
-                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
-            `;
-            return await callGeminiAPI(prompt, apiKey, true);
-        }
-
-        // --- 新增：市場機會深度挖掘分析 ---
-        async function analyzeMarketOpportunityMining(context, apiKey) {
-            const prompt = `
-                你是一位市場機會挖掘專家，專精於識別隱藏的商業機會、新興市場趨勢和未開發的客戶需求。
-                請根據以下情境進行深度的市場機會分析。
-
-                **市場情境:**
-                - **目標品牌:** ${context.target}
-                - **產品描述:** ${context.productDescription}
-                - **競爭對手:** ${context.competitor}
-                - **產業:** ${context.industry}
-                - **目標市場:** ${context.primaryMarket}
-                - **預算規模:** ${context.budget}
-                - **品牌發展階段:** ${context.brandStage}
-                - **市場佔有率:** ${context.marketShare}
-                - **過往最有效渠道:** ${context.mostEffectiveChannel}
-
-                請產出一個 JSON 物件，包含以下 key：
-
-                1. **untapped_market_segments:** 包含 "overlooked_demographics", "emerging_user_groups", "geographic_opportunities", "seasonal_opportunities", "niche_market_gaps"
-                2. **innovation_opportunities:** 包含 "product_enhancement_areas", "service_gap_identification", "technology_integration_possibilities", "business_model_innovations", "partnership_synergies"
-                3. **competitive_white_spaces:** 包含 "underserved_segments", "competitor_weaknesses", "market_positioning_gaps", "pricing_opportunities", "service_differentiation_areas"
-                4. **growth_catalyst_identification:** 包含 "market_growth_drivers", "technology_enablers", "regulatory_changes", "consumer_behavior_shifts", "economic_trends"
-                5. **quick_win_opportunities:** 包含 "immediate_market_entry_points", "low_hanging_fruit", "pilot_program_suggestions", "partnership_targets", "acquisition_opportunities"
-                6. **long_term_strategic_opportunities:** 包含 "future_market_developments", "strategic_positioning_moves", "capability_building_areas", "ecosystem_expansion", "platform_opportunities"
-
-                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
-            `;
-            return await callGeminiAPI(prompt, apiKey, true);
-        }
-
         // --- 新增：B2B複雜產品分析 ---
         async function analyzeComplexB2BProducts(context, apiKey) {
             const prompt = `
@@ -1648,6 +1528,108 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
                 4. **certification_marketing:** 包含 "compliance_messaging", "quality_assurance_positioning", "industry_credibility", "regulatory_advantages", "certification_hierarchy"
                 5. **keyword_seo_strategy:** 包含 "primary_keywords", "long_tail_opportunities", "technical_content_strategy", "industry_specific_terms", "multilingual_considerations"
                 6. **market_entry_tactics:** 包含 "industry_trade_shows", "professional_associations", "technical_publications", "industry_influencers", "b2b_lead_generation"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // --- 新增：產品市場適配性分析 ---
+        async function analyzeProductMarketFit(context, apiKey) {
+            const prompt = `
+                你是一位專精產品市場適配性 (Product-Market Fit) 的資深分析師，擅長評估產品與市場需求的匹配程度，識別市場機會與產品優化方向。
+                請根據以下產品與市場情境進行深度PMF分析。
+
+                **產品與市場情境:**
+                - **品牌名稱:** ${context.target}
+                - **產品描述:** ${context.productDescription}
+                - **產品子分類:** ${context.productSubcategories}
+                - **產品類型:** ${context.productCategory}
+                - **產品發展階段:** ${context.productStage}
+                - **目標產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **目標受眾:** ${context.targetAudience}
+                - **主要競爭對手:** ${context.competitor}
+                - **客戶購買動機:** ${context.customerMotivations}
+                - **客戶購買障礙:** ${context.customerBarriers}
+                - **品牌價值主張:** ${context.brandValues}
+                - **目標市場:** ${context.primaryMarket}
+
+                請產出一個 JSON 物件，包含以下 key：
+
+                1. **market_demand_analysis:** 包含 "market_size_assessment", "demand_drivers", "unmet_needs", "market_saturation", "growth_potential"
+                2. **product_market_alignment:** 包含 "value_proposition_match", "target_audience_fit", "pricing_market_fit", "distribution_channel_fit", "competitive_positioning_fit"
+                3. **customer_problem_solution_fit:** 包含 "pain_point_identification", "solution_effectiveness", "adoption_barriers", "user_experience_gaps", "feature_demand_mapping"
+                4. **market_opportunity_scoring:** 包含 "total_addressable_market", "serviceable_addressable_market", "early_adopter_segments", "expansion_opportunities", "market_timing_assessment"
+                5. **product_optimization_recommendations:** 包含 "feature_enhancement", "positioning_refinement", "pricing_optimization", "channel_optimization", "messaging_improvement"
+                6. **pmf_readiness_assessment:** 包含 "current_pmf_score", "pmf_indicators", "improvement_priority", "timeline_to_strong_pmf", "key_success_metrics"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // --- 新增：潛在客戶深度畫像分析 ---
+        async function analyzeDetailedCustomerPersona(context, apiKey) {
+            const prompt = `
+                你是一位客戶行為與心理學專家，專精於構建詳細的客戶畫像、分析購買動機和預測客戶行為。
+                請根據以下品牌與產品情境，進行潛在客戶的深度畫像分析。
+
+                **品牌與產品情境:**
+                - **品牌名稱:** ${context.target}
+                - **產品描述:** ${context.productDescription}
+                - **產品子分類:** ${context.productSubcategories}
+                - **目標產業:** ${context.industry}
+                - **商業模式:** ${context.businessModel}
+                - **目標受眾描述:** ${context.targetAudience}
+                - **客戶生命週期:** ${context.customerLifecycle}
+                - **購買頻率:** ${context.purchaseFrequency}
+                - **季節性特徵:** ${context.seasonality}
+                - **購買動機:** ${context.customerMotivations}
+                - **購買障礙:** ${context.customerBarriers}
+                - **價格定位:** ${context.pricePosition}
+                - **銷售通路:** ${context.salesChannels}
+
+                請產出一個 JSON 物件，包含以下 key：
+
+                1. **primary_persona_profile:** 包含 "demographic_details", "psychographic_profile", "behavioral_patterns", "technology_adoption", "media_consumption_habits"
+                2. **secondary_persona_profiles:** 包含 "persona_variations", "niche_segments", "emerging_segments", "cross_over_opportunities", "persona_evolution_trends"
+                3. **customer_journey_mapping:** 包含 "awareness_stage_behavior", "consideration_stage_behavior", "decision_stage_behavior", "purchase_stage_behavior", "post_purchase_behavior", "advocacy_stage_behavior"
+                4. **pain_point_deep_dive:** 包含 "functional_pain_points", "emotional_pain_points", "social_pain_points", "pain_intensity_scoring", "pain_point_prioritization"
+                5. **motivation_psychology:** 包含 "core_motivational_drivers", "emotional_triggers", "rational_benefits_sought", "status_aspirations", "fear_factors", "urgency_drivers"
+                6. **decision_influence_factors:** 包含 "key_decision_criteria", "influencer_network", "information_sources", "social_proof_requirements", "trust_building_factors", "decision_timeline"
+
+                請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
+            `;
+            return await callGeminiAPI(prompt, apiKey, true);
+        }
+
+        // --- 新增：社群輿情與討論洞察分析 ---
+        async function analyzeSocialSentimentInsights(context, apiKey) {
+            const prompt = `
+                你是一位社群媒體分析師與輿情專家，專精於分析社群平台上的品牌討論、消費者情感和市場趨勢。
+                請針對以下品牌情境進行全面的社群輿情與討論洞察分析。
+
+                **品牌與市場情境:**
+                - **品牌名稱:** ${context.target}
+                - **主要競爭對手:** ${context.competitor}
+                - **產品描述:** ${context.productDescription}
+                - **產品關鍵字:** ${context.productKeywords}
+                - **目標產業:** ${context.industry}
+                - **目標受眾:** ${context.targetAudience}
+                - **目標市場:** ${context.primaryMarket}
+                - **品牌挑戰:** ${context.brandChallenges}
+                - **客戶購買動機:** ${context.customerMotivations}
+                - **客戶購買障礙:** ${context.customerBarriers}
+
+                請產出一個 JSON 物件，包含以下 key：
+
+                1. **brand_sentiment_analysis:** 包含 "overall_sentiment_score", "sentiment_drivers", "positive_mention_themes", "negative_mention_themes", "neutral_discussion_topics"
+                2. **competitor_sentiment_comparison:** 包含 "competitor_sentiment_scores", "competitive_advantages_perceived", "competitive_weaknesses_identified", "market_share_of_voice", "brand_preference_indicators"
+                3. **social_platform_insights:** 包含 "facebook_discussions", "instagram_engagement", "youtube_conversations", "linkedin_professional_discussions", "reddit_community_insights", "twitter_trending_topics"
+                4. **customer_conversation_analysis:** 包含 "common_questions", "frequent_complaints", "praise_patterns", "feature_requests", "use_case_discussions", "recommendation_patterns"
+                5. **trending_topics_opportunities:** 包含 "viral_content_patterns", "trending_hashtags", "seasonal_discussion_peaks", "emerging_conversation_themes", "content_gap_opportunities"
+                6. **influencer_landscape_mapping:** 包含 "key_industry_influencers", "micro_influencer_segments", "brand_advocates", "potential_partnership_opportunities", "influencer_content_preferences"
 
                 請確保回傳的內容是純粹的 JSON 格式，沒有任何額外的文字或註解。
             `;
@@ -1686,7 +1668,7 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
         }
 
         // --- Module 3: 提案生成引擎 ('合成引擎') ---
-        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, b2bData, localB2bData, localBusinessData, localMediaData, localAudienceData, productMarketFitData, customerProfilesData, sentimentInsightsData, marketOpportunityData, marketInsightsData, mediaMixData, creativeStrategyData, complexB2BData, apiKey) {
+        async function synthesizeFinalReport(context, forumAnalysis, seoAnalysis, kpiEstimation, internationalData, culturalData, b2bData, localB2bData, localBusinessData, localMediaData, localAudienceData, marketInsightsData, mediaMixData, creativeStrategyData, productMarketFitData, detailedPersonaData, socialSentimentData, complexB2BData, apiKey) {
              const prompt = `
                 你是一位首席媒體策略總監，你的任務是將下屬分析師提交的所有 JSON 資料，整合成一份給客戶看的、專業且有說服力的「市場機會與初步策略建議」報告。報告需以 HTML 格式呈現。
 
@@ -1725,44 +1707,61 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
                 6.  **當地市場商業模式分析:** ${JSON.stringify(localBusinessData, null, 2)}
                 7.  **當地媒體偏好分析:** ${JSON.stringify(localMediaData, null, 2)}
                 8.  **當地人群深度分析:** ${JSON.stringify(localAudienceData, null, 2)}
-                9.  **產品市場適合度分析:** ${JSON.stringify(productMarketFitData, null, 2)}
-                10. **潛在客戶深度畫像:** ${JSON.stringify(customerProfilesData, null, 2)}
-                11. **輿情洞察與討論分析:** ${JSON.stringify(sentimentInsightsData, null, 2)}
-                12. **市場機會深度挖掘:** ${JSON.stringify(marketOpportunityData, null, 2)}
-                13. **深度市場洞察分析:** ${JSON.stringify(marketInsightsData, null, 2)}
-                14. **媒體組合策略分析:** ${JSON.stringify(mediaMixData, null, 2)}
-                15. **創意策略與執行方案:** ${JSON.stringify(creativeStrategyData, null, 2)}
+                9.  **深度市場洞察分析:** ${JSON.stringify(marketInsightsData, null, 2)}
+                10. **媒體組合策略分析:** ${JSON.stringify(mediaMixData, null, 2)}
+                11. **創意策略與執行方案:** ${JSON.stringify(creativeStrategyData, null, 2)}
+                12. **產品市場適配性分析:** ${JSON.stringify(productMarketFitData, null, 2)}
+                13. **潛在客戶深度畫像:** ${JSON.stringify(detailedPersonaData, null, 2)}
+                14. **社群輿情與討論洞察:** ${JSON.stringify(socialSentimentData, null, 2)}
                 ${complexB2BData ? `
-                16. **B2B複雜產品策略分析:** ${JSON.stringify(complexB2BData, null, 2)}
+                15. **B2B複雜產品策略分析:** ${JSON.stringify(complexB2BData, null, 2)}
                 ` : ''}
                 ${context.businessModel === 'B2B' ? `
-                17. **B2B 專業市場分析:** ${JSON.stringify(b2bData, null, 2)}
+                16. **B2B 專業市場分析:** ${JSON.stringify(b2bData, null, 2)}
                 ${context.primaryMarket === 'taiwan' ? `
-                18. **台灣 B2B 市場深度分析:** ${JSON.stringify(localB2bData, null, 2)}
+                17. **台灣 B2B 市場深度分析:** ${JSON.stringify(localB2bData, null, 2)}
                 ` : ''}
                 ` : ''}
 
                 請產出一份結構化的 HTML 報告，包含以下章節：
 
                 ## 1. 執行摘要
-                - 市場機會概述
+                - 產品市場適配性評估 (PMF Score)
+                - 市場機會與威脅概述
                 - 核心策略建議
-                - 預期投資回報
-                - 關鍵成功因素
+                - 預期投資回報與風險
+                - 關鍵成功因素與里程碑
 
-                ## 2. 深度市場洞察
+                ## 2. 產品市場適配性分析 (Product-Market Fit)
+                - 市場需求深度評估
+                - 產品與市場匹配度分析
+                - 客戶問題與解決方案適配
+                - 市場機會評分與排序
+                - 產品優化建議與路徑
+                - PMF就緒度評估與時程
+
+                ## 3. 潛在客戶深度畫像
+                - 主要客戶畫像詳細描述
+                - 次要客戶群體變化分析
+                - 客戶旅程完整地圖
+                - 痛點深度剖析與優先級
+                - 購買動機心理學分析
+                - 決策影響因素與關鍵時點
+
+                ## 4. 社群輿情與市場討論洞察
+                - 品牌輿情分析與競爭對比
+                - 各社群平台討論特徵
+                - 客戶對話模式與常見問題
+                - 趨勢話題與內容機會
+                - 意見領袖與影響者地圖
+                - 輿情風險與機會識別
+
+                ## 5. 深度市場洞察
                 - 競爭格局分析
                 - 市場趨勢與機會
                 - 威脅評估與應對
                 - 消費者行為演變
                 - 創新機會識別
-
-                ## 3. 目標受眾深度分析
-                - 人群特徵與洞察
-                - 消費行為模式
-                - 媒體使用習慣
-                - 決策影響因素
-                - 溝通偏好分析
 
                 ## 4. 整合媒體策略
                 - 最佳媒體組合建議
@@ -1994,45 +1993,44 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
                     markStatusDone(status10);
 
                     // 新增的深度分析模組
-                    const status11 = updateStatus(`分析產品市場適合度與匹配程度...`);
-                    const productMarketFitData = await analyzeProductMarketFit(analysisContext, userApiKey);
+                    const status11 = updateStatus(`進行深度市場洞察分析...`);
+                    const marketInsightsData = await analyzeDeepMarketInsights(analysisContext, userApiKey);
                     markStatusDone(status11);
 
-                    const status12 = updateStatus(`深度分析潛在客戶畫像與行為...`);
-                    const customerProfilesData = await analyzeTargetCustomerProfiles(analysisContext, userApiKey);
+                    const status12 = updateStatus(`設計最佳媒體組合策略...`);
+                    const mediaMixData = await analyzeMediaMixStrategy(analysisContext, userApiKey);
                     markStatusDone(status12);
 
-                    const status13 = updateStatus(`挖掘輿情洞察與討論深度分析...`);
-                    const sentimentInsightsData = await analyzeSentimentInsights(analysisContext, userApiKey);
+                    const status13 = updateStatus(`開發創意策略與執行方案...`);
+                    const creativeStrategyData = await analyzeCreativeStrategy(analysisContext, forumData, localAudienceData, userApiKey);
                     markStatusDone(status13);
 
-                    const status14 = updateStatus(`挖掘市場機會與商業潛力...`);
-                    const marketOpportunityData = await analyzeMarketOpportunityMining(analysisContext, userApiKey);
+                    // 產品市場適配性分析（重要新增模組）
+                    const status14 = updateStatus(`分析產品市場適配性與機會評估...`);
+                    const productMarketFitData = await analyzeProductMarketFit(analysisContext, userApiKey);
                     markStatusDone(status14);
 
-                    const status15 = updateStatus(`進行深度市場洞察分析...`);
-                    const marketInsightsData = await analyzeDeepMarketInsights(analysisContext, userApiKey);
+                    // 潛在客戶深度畫像分析（重要新增模組）
+                    const status15 = updateStatus(`構建潛在客戶深度畫像...`);
+                    const detailedPersonaData = await analyzeDetailedCustomerPersona(analysisContext, userApiKey);
                     markStatusDone(status15);
 
-                    const status16 = updateStatus(`設計最佳媒體組合策略...`);
-                    const mediaMixData = await analyzeMediaMixStrategy(analysisContext, userApiKey);
+                    // 社群輿情與討論洞察（重要新增模組）
+                    const status16 = updateStatus(`分析社群輿情與市場討論...`);
+                    const socialSentimentData = await analyzeSocialSentimentInsights(analysisContext, userApiKey);
                     markStatusDone(status16);
-
-                    const status17 = updateStatus(`開發創意策略與執行方案...`);
-                    const creativeStrategyData = await analyzeCreativeStrategy(analysisContext, forumData, localAudienceData, userApiKey);
-                    markStatusDone(status17);
 
                     // B2B複雜產品分析（當有詳細產品資料時執行）
                     let complexB2BData = null;
                     if (analysisContext.businessModel === 'B2B' && 
                         (analysisContext.productSubcategories || analysisContext.industryStandards || analysisContext.productKeywords)) {
-                        const status18 = updateStatus(`分析B2B複雜產品策略...`);
+                        const status17 = updateStatus(`分析B2B複雜產品策略...`);
                         complexB2BData = await analyzeComplexB2BProducts(analysisContext, userApiKey);
-                        markStatusDone(status18);
+                        markStatusDone(status17);
                     }
 
                     // 生成最終報告
-                    const status19 = updateStatus(`整合分析結果，生成專業報告...`);
+                    const status18 = updateStatus(`整合分析結果，生成專業報告...`);
                     const finalReport = await synthesizeFinalReport(
                         analysisContext, 
                         forumData, 
@@ -2045,13 +2043,12 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
                         localBusinessData,
                         localMediaData,
                         localAudienceData,
-                        productMarketFitData,
-                        customerProfilesData,
-                        sentimentInsightsData,
-                        marketOpportunityData,
                         marketInsightsData,
                         mediaMixData,
                         creativeStrategyData,
+                        productMarketFitData,
+                        detailedPersonaData,
+                        socialSentimentData,
                         complexB2BData,
                         userApiKey
                     );
@@ -3991,7 +3988,7 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
 
         // 檢查版本並提供快取清除提示
         function checkVersionAndCache() {
-            const currentVersion = '2.11.0';
+            const currentVersion = '3.0.0';
             const lastVersion = localStorage.getItem('mediaplan_version');
             
             if (!lastVersion || lastVersion !== currentVersion) {
@@ -4003,14 +4000,14 @@ pickleball glasses, kitchen blockers, Paintball Mask"></textarea>
                     setTimeout(() => {
                         const alert = document.createElement('div');
                         alert.className = 'fixed top-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform';
-                        alert.innerHTML = '🧠 v2.11.0 深度洞察與輿情分析升級!';
+                        alert.innerHTML = '🎯 v3.0.0 深度洞察與輿情分析重大升級!';
                         document.body.appendChild(alert);
                         
                         setTimeout(() => alert.classList.remove('translate-x-full'), 100);
                         setTimeout(() => {
                             alert.classList.add('translate-x-full');
                             setTimeout(() => alert.remove(), 300);
-                        }, 6000);
+                        }, 7000);
                     }, 1000);
                 }
             }
